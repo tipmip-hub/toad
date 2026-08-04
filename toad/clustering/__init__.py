@@ -102,7 +102,9 @@ def compute_clusters(
         var: Name of the base variable or shifts variable to compute clusters for. If multiple shifts variables exist for the base variable, a ValueError is thrown, in which case you should specify the shifts variable name.
         method: The clustering method to use. Choose methods from `sklearn.cluster` or create your own by inheriting from `sklearn.base.ClusterMixin`.
         shift_threshold: The minimum magnitude a shift must reach to be included in clustering. Raising this threshold filters out less significant shifts and helps focus clustering on the most meaningful events, while reducing it will include more subtle (and potentially noisier) shifts. Default is 0.5, which effectively excludes most noise when using ASDETECT.
-        shift_direction: The direction of the shift. Options are "both", "positive", "negative". Defaults to "both".
+        shift_direction: The direction of the shift. Options are "both", "positive", "negative".
+            When "both", positive and negative shifts are clustered separately and merged
+            into one output variable so that no cluster contains mixed signs. Defaults to "both".
         shift_selection: How shift values are selected for clustering. All options respect shift_threshold and shift_direction:
             - "local": Finds peaks within individual shift episodes. Cluster only local maxima within each contiguous segment where abs(shift) > shift_threshold.
             - "global": Finds the overall strongest shift per grid cell. Cluster only the single maximum shift value per grid cell where abs(shift) > shift_threshold.
@@ -145,7 +147,8 @@ def compute_clusters(
         - Generate output label with optional suffix
         - Check for existing results and handle overwrite based on parameters
         - Compute peak/sign mask based on shift_selection ("local"/"global")
-        - Filter points based on shift_direction ("both"/"positive"/"negative")
+        - Filter points based on shift_direction ("both"/"positive"/"negative");
+          when "both", cluster each sign separately and merge labels
         - Extract spatial and temporal coordinates
         - Apply optional regridding to standardize coordinates
         - Scale coordinates using sklearn preprocessing
@@ -335,79 +338,70 @@ def compute_clusters(
         vals_sh = np.asarray(sh.data)[idx]
         weights = np.abs(vals_sh)
 
-        # ==================== REGIDDING ====================
         # Create HealPixRegridder only for regular 1D lat/lon grids
         if regridder is None and is_latlon_dims and not disable_regridder:
             regridder = HealPixRegridder()
-        if regridder and not disable_regridder:
-            logger.debug(
-                f"Regridding {shifts_variable} with {regridder.__class__.__name__}"
-            )
-            coords, weights = regridder.regrid(
-                coords,
-                weights,
-                space_dims_size=(
-                    td.data.sizes[td.space_dims[0]],
-                    td.data.sizes[td.space_dims[1]],
-                ),
-            )
 
-        # Convert to Cartesian (time, x, y, z) coordinates when lat/lon are available
-        if has_latlon:
-            coords = geodetic_to_cartesian(
-                time=coords[:, 0], lat=coords[:, 1], lon=coords[:, 2]
-            )
-
-        # Calculate spatial scale as the mean std of all spatial (non-time) coordinates
-        space_coords = coords[:, 1:]  # exclude time, keep x/y[/z]
-        space_std = np.mean(np.std(space_coords, axis=0))
-
-        # Scale time to match spatial std
-        time_values = coords[:, 0]  # extract time column
-        time_mean = np.mean(time_values)
-        time_std = np.std(time_values)
-
-        # Convert method to instance early (needed for skip_time_scaling check)
         method = method() if isinstance(method, type) else method
-        skip_time_scaling = getattr(method, "skip_time_scaling", False)
-
-        # If time scaling is not disabled, scale time (defined in the method)
-        if not skip_time_scaling:
-            if time_std > 0:
-                # Scale time: (time - mean) / std * spatial_std
-                coords[:, 0] = (time_values - time_mean) / time_std * space_std
-            if time_weight != 1:
-                coords[:, 0] = coords[:, 0] * time_weight
-
-        # Measure preprocessing time
         preprocessing_time = time_now() - start_time
-
-        logger.debug(
-            f"Applying clusterer {method.__class__.__name__} to {shifts_variable} with {n_pts} points"
+        space_dims_size = (
+            td.data.sizes[td.space_dims[0]],
+            td.data.sizes[td.space_dims[1]],
         )
 
-        # ==================== APPLY CLUSTERING METHOD ====================
-        cluster_start = time_now()
-        try:
-            cluster_labels = np.array(method.fit_predict(X=coords, y=weights))
-        except ValueError as e:
-            if "min_samples" in str(e) and "must be at most" in str(e):
-                logger.warning(
-                    f"Clustering failed due to insufficient data points. Returning no clusters. Error: {e}"
+        signs = np.sign(vals_sh)
+        split_by_sign = shift_direction == "both"
+        sign_masks = (
+            [signs > 0, signs < 0] if split_by_sign else [np.ones(n_pts, dtype=bool)]
+        )
+
+        cluster_labels = np.full(n_pts, -1, dtype=int)
+        label_offset = 0
+        regridders_used: list[BaseRegridder] = []
+        clustering_time = 0.0
+
+        for mask in sign_masks:
+            if not np.any(mask):
+                continue
+            n_sub = int(mask.sum())
+            logger.debug(
+                f"Applying clusterer {method.__class__.__name__} to {shifts_variable} "
+                f"with {n_sub} points" + (" (sign split)" if split_by_sign else "")
+            )
+            cluster_start = time_now()
+            sub_labels, used_regridder = _cluster_coords_subset(
+                coords[mask],
+                weights[mask],
+                method,
+                has_latlon=has_latlon,
+                regridder=_clone_regridder(regridder),
+                disable_regridder=disable_regridder,
+                space_dims_size=space_dims_size,
+                time_weight=time_weight,
+            )
+            clustering_time += time_now() - cluster_start
+
+            sub_labels = np.asarray(sub_labels, dtype=int)
+            valid = sub_labels >= 0
+            if label_offset > 0 and np.any(valid):
+                sub_labels = sub_labels.copy()
+                sub_labels[valid] += label_offset
+            if np.any(valid):
+                label_offset = int(sub_labels[valid].max()) + 1
+            cluster_labels[mask] = sub_labels
+            if used_regridder is not None:
+                regridders_used.append(used_regridder)
+
+        if regridders_used:
+            regridder = regridders_used[-1]
+            if len(regridders_used) > 1:
+                import pandas as pd
+
+                regridder.df_healpix = pd.concat(
+                    [rg.df_healpix for rg in regridders_used],
+                    ignore_index=True,
                 )
-                cluster_labels = np.full(len(coords), -1)
-            else:
-                raise e
-        clustering_time = time_now() - cluster_start
 
-        # Regrid back
-        if regridder:
-            cluster_labels = regridder.regrid_clusters_back(
-                cluster_labels
-            )  # regridder holds the original coordinates
-
-        # Sort cluster labels by size (After regridding because regridding
-        # may change the number of members in each cluster)
         cluster_labels = (
             sorted_cluster_labels(cluster_labels) if sort_by_size else cluster_labels
         )
@@ -473,6 +467,68 @@ def compute_clusters(
 
     # Merge the cluster labels back into the original data
     return xr.merge([td.data, clusters], combine_attrs="override", compat="override")
+
+
+def _clone_regridder(regridder: BaseRegridder | None) -> BaseRegridder | None:
+    if regridder is None:
+        return None
+    nside = getattr(regridder, "nside", None)
+    return regridder.__class__(nside=nside)
+
+
+def _cluster_coords_subset(
+    coords: np.ndarray,
+    weights: np.ndarray,
+    method: ClusterMixin,
+    *,
+    has_latlon: bool,
+    regridder: BaseRegridder | None,
+    disable_regridder: bool,
+    space_dims_size: tuple[int, int],
+    time_weight: float,
+) -> tuple[np.ndarray, BaseRegridder | None]:
+    """Regrid, scale, and cluster one subset of (time, lat, lon) points."""
+    used_regridder = regridder
+    if used_regridder and not disable_regridder:
+        coords, weights = used_regridder.regrid(coords, weights, space_dims_size)
+
+    if has_latlon:
+        coords = geodetic_to_cartesian(
+            time=coords[:, 0], lat=coords[:, 1], lon=coords[:, 2]
+        )
+
+    space_coords = coords[:, 1:]
+    space_std = np.mean(np.std(space_coords, axis=0))
+    time_values = coords[:, 0]
+    time_mean = np.mean(time_values)
+    time_std = np.std(time_values)
+    skip_time_scaling = getattr(method, "skip_time_scaling", False)
+
+    if not skip_time_scaling:
+        coords = coords.copy()
+        if time_std > 0:
+            coords[:, 0] = (time_values - time_mean) / time_std * space_std
+        if time_weight != 1:
+            coords[:, 0] = coords[:, 0] * time_weight
+
+    try:
+        labels = np.asarray(method.fit_predict(X=coords, y=weights), dtype=int)
+    except ValueError as e:
+        if "min_samples" in str(e) and "must be at most" in str(e):
+            logger.warning(
+                "Clustering failed due to insufficient data points. "
+                f"Returning no clusters. Error: {e}"
+            )
+            labels = np.full(len(coords), -1, dtype=int)
+        else:
+            raise
+
+    if used_regridder and not disable_regridder:
+        labels = used_regridder.regrid_clusters_back(labels)
+
+    return labels, used_regridder if (
+        used_regridder and not disable_regridder
+    ) else None
 
 
 def _format_cluster_summary(
