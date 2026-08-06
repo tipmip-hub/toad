@@ -112,3 +112,32 @@ class TestASDetect:
         )
 
         np.testing.assert_allclose(shifts, expected, atol=1e-6)
+
+    def test_asdetect_leading_trailing_nan_matches_finite_core(self):
+        """Leading/trailing NaN padding is trimmed; core matches a finite series."""
+        np.random.seed(4)
+        data = np.random.randn(50)
+        data[20:] += 20
+
+        expected = ASDETECT(segmentation="two_sided").fit_predict(
+            data, np.arange(len(data), dtype=np.float64)
+        )
+
+        padded = np.full(60, np.nan)
+        padded[5:55] = data
+        shifts = ASDETECT(segmentation="two_sided").fit_predict(
+            padded, np.arange(len(padded), dtype=np.float64)
+        )
+
+        np.testing.assert_allclose(shifts[5:55], expected, atol=1e-6)
+        np.testing.assert_allclose(shifts[:5], 0.0)
+        np.testing.assert_allclose(shifts[55:], 0.0)
+
+    def test_asdetect_internal_nan_returns_zeros(self):
+        """Internal NaN gaps still yield an all-zero detection series."""
+        data = np.arange(30, dtype=np.float64)
+        data[15] = np.nan
+        shifts = ASDETECT(segmentation="two_sided").fit_predict(
+            data, np.arange(len(data), dtype=np.float64)
+        )
+        np.testing.assert_allclose(shifts, 0.0)

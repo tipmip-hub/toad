@@ -21,7 +21,7 @@ from tqdm_joblib import tqdm_joblib
 from toad._version import __version__
 from toad.utils import _attrs, get_unique_variable_name
 
-from .methods.asdetect import ASDETECT
+from .methods.asdetect import ASDETECT, leading_trailing_nan_processable
 from .methods.base import ShiftsMethod
 from .methods.edge import EDGE
 
@@ -120,18 +120,25 @@ def compute_shifts(
     valid_mask = ~(constant_mask | nan_mask)
     masked_data_array = data_array.where(valid_mask)
 
-    # Find valid cells that have any NaN in their time series
-    valid_cells_with_any_nan = (
-        masked_data_array.isnull().any(dim=td.time_dim) & valid_mask
+    # Cells with internal NaN gaps are skipped; leading/trailing NaN padding is OK.
+    processable_mask = xr.apply_ufunc(
+        leading_trailing_nan_processable,
+        data_array,
+        input_core_dims=[[td.time_dim]],
+        vectorize=True,
+        dask="allowed",
     )
-    n_cells_still_with_nan = valid_cells_with_any_nan.sum().item()
-    if n_cells_still_with_nan > 0:
+    internal_nan_mask = (
+        data_array.isnull().any(dim=td.time_dim) & valid_mask & ~processable_mask
+    )
+    n_internal_nan = int(internal_nan_mask.sum().item())
+    if n_internal_nan > 0:
         logger.warning(
-            f"{n_cells_still_with_nan} valid grid cells contain one or more NaN values within their time series. Such grid cells will be skipped in the detection process."
+            f"{n_internal_nan} valid grid cells contain internal NaN gaps in their "
+            "time series and will be skipped."
         )
 
-    # Exclude grid cells that still contain any NaN in their time series from further processing
-    fully_valid_mask = valid_mask & (~valid_cells_with_any_nan)
+    fully_valid_mask = valid_mask & processable_mask
     masked_data_array = data_array.where(fully_valid_mask)
 
     # Initialize output array with NaN values

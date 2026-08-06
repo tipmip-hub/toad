@@ -42,7 +42,10 @@ class ASDETECT(ShiftsMethod):
         - Normalizes by dividing by the total number of window sizes used (lmax - lmin + 1).
         - Simpler approach that matches the original algorithm implementation.
 
-    Note: ASDETECT does not work with NaN values so it will return a detection time series of all zeros if the input time series contains NaN values.
+    Note: NaN values are supported when they occur only as leading and/or trailing
+    padding (e.g. GWL bins the model never reached). The finite core is analysed and
+    scores are written back with zero outside that span. Internal gaps (NaN between
+    finite values) still yield an all-zero detection series.
 
     Args:
         lmin: The minimum segment length (in time steps) used for detection. Controls the
@@ -195,6 +198,100 @@ class ASDETECT(ShiftsMethod):
 
 # 1D time series analysis of abrupt shifts =====================================
 @njit
+def _leading_trailing_finite_bounds(
+    values_1d: NDArray[np.float64],
+) -> tuple[int, int]:
+    """Inclusive index bounds of the finite core, or (-1, -1) if unusable.
+
+    Returns (-1, -1) when the series is all non-finite or contains an internal gap.
+    """
+    n = len(values_1d)
+    first = -1
+    for i in range(n):
+        if np.isfinite(values_1d[i]):
+            first = i
+            break
+    if first < 0:
+        return -1, -1
+
+    last = -1
+    for i in range(n - 1, -1, -1):
+        if np.isfinite(values_1d[i]):
+            last = i
+            break
+
+    for i in range(first, last + 1):
+        if not np.isfinite(values_1d[i]):
+            return -1, -1
+    return first, last
+
+
+def leading_trailing_nan_processable(values_1d) -> bool:
+    """True if ``values_1d`` is usable (finite core, no internal NaN gaps)."""
+    arr = np.asarray(values_1d, dtype=np.float64)
+    first, _ = _leading_trailing_finite_bounds(arr)
+    return first >= 0
+
+
+@njit
+def _construct_detection_ts_finite(
+    values_1d: NDArray[np.float64],
+    times_1d: NDArray[np.float64],
+    lmin: int,
+    lmax: int,
+    segmentation: Literal["two_sided", "original"] | str,
+) -> NDArray[np.float64]:
+    """Run ASDETECT on a finite 1D series (no NaNs)."""
+    n_tot = len(values_1d)
+    detection_ts = np.zeros_like(values_1d)
+
+    if lmax < lmin:
+        if lmin == 5 and lmax == int(n_tot / 3):
+            raise ValueError(
+                f"Time series is too short for ASDETECT: with n={n_tot}, default lmin={lmin}, and default lmax=int(n/3)={lmax}. lmin must be smaller than lmax; your time series must be at least {lmin * 3} steps long. "
+                f"Either increase the length of your input time series, or decrease lmin."
+            )
+        raise ValueError("lmin must be smaller than lmax")
+
+    if segmentation == "original":
+        for length in range(lmin, lmax + 1):
+            n_seg = int(n_tot / length)
+            idx0 = (n_tot - n_seg * length) // 2
+            seg_idces = (idx0 + np.arange(n_seg + 1, dtype=np.int32) * length).astype(
+                np.int32
+            )
+            gradients = compute_gradients_from_segments(
+                values_1d, times_1d, seg_idces[:-1], seg_idces[1:] - seg_idces[:-1]
+            )
+
+            grad_median = median(gradients)
+            deviations = gradients - grad_median
+            mask = np.abs(deviations) > 3 * mad_from_median(gradients, grad_median)
+
+            signs = np.sign(deviations) * mask.astype(np.float64)
+            for i in range(len(mask)):
+                if mask[i]:
+                    detection_ts[seg_idces[i] : seg_idces[i + 1]] += signs[i]
+
+        detection_ts /= lmax - lmin + 1
+    elif segmentation == "two_sided":
+        counter = np.zeros_like(values_1d, dtype=np.int32)
+        for length in range(lmin, lmax + 1):
+            detection_ts, counter = update_detection_ts_two_sided(
+                detection_ts, counter, values_1d, times_1d, length
+            )
+
+        detection_ts /= counter
+        detection_ts *= counter / max(counter)
+    else:
+        raise ValueError(
+            f"Segmentation method '{segmentation}' not recognized. Choose 'original' or 'two_sided'."
+        )
+
+    return detection_ts
+
+
+@njit
 def construct_detection_ts(
     values_1d: NDArray[np.float64],
     times_1d: NDArray[np.float64],
@@ -229,72 +326,37 @@ def construct_detection_ts(
         segmentation:
             Segmentation method to use. Options are "original" (classic) and "two_sided" (removes bias + smoother with edge correction). Defaults to "two_sided".
         ignore_nan_warnings:
-            If True, timeseries containing NaN values will be ignored, i.e. a detection time series of all zeros will be returned. If False, an error will be raised.
+            Deprecated; retained for API compatibility. Leading/trailing NaNs are
+            trimmed automatically. Internal NaN gaps still return all zeros.
 
     >> Returns:
         - Abrupt shift score time series, shape (n,)
     """
 
-    n_tot = len(values_1d)
     detection_ts = np.zeros_like(values_1d)
-
-    if lmax is None:
-        lmax = int(n_tot / 3)
-
-    if lmax < lmin:
-        # Tell user *why* this happened for common default case
-        if lmin == 5 and lmax == int(n_tot / 3):
-            raise ValueError(
-                f"Time series is too short for ASDETECT: with n={n_tot}, default lmin={lmin}, and default lmax=int(n/3)={lmax}. lmin must be smaller than lmax; your time series must be at least {lmin * 3} steps long. "
-                f"Either increase the length of your input time series, or decrease lmin."
-            )
-        raise ValueError("lmin must be smaller than lmax")
-
-    # return zeros if timeseries contains nan values
-    if np.isnan(values_1d).any():
-        # User is warned of this in the TOAD.compute_shifts() method
+    first, last = _leading_trailing_finite_bounds(values_1d)
+    if first < 0:
         return detection_ts
 
-    if segmentation == "original":
-        for length in range(lmin, lmax + 1):
-            n_seg = int(n_tot / length)
-            idx0 = (n_tot - n_seg * length) // 2
-            seg_idces = (idx0 + np.arange(n_seg + 1, dtype=np.int32) * length).astype(
-                np.int32
-            )
-            gradients = compute_gradients_from_segments(
-                values_1d, times_1d, seg_idces[:-1], seg_idces[1:] - seg_idces[:-1]
-            )
+    core_values = values_1d[first : last + 1]
+    core_times = times_1d[first : last + 1]
+    n_core = len(core_values)
 
-            grad_median = median(gradients)
-            deviations = gradients - grad_median
-            mask = np.abs(deviations) > 3 * mad_from_median(gradients, grad_median)
+    lmax_eff = int(n_core / 3) if lmax is None else lmax
+    lmax_max = n_core // 3
+    if lmax_eff > lmax_max:
+        lmax_eff = lmax_max
+    if lmax_eff < lmin:
+        return detection_ts
 
-            # Pre-compute signs for detected segments to avoid repeated np.sign calls
-            signs = np.sign(deviations) * mask.astype(np.float64)
-            for i in range(len(mask)):
-                if mask[i]:
-                    detection_ts[seg_idces[i] : seg_idces[i + 1]] += signs[i]
-
-        detection_ts /= lmax - lmin + 1
-    elif segmentation == "two_sided":
-        counter = np.zeros_like(values_1d, dtype=np.int32)
-        for length in range(lmin, lmax + 1):
-            detection_ts, counter = update_detection_ts_two_sided(
-                detection_ts, counter, values_1d, times_1d, length
-            )
-
-        # Normalise by counter to get values between -1 and 1
-        detection_ts /= counter
-
-        # Apply edge correction: downweight edges by dividing by the maximum counter value (this will make values at the edges smaller, where fewer segments overlap)
-        detection_ts *= counter / max(counter)
-
-    else:
-        raise ValueError(
-            f"Segmentation method '{segmentation}' not recognized. Choose 'original' or 'two_sided'."
-        )
-
+    core_detection = _construct_detection_ts_finite(
+        core_values,
+        core_times,
+        lmin,
+        lmax_eff,
+        segmentation,
+    )
+    detection_ts[first : last + 1] = core_detection
     return detection_ts
 
 
