@@ -86,6 +86,11 @@ class TOAD:
             data (drops bounds, auxiliary dims, orphan coords). Defaults to False.
             Dimension names ``longitude``/``latitude`` are renamed to ``lon``/``lat`` first
             so cleaning and :attr:`space_dims` see the standard names.
+        decode_times: How to decode CF time coordinates when ``data`` is a file path.
+            ``None`` (default) uses :class:`xarray.coders.CFDatetimeCoder` with
+            ``use_cftime=True``, which avoids xarray warnings for dates outside the
+            ``numpy.datetime64`` range. Pass ``False`` for undecoded numeric time, or a
+            :class:`xarray.coders.CFDatetimeCoder` instance for custom decoding.
 
     Raises:
         ValueError: If the input file path does not exist or if data dimensions are not 3D.
@@ -101,12 +106,20 @@ class TOAD:
         log_level: str = "INFO",
         engine: str = "netcdf4",
         auto_clean: bool = False,
+        decode_times: bool | xr.coders.CFDatetimeCoder | None = None,
     ):
         # load data from path if string
         if isinstance(data, str):
             if not os.path.exists(data):
                 raise ValueError(f"File {data} does not exist.")
-            self.data = xr.open_dataset(data, engine=engine)
+            open_decode_times = (
+                xr.coders.CFDatetimeCoder(use_cftime=True)
+                if decode_times is None
+                else decode_times
+            )
+            self.data = xr.open_dataset(
+                data, engine=engine, decode_times=open_decode_times
+            )
             self.data.attrs["title"] = os.path.basename(data).split(".")[
                 0
             ]  # store path as title for saving toad file later
