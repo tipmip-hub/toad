@@ -60,6 +60,28 @@ def clean_for_toad(ds: xr.Dataset, time_dim: str = "time") -> xr.Dataset:
         logger.info("Dropping bounds vars: %s", bnds_vars)
         ds = ds.drop_vars(bnds_vars, errors="ignore")
 
+    # Static 2D grid geometry (e.g. CESM POP TLAT on y/x) is not a TOAD field.
+    # Drop before inferring spatial dims so orphan y/x axes do not inflate the count.
+    static_data_vars = [v for v in ds.data_vars if time_dim not in ds[v].dims]
+    if static_data_vars:
+        logger.info(
+            "Dropping static data vars (no %r dim): %s", time_dim, static_data_vars
+        )
+        ds = ds.drop_vars(static_data_vars)
+
+    data_var_dims = {d for v in ds.data_vars for d in ds[v].dims}
+    for dim in list(ds.sizes):
+        if dim in keep_dims or dim in data_var_dims:
+            continue
+        if ds.sizes[dim] == 1:
+            logger.info("Squeezing size-1 dim: %s", dim)
+            ds = ds.isel({dim: 0}, drop=True)
+        else:
+            logger.info(
+                "Dropping unused dim (no data vars): %s (size %s)", dim, ds.sizes[dim]
+            )
+            ds = ds.drop_dims(cast(str, dim))
+
     known_nonspatial = (
         {time_dim} | _ENSEMBLE_DIM_NAMES | {_DCPP_INIT_YEAR} | _VERTICAL_DIM_NAMES
     )
