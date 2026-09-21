@@ -1,0 +1,38 @@
+﻿toad.plotting.Plotter
+=====================
+
+.. currentmodule:: toad.plotting
+
+.. autoclass:: Plotter
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Plotter.__init__
+      ~Plotter.cluster_map
+      ~Plotter.cluster_occurrence_rate_map
+      ~Plotter.cluster_overview
+      ~Plotter.cluster_shift_times_violins
+      ~Plotter.consensus_map
+      ~Plotter.consensus_overview
+      ~Plotter.consensus_rate_map
+      ~Plotter.consensus_shift_times_medians
+      ~Plotter.consensus_shift_times_violins
+      ~Plotter.consensus_timeseries
+      ~Plotter.map
+      ~Plotter.max_shift_map
+      ~Plotter.overview
+      ~Plotter.shift_dist
+      ~Plotter.time_of_max_shift_map
+      ~Plotter.timeseries
+   
+   
+
+   
+   
+   

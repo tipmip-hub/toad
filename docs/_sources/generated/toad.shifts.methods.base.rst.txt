@@ -1,0 +1,12 @@
+toad.shifts.methods.base
+========================
+
+.. automodule:: toad.shifts.methods.base
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ShiftsMethod
+   

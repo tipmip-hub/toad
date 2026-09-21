@@ -1,0 +1,21 @@
+toad.postprocessing.stats
+=========================
+
+.. automodule:: toad.postprocessing.stats
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Stats
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   general
+   space
+   time

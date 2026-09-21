@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+
+<html :class="{ 'dark' : darkMode === true }" data-content_root="../" lang="en" x-data="{ darkMode: $persist(window.matchMedia('(prefers-color-scheme: dark)').matches), activeSection: ''}">
+<head>
+<script>
+    (function () {
+      // Set initial color scheme
+      if ((localStorage.getItem("_x_darkMode") === "true") || (window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.documentElement.classList.add("dark");
+      }
+
+      // Watch for media preference changes
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+        localStorage.setItem("_x_darkMode", event.matches);
+        document.documentElement.classList.toggle("dark", event.matches);
+      });
+    })();
+  </script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8"/>
+<meta content="#ffffff" media="(prefers-color-scheme: light)" name="theme-color"/>
+<meta content="#030711" media="(prefers-color-scheme: dark)" name="theme-color"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>toad.plotting.Plotter | toad  documentation</title>
+<meta content="toad.plotting.Plotter | toad  documentation" property="og:title"/>
+<meta content="toad.plotting.Plotter | toad  documentation" name="twitter:title"/>
+<link href="../_static/pygments.css?v=8d216cef" rel="stylesheet" type="text/css"/>
+<link href="../_static/theme.css?v=d6d7c91b" rel="stylesheet" type="text/css"/>
+<link href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/custom.css?v=a187b300" rel="stylesheet" type="text/css"/>
+<link href="../_static/awesome-myst-nb.css?v=7c7ea10c" rel="stylesheet" type="text/css"/>
+<link href="../_static/favicon.png" rel="icon"/>
+<link href="../search.html" rel="search" title="Search"/>
+<link href="../genindex.html" rel="index" title="Index"/>
+<link href="toad.plotting.MapStyle.html" rel="next" title="toad.plotting.MapStyle"/>
+<link href="toad.shifts.ASDETECT.html" rel="prev" title="toad.shifts.ASDETECT"/>
+</head>
+<body :class="{ 'overflow-hidden': showSidebar }" class="min-h-screen font-sans antialiased bg-background text-foreground" x-data="{ showSidebar: false, showScrollTop: false }">
+<div @click.self="showSidebar = false" class="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm md:hidden" x-cloak="" x-show="showSidebar"></div><div class="relative flex flex-col min-h-screen" id="page"><a class="absolute top-0 left-0 z-[100] block bg-background p-4 text-xl transition -translate-x-full opacity-0 focus:translate-x-0 focus:opacity-100" href="#content">
+      Skip to content
+    </a><header class="sticky top-0 z-40 w-full border-b shadow-xs border-border bg-background/90 backdrop-blur"><div class="container flex items-center h-14">
+<div class="hidden mr-4 md:flex">
+<a class="flex items-center mr-6" href="../sidebar_main_nav_links.html">
+<img alt="Logo" class="mr-2 dark:invert" height="24" src="../_static/toad.png" width="24"/><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">toad  documentation</span>
+</a></div><button @click="showSidebar = true" class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden" type="button">
+<svg aria-hidden="true" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z"></path>
+</svg>
+<span class="sr-only">Toggle navigation menu</span>
+</button>
+<div class="flex items-center justify-between flex-1 gap-2 sm:gap-4 md:justify-end">
+<div class="flex-1 w-full md:w-auto md:flex-none"><form @keydown.k.window.meta="$refs.search.focus()" action="../search.html" class="relative flex items-center group" id="searchbox" method="get">
+<input aria-label="Search the docs" class="inline-flex items-center font-medium transition-colors bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background border border-input hover:bg-accent focus:bg-accent hover:text-accent-foreground focus:text-accent-foreground hover:placeholder-accent-foreground py-2 px-4 relative h-9 w-full justify-start rounded-[0.5rem] text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64" id="search-input" name="q" placeholder="Search ..." type="search" x-ref="search"/>
+<kbd class="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none text-muted-foreground items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex group-hover:bg-accent group-hover:text-accent-foreground">
+<span class="text-xs">⌘</span>
+    K
+  </kbd>
+</form>
+</div>
+<nav class="flex items-center gap-1">
+<a href="https://github.com/tipmip-methods/toad" rel="noopener nofollow" title="Visit GitHub">
+<div class="inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9">
+<svg fill="currentColor" height="16" viewbox="0 0 16 16" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+</svg>
+</div>
+</a>
+<button @click="darkMode = !darkMode" class="relative inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9" title="Toggle color scheme" type="button">
+<svg class="absolute transition-all scale-100 rotate-0 dark:-rotate-90 dark:scale-0" fill="currentColor" height="16" viewbox="0 96 960 960" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 685q45.456 0 77.228-31.772Q589 621.456 589 576q0-45.456-31.772-77.228Q525.456 467 480 467q-45.456 0-77.228 31.772Q371 530.544 371 576q0 45.456 31.772 77.228Q434.544 685 480 685Zm0 91q-83 0-141.5-58.5T280 576q0-83 58.5-141.5T480 376q83 0 141.5 58.5T680 576q0 83-58.5 141.5T480 776ZM80 621.5q-19.152 0-32.326-13.174T34.5 576q0-19.152 13.174-32.326T80 530.5h80q19.152 0 32.326 13.174T205.5 576q0 19.152-13.174 32.326T160 621.5H80Zm720 0q-19.152 0-32.326-13.174T754.5 576q0-19.152 13.174-32.326T800 530.5h80q19.152 0 32.326 13.174T925.5 576q0 19.152-13.174 32.326T880 621.5h-80Zm-320-320q-19.152 0-32.326-13.174T434.5 256v-80q0-19.152 13.174-32.326T480 130.5q19.152 0 32.326 13.174T525.5 176v80q0 19.152-13.174 32.326T480 301.5Zm0 720q-19.152 0-32.326-13.17Q434.5 995.152 434.5 976v-80q0-19.152 13.174-32.326T480 850.5q19.152 0 32.326 13.174T525.5 896v80q0 19.152-13.174 32.33-13.174 13.17-32.326 13.17ZM222.174 382.065l-43-42Q165.5 327.391 166 308.239t13.174-33.065q13.435-13.674 32.587-13.674t32.065 13.674l42.239 43q12.674 13.435 12.555 31.706-.12 18.272-12.555 31.946-12.674 13.674-31.445 13.413-18.772-.261-32.446-13.174Zm494 494.761-42.239-43q-12.674-13.435-12.674-32.087t12.674-31.565Q686.609 756.5 705.38 757q18.772.5 32.446 13.174l43 41.761Q794.5 824.609 794 843.761t-13.174 33.065Q767.391 890.5 748.239 890.5t-32.065-13.674Zm-42-494.761Q660.5 369.391 661 350.62q.5-18.772 13.174-32.446l41.761-43Q728.609 261.5 747.761 262t33.065 13.174q13.674 13.435 13.674 32.587t-13.674 32.065l-43 42.239q-13.435 12.674-31.706 12.555-18.272-.12-31.946-12.555Zm-495 494.761Q165.5 863.391 165.5 844.239t13.674-32.065l43-42.239q13.435-12.674 32.087-12.674t31.565 12.674Q299.5 782.609 299 801.38q-.5 18.772-13.174 32.446l-41.761 43Q231.391 890.5 212.239 890t-33.065-13.174ZM480 576Z"></path>
+</svg>
+<svg class="absolute transition-all scale-0 rotate-90 dark:rotate-0 dark:scale-100" fill="currentColor" height="16" viewbox="0 96 960 960" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 936q-151 0-255.5-104.5T120 576q0-138 90-239.5T440 218q25-3 39 18t-1 44q-17 26-25.5 55t-8.5 61q0 90 63 153t153 63q31 0 61.5-9t54.5-25q21-14 43-1.5t19 39.5q-14 138-117.5 229T480 936Zm0-80q88 0 158-48.5T740 681q-20 5-40 8t-40 3q-123 0-209.5-86.5T364 396q0-20 3-40t8-40q-78 32-126.5 102T200 576q0 116 82 198t198 82Zm-10-270Z"></path>
+</svg>
+</button>
+</nav>
+</div>
+</div>
+</header>
+<div class="flex-1"><div class="container md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }" class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full overflow-y-auto border-r border-border md:sticky" id="left-sidebar">
+<a class="justify-start text-sm md:!hidden bg-background" href="../sidebar_main_nav_links.html">
+<img alt="Logo" class="mr-2 dark:invert" height="16" src="../_static/toad.png" width="16"/><span class="font-bold text-clip whitespace-nowrap">toad  documentation</span>
+</a>
+<div class="relative overflow-hidden md:overflow-auto my-4 md:my-0">
+<div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start</a></li>
+<li class="toctree-l1" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="../tutorials.html">Tutorials<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul x-cloak="" x-show="expanded">
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/basics.html">TOAD Basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/custom_clustering.html">Implement your own clustering method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/custom_shifts_detection.html">Implement your own shifts detection method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/consensus.html">Consensus clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/consensus.html#imports">Imports</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/consensus.html#prepare-data">Prepare data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/consensus.html#computes-shifts-and-clusters">Computes shifts and clusters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/consensus.html#compute-consensus">Compute consensus</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/consensus.html#visualise-consensus">Visualise consensus</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../consensus_clustering.html">Consensus clustering</a></li>
+<li class="toctree-l1 current" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="../api_ref.html">API Reference<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul class="current" x-show="expanded">
+<li class="toctree-l2"><a class="reference internal" href="toad.TOAD.html">toad.TOAD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.shifts.ASDETECT.html">toad.shifts.ASDETECT</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">toad.plotting.Plotter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.plotting.MapStyle.html">toad.plotting.MapStyle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.regridding.HealPixRegridder.html">toad.regridding.HealPixRegridder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.regridding.base.BaseRegridder.html">toad.regridding.base.BaseRegridder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.shifts.html">toad.shifts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.clustering.html">toad.clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.postprocessing.html">toad.postprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.utils.html">toad.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../scientific_ref.html">Scientific References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+</nav>
+</div>
+</div>
+<button @click="showSidebar = false" class="absolute md:hidden right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100" type="button">
+<svg class="h-4 w-4" fill="currentColor" height="24" stroke="none" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 632 284 828q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536 576l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480 632Z"></path>
+</svg>
+</button>
+</aside>
+<main class="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+<div class="w-full min-w-0 mx-auto">
+<nav aria-label="breadcrumbs" class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
+<a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground" href="../sidebar_main_nav_links.html">
+<span class="hidden md:inline">toad  documentation</span>
+<svg aria-label="Home" class="md:hidden" fill="currentColor" height="18" stroke="none" viewbox="0 96 960 960" width="18" xmlns="http://www.w3.org/2000/svg">
+<path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z"></path>
+</svg>
+</a>
+<div class="mr-1">/</div><a class="hover:text-foreground overflow-hidden text-ellipsis whitespace-nowrap" href="../api_ref.html">API Reference</a>
+<div class="mr-1">/</div><span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">toad.plotting.Plotter</span>
+</nav>
+<div id="content" role="main">
+<section id="toad-plotting-plotter">
+<h1>toad.plotting.Plotter<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad-plotting-plotter"><span>¶</span></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="toad.plotting.Plotter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">toad.plotting.</span></span><span class="sig-name descname"><span class="pre">Plotter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">td</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Plotting utilities for TOAD objects.</p>
+<p>The Plotter class provides methods for creating publication-ready visualizations
+of TOAD data, including maps, timeseries, and statistical plots.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>td</strong> – TOAD object containing the data to plot</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">td</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.__init__" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.__init__'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#toad.plotting.Plotter.__init__" title="toad.plotting.Plotter.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(td)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#toad.plotting.Plotter.cluster_map" title="toad.plotting.Plotter.cluster_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cluster_map</span></code></a>(, *, ax, color, cmap, ...)</p></td>
+<td><p>Plot one or multiple clusters on a map.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#toad.plotting.Plotter.cluster_occurrence_rate_map" title="toad.plotting.Plotter.cluster_occurrence_rate_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cluster_occurrence_rate_map</span></code></a>(*[, ...])</p></td>
+<td><p>Map the fraction of input clusterings that ever labelled each cell.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#toad.plotting.Plotter.cluster_overview" title="toad.plotting.Plotter.cluster_overview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cluster_overview</span></code></a>(**kwargs)</p></td>
+<td><p>Deprecated function: use td.plot.overview() instead.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#toad.plotting.Plotter.cluster_shift_times_violins" title="toad.plotting.Plotter.cluster_shift_times_violins"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cluster_shift_times_violins</span></code></a>([var, ...])</p></td>
+<td><p>Transition-time event samples for a <strong>single</strong> 3D cluster label field (not consensus).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#toad.plotting.Plotter.consensus_map" title="toad.plotting.Plotter.consensus_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">consensus_map</span></code></a>([consensus_var, cluster_ids, ...])</p></td>
+<td><p>Plot consensus cluster footprints on a map (same layout ideas as <a class="reference internal" href="#toad.plotting.Plotter.cluster_map" title="toad.plotting.Plotter.cluster_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cluster_map()</span></code></a>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#toad.plotting.Plotter.consensus_overview" title="toad.plotting.Plotter.consensus_overview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">consensus_overview</span></code></a>([consensus_var, ...])</p></td>
+<td><p>Two-panel figure: consensus map (left) and shift-time view (right).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#toad.plotting.Plotter.consensus_rate_map" title="toad.plotting.Plotter.consensus_rate_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">consensus_rate_map</span></code></a>([consensus_var, ...])</p></td>
+<td><p>Map member-support consensus rate from a consensus run (time-collapsed).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#toad.plotting.Plotter.consensus_shift_times_medians" title="toad.plotting.Plotter.consensus_shift_times_medians"><code class="xref py py-obj docutils literal notranslate"><span class="pre">consensus_shift_times_medians</span></code></a>([...])</p></td>
+<td><p>Per-input median transition time vs median-of-medians summary (from <code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_summary()</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#toad.plotting.Plotter.consensus_shift_times_violins" title="toad.plotting.Plotter.consensus_shift_times_violins"><code class="xref py py-obj docutils literal notranslate"><span class="pre">consensus_shift_times_violins</span></code></a>([...])</p></td>
+<td><p>Transition-time samples per consensus cluster: half-violin + scatter or full violins.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#toad.plotting.Plotter.consensus_timeseries" title="toad.plotting.Plotter.consensus_timeseries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">consensus_timeseries</span></code></a>(cluster_id[, ...])</p></td>
+<td><p>Overlay per-input-cluster timeseries for one consensus cluster (no map).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#toad.plotting.Plotter.map" title="toad.plotting.Plotter.map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">map</span></code></a>(...)</p></td>
+<td><p>Create map plots with standard features.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#toad.plotting.Plotter.max_shift_map" title="toad.plotting.Plotter.max_shift_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">max_shift_map</span></code></a>([var, cluster_ids, ax, ...])</p></td>
+<td><p>Plot a map showing the value in the time dimension where the absolute value of the shift is maximal, keeping sign.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#toad.plotting.Plotter.overview" title="toad.plotting.Plotter.overview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">overview</span></code></a>([var, cluster_ids, map_style, mode])</p></td>
+<td><p>Create an overview plot with map and timeseries for clusters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#toad.plotting.Plotter.shift_dist" title="toad.plotting.Plotter.shift_dist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shift_dist</span></code></a>([figsize, yscale, bins])</p></td>
+<td><p>Plot histograms showing the distribution of shifts for each shift variable.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#toad.plotting.Plotter.time_of_max_shift_map" title="toad.plotting.Plotter.time_of_max_shift_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time_of_max_shift_map</span></code></a>([var, cluster_ids, ...])</p></td>
+<td><p>Plot a map showing the time at which the maximal shift occurs for a given variable.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#toad.plotting.Plotter.timeseries" title="toad.plotting.Plotter.timeseries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeseries</span></code></a>([var, cluster_ids, ...])</p></td>
+<td><p>Plot time series from clusters or all data.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.cluster_map">
+<span class="sig-name descname"><span class="pre">cluster_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">range</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">range(9)</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Axes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ListedColormap</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">default_cmap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_cmap_other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Colormap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">default_cmap_other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_all_clusters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subplots</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="k"><span class="pre">False</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_style</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><span class="pre">MapStyle</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">FigureBase</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Axes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.cluster_map" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.cluster_map'"><span>¶</span></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">cluster_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">range</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">range(9)</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Axes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ListedColormap</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">default_cmap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_cmap_other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Colormap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">default_cmap_other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_all_clusters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subplots</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="k"><span class="pre">True</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_style</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><span class="pre">MapStyle</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">FigureBase</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dd><p>Plot one or multiple clusters on a map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>var</strong> (<em>str</em><em> | </em><em>None</em>) – <dl class="simple">
+<dt>Base variable name (e.g. ‘temperature’, will look for</dt><dd><p>’temperature_cluster’) or custom cluster variable name. If None, TOAD will attempt to infer which variable to use.</p>
+</dd>
+</dl>
+<p>A ValueError is raised if the variable cannot be uniquely determined.</p>
+</p></li>
+<li><p><strong>cluster_ids</strong> (<em>int</em><em> | </em><em>List</em><em>[</em><em>int</em><em>] </em><em>| </em><em>ndarray</em><em> | </em><em>range</em><em> | </em><em>None</em>) – Single cluster ID or list of cluster IDs to plot.
+Defaults to range(9) (clusters 0-8) if not provided.</p></li>
+<li><p><strong>map_style</strong> (<a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><em>MapStyle</em></a><em> | </em><em>dict</em><em> | </em><em>None</em>) – Map style configuration. Can be a MapStyle object, a dict with
+MapStyle fields, or None (uses defaults). If dict, missing keys use defaults.
+Controls projection, grid, borders, and cluster visualization options
+(plot_contour, plot_fill, add_labels, contour_linewidth).</p></li>
+<li><p><strong>ax</strong> (<em>Axes</em><em> | </em><em>None</em>) – Matplotlib axes to plot on. Creates new figure if None. Cannot be used with subplots=True.</p></li>
+<li><p><strong>color</strong> (<em>str</em><em> | </em><em>Tuple</em><em> | </em><em>List</em><em>[</em><em>str</em><em> | </em><em>Tuple</em><em>] </em><em>| </em><em>None</em>) – Color for cluster visualization. Can be:
+- A single color (str, hex, RGB tuple) to use for all clusters.
+- A list of colors to use for each cluster. Overrides cmap.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> | </em><em>ListedColormap</em>) – Colormap for multiple clusters. Used only if color is None.</p></li>
+<li><p><strong>map_cmap_other</strong> (<em>str</em><em> | </em><em>Colormap</em><em> | </em><em>None</em>) – Colormap for remaining clusters. Can be:
+- A string (e.g., “jet”, “cividis”) to use a built-in colormap.
+- A matplotlib colormap object.</p></li>
+<li><p><strong>include_all_clusters</strong> (<em>bool</em>) – If True, plot all clusters on the map. If False, only plot selected clusters.
+Defaults to True.</p></li>
+<li><p><strong>subplots</strong> (<em>bool</em>) – If True, plot each cluster on its own subplot. Defaults to False.</p></li>
+<li><p><strong>figsize</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – Figure size when subplots=True. Defaults to (12, 3 * nrows).</p></li>
+<li><p><strong>ncols</strong> (<em>int</em>) – Number of columns in subplot grid when subplots=True. Defaults to 3.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional arguments passed to xarray.plot methods
+(e.g., <cite>plot</cite>, <cite>plot.contour</cite>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of (figure, axes). Figure is None if ax was provided.
+When subplots=True, axes is a numpy array of axes.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ValueError</strong> – If no clusters found for given variable, or if ax is provided with subplots=True.</p></li>
+<li><p><strong>TypeError</strong> – If <cite>cluster_ids</cite> is not an int, list, ndarray, range, or None,
+    or if <cite>cmap</cite> is not a string or ListedColormap.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tuple</em>[<em>FigureBase</em> | None, <em>Axes</em> | <em>ndarray</em> | None]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.cluster_occurrence_rate_map">
+<span class="sig-name descname"><span class="pre">cluster_occurrence_rate_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cividis'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.cluster_occurrence_rate_map" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.cluster_occurrence_rate_map'"><span>¶</span></a></dt>
+<dd><p>Map the fraction of input clusterings that ever labelled each cell.</p>
+<p>Uses <a class="reference internal" href="toad.postprocessing.aggregation.html#toad.postprocessing.aggregation.Aggregation.cluster_occurrence_rate" title="toad.postprocessing.aggregation.Aggregation.cluster_occurrence_rate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">toad.postprocessing.aggregation.Aggregation.cluster_occurrence_rate()</span></code></a>.
+<code class="docutils literal notranslate"><span class="pre">1</span></code> means every included clustering assigned a non-noise label there at some
+time; <code class="docutils literal notranslate"><span class="pre">0</span></code> cells are masked out. Timing and cluster id are not compared across
+inputs (see that method for details).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster_vars</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>) – Label variables to aggregate; default all <code class="xref py py-attr docutils literal notranslate"><span class="pre">TOAD.cluster_vars</span></code>.</p></li>
+<li><p><strong>ax</strong> (<em>Axes</em><em> | </em><em>None</em>) – Axes to draw on; if None, a new figure is created via <a class="reference internal" href="#toad.plotting.Plotter.map" title="toad.plotting.Plotter.map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">map()</span></code></a>.</p></li>
+<li><p><strong>map_style</strong> (<a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><em>MapStyle</em></a><em> | </em><em>dict</em><em> | </em><em>None</em>) – Passed to <a class="reference internal" href="#toad.plotting.Plotter.map" title="toad.plotting.Plotter.map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">map()</span></code></a> when <em>ax</em> is None.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> | </em><em>Colormap</em><em> | </em><em>None</em>) – Colormap for the rate field.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Extra arguments forwarded to <code class="xref py py-meth docutils literal notranslate"><span class="pre">xarray.DataArray.plot()</span></code> or
+<code class="docutils literal notranslate"><span class="pre">plot.pcolormesh</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">vmin</span></code>, <code class="docutils literal notranslate"><span class="pre">vmax</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Figure and axes; figure is None if <em>ax</em> was provided.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[FigureBase | None, matplotlib.axes.Axes]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.cluster_overview">
+<span class="sig-name descname"><span class="pre">cluster_overview</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.cluster_overview" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.cluster_overview'"><span>¶</span></a></dt>
+<dd><p>Deprecated function: use td.plot.overview() instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>kwargs</strong> (<em>Any</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.cluster_shift_times_violins">
+<span class="sig-name descname"><span class="pre">cluster_shift_times_violins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">range(0,</span> <span class="pre">9)</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_scatter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tab20b'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bw_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#666666'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kde_side</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'right'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter_half_span</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tight_layout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.cluster_shift_times_violins" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.cluster_shift_times_violins'"><span>¶</span></a></dt>
+<dd><p>Transition-time event samples for a <strong>single</strong> 3D cluster label field (not consensus).</p>
+<p>Uses the same per-voxel time convention as <a class="reference internal" href="#toad.plotting.Plotter.consensus_shift_times_violins" title="toad.plotting.Plotter.consensus_shift_times_violins"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_shift_times_violins()</span></code></a> but
+for one clustering result (native cluster ids in that map). Resolves <em>var</em> with
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">TOAD.get_clusters()</span></code> (base or cluster name).</p>
+<p>For consensus timing restricted to one input model’s voxels, prefer
+<a class="reference internal" href="#toad.plotting.Plotter.consensus_shift_times_violins" title="toad.plotting.Plotter.consensus_shift_times_violins"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_shift_times_violins()</span></code></a> with <code class="docutils literal notranslate"><span class="pre">source_input_cluster_var=...</span></code> instead.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>var</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>cluster_ids</strong> (<em>int</em><em> | </em><em>List</em><em>[</em><em>int</em><em>] </em><em>| </em><em>ndarray</em><em> | </em><em>range</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>show_scatter</strong> (<em>bool</em>)</p></li>
+<li><p><strong>ax</strong> (<em>Axes</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>figsize</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> | </em><em>ListedColormap</em>)</p></li>
+<li><p><strong>width</strong> (<em>float</em>)</p></li>
+<li><p><strong>bw_method</strong> (<em>float</em>)</p></li>
+<li><p><strong>show_sum</strong> (<em>bool</em>)</p></li>
+<li><p><strong>show_total</strong> (<em>bool</em>)</p></li>
+<li><p><strong>total_color</strong> (<em>str</em>)</p></li>
+<li><p><strong>show_legend</strong> (<em>bool</em>)</p></li>
+<li><p><strong>ylabel</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>kde_side</strong> (<em>Literal</em><em>[</em><em>'left'</em><em>, </em><em>'right'</em><em>]</em>)</p></li>
+<li><p><strong>point_size</strong> (<em>float</em>)</p></li>
+<li><p><strong>point_alpha</strong> (<em>float</em>)</p></li>
+<li><p><strong>jitter_half_span</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>tight_layout</strong> (<em>bool</em>)</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tuple</em>[<em>FigureBase</em> | None, <em>Axes</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.consensus_map">
+<span class="sig-name descname"><span class="pre">consensus_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">consensus_var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">range(0,</span> <span class="pre">9)</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tab20b'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subplots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_shrink</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.38</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.025</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_aspect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">28.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'horizontal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.consensus_map" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.consensus_map'"><span>¶</span></a></dt>
+<dd><p>Plot consensus cluster footprints on a map (same layout ideas as <a class="reference internal" href="#toad.plotting.Plotter.cluster_map" title="toad.plotting.Plotter.cluster_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cluster_map()</span></code></a>).</p>
+<p>Uses <code class="docutils literal notranslate"><span class="pre">(consensus</span> <span class="pre">==</span> <span class="pre">id).any(time)</span></code> as a 2D mask per consensus cluster id. Labels
+are disabled for consensus maps (centroid logic is not tied to <code class="xref py py-class docutils literal notranslate"><span class="pre">Stats</span></code>).
+When <code class="docutils literal notranslate"><span class="pre">subplots=False</span></code>, a horizontal colorbar below the map shows the numeric range
+of the plotted consensus cluster ids (one colour per id).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>consensus_var</strong> (<em>str</em><em> | </em><em>None</em>) – Name of the consensus labels variable on <code class="docutils literal notranslate"><span class="pre">td.data</span></code>. If None and
+exactly one consensus variable exists, it is used.</p></li>
+<li><p><strong>cluster_ids</strong> (<em>int</em><em> | </em><em>List</em><em>[</em><em>int</em><em>] </em><em>| </em><em>ndarray</em><em> | </em><em>range</em><em> | </em><em>None</em>) – Consensus cluster id(s) to plot. Defaults to <code class="docutils literal notranslate"><span class="pre">range(9)</span></code>; missing
+ids are skipped with a warning.</p></li>
+<li><p><strong>ax</strong> (<em>Axes</em><em> | </em><em>None</em>) – Same role as
+<a class="reference internal" href="#toad.plotting.Plotter.cluster_map" title="toad.plotting.Plotter.cluster_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cluster_map()</span></code></a> (without <code class="docutils literal notranslate"><span class="pre">map_cmap_other</span></code> / <code class="docutils literal notranslate"><span class="pre">include_all_clusters</span></code>).</p></li>
+<li><p><strong>color</strong> (<em>str</em><em> | </em><em>Tuple</em><em> | </em><em>List</em><em>[</em><em>str</em><em> | </em><em>Tuple</em><em>] </em><em>| </em><em>None</em>) – Same role as
+<a class="reference internal" href="#toad.plotting.Plotter.cluster_map" title="toad.plotting.Plotter.cluster_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cluster_map()</span></code></a> (without <code class="docutils literal notranslate"><span class="pre">map_cmap_other</span></code> / <code class="docutils literal notranslate"><span class="pre">include_all_clusters</span></code>).</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> | </em><em>ListedColormap</em>) – Same role as
+<a class="reference internal" href="#toad.plotting.Plotter.cluster_map" title="toad.plotting.Plotter.cluster_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cluster_map()</span></code></a> (without <code class="docutils literal notranslate"><span class="pre">map_cmap_other</span></code> / <code class="docutils literal notranslate"><span class="pre">include_all_clusters</span></code>).</p></li>
+<li><p><strong>subplots</strong> (<em>bool</em>) – Same role as
+<a class="reference internal" href="#toad.plotting.Plotter.cluster_map" title="toad.plotting.Plotter.cluster_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cluster_map()</span></code></a> (without <code class="docutils literal notranslate"><span class="pre">map_cmap_other</span></code> / <code class="docutils literal notranslate"><span class="pre">include_all_clusters</span></code>).</p></li>
+<li><p><strong>ncols</strong> (<em>int</em>) – Same role as
+<a class="reference internal" href="#toad.plotting.Plotter.cluster_map" title="toad.plotting.Plotter.cluster_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cluster_map()</span></code></a> (without <code class="docutils literal notranslate"><span class="pre">map_cmap_other</span></code> / <code class="docutils literal notranslate"><span class="pre">include_all_clusters</span></code>).</p></li>
+<li><p><strong>figsize</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – Same role as
+<a class="reference internal" href="#toad.plotting.Plotter.cluster_map" title="toad.plotting.Plotter.cluster_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cluster_map()</span></code></a> (without <code class="docutils literal notranslate"><span class="pre">map_cmap_other</span></code> / <code class="docutils literal notranslate"><span class="pre">include_all_clusters</span></code>).</p></li>
+<li><p><strong>map_style</strong> (<a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><em>MapStyle</em></a><em> | </em><em>dict</em><em> | </em><em>None</em>) – Same role as
+<a class="reference internal" href="#toad.plotting.Plotter.cluster_map" title="toad.plotting.Plotter.cluster_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cluster_map()</span></code></a> (without <code class="docutils literal notranslate"><span class="pre">map_cmap_other</span></code> / <code class="docutils literal notranslate"><span class="pre">include_all_clusters</span></code>).</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – <p>Same role as
+<a class="reference internal" href="#toad.plotting.Plotter.cluster_map" title="toad.plotting.Plotter.cluster_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cluster_map()</span></code></a> (without <code class="docutils literal notranslate"><span class="pre">map_cmap_other</span></code> / <code class="docutils literal notranslate"><span class="pre">include_all_clusters</span></code>).</p>
+</p></li>
+<li><p><strong>colorbar_shrink</strong> (<em>float</em>) – Horizontal colorbar length as a fraction of the parent axes span
+(matplotlib <code class="docutils literal notranslate"><span class="pre">shrink</span></code>; only when <code class="docutils literal notranslate"><span class="pre">subplots=False</span></code>). Smaller is shorter.</p></li>
+<li><p><strong>colorbar_pad</strong> (<em>float</em>) – Space between the map and the colorbar (axes fraction).</p></li>
+<li><p><strong>colorbar_aspect</strong> (<em>float</em>) – Width/height ratio of the colorbar strip (larger = shorter bar).</p></li>
+<li><p><strong>colorbar_orientation</strong> (<em>Literal</em><em>[</em><em>'horizontal'</em><em>, </em><em>'vertical'</em><em>]</em>) – <code class="docutils literal notranslate"><span class="pre">"horizontal"</span></code> (default, below map) or <code class="docutils literal notranslate"><span class="pre">"vertical"</span></code>.</p></li>
+<li><p><strong>colorbar_location</strong> (<em>str</em><em> | </em><em>None</em>) – For horizontal bars, <code class="docutils literal notranslate"><span class="pre">"left"</span></code> left-aligns the bar under the
+map with the label to its right; default centres the bar. For vertical bars,
+passed to matplotlib <code class="docutils literal notranslate"><span class="pre">location</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">"left"</span></code>).</p></li>
+<li><p><strong>colorbar_label</strong> (<em>str</em><em> | </em><em>None</em>) – Label under the discrete cluster-id colorbar. Default is
+<code class="docutils literal notranslate"><span class="pre">"consensus</span> <span class="pre">cluster</span> <span class="pre">id"</span></code> (not the variable name).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(fig,</span> <span class="pre">ax)</span></code> or <code class="docutils literal notranslate"><span class="pre">(fig,</span> <span class="pre">axs)</span></code> when <code class="docutils literal notranslate"><span class="pre">subplots=True</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tuple</em>[<em>FigureBase</em> | None, <em>Axes</em> | <em>ndarray</em> | None]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.consensus_overview">
+<span class="sig-name descname"><span class="pre">consensus_overview</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">consensus_var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'medians'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'std'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1.25,</span> <span class="pre">1.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.28</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tab20b'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_shrink</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.38</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.025</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_aspect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">28.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#666666'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bw_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.18</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.consensus_overview" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.consensus_overview'"><span>¶</span></a></dt>
+<dd><p>Two-panel figure: consensus map (left) and shift-time view (right).</p>
+<p>Left: <a class="reference internal" href="#toad.plotting.Plotter.consensus_map" title="toad.plotting.Plotter.consensus_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_map()</span></code></a> on the same <code class="docutils literal notranslate"><span class="pre">cluster_ids</span></code> as the right panel (defaults to
+every id with data for the chosen kind). Right: <a class="reference internal" href="#toad.plotting.Plotter.consensus_shift_times_medians" title="toad.plotting.Plotter.consensus_shift_times_medians"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_shift_times_medians()</span></code></a> when
+<code class="docutils literal notranslate"><span class="pre">kind="medians"</span></code> (per-input medians and median-of-medians) or
+<a class="reference internal" href="#toad.plotting.Plotter.consensus_shift_times_violins" title="toad.plotting.Plotter.consensus_shift_times_violins"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_shift_times_violins()</span></code></a> when <code class="docutils literal notranslate"><span class="pre">kind="violins"</span></code> (pooled sample violins).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>consensus_var</strong> (<em>str</em><em> | </em><em>None</em>) – Consensus labels variable; inferred if unique.</p></li>
+<li><p><strong>cluster_ids</strong> (<em>int</em><em> | </em><em>List</em><em>[</em><em>int</em><em>] </em><em>| </em><em>ndarray</em><em> | </em><em>range</em><em> | </em><em>None</em>) – Subset of consensus cluster ids. Same filtering as the corresponding
+shift-time plot; default is every id present in the shift data for <code class="docutils literal notranslate"><span class="pre">kind</span></code>.</p></li>
+<li><p><strong>kind</strong> (<em>Literal</em><em>[</em><em>'medians'</em><em>, </em><em>'violins'</em><em>]</em>) – <code class="docutils literal notranslate"><span class="pre">"medians"</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">"violins"</span></code> for the right-hand panel.</p></li>
+<li><p><strong>spread</strong> (<em>Literal</em><em>[</em><em>'iqr'</em><em>, </em><em>'std'</em><em>]</em>) – Median-plot inter-model spread (<code class="docutils literal notranslate"><span class="pre">"iqr"</span></code> or <code class="docutils literal notranslate"><span class="pre">"std"</span></code>). Ignored when
+<code class="docutils literal notranslate"><span class="pre">kind="violins"</span></code>.</p></li>
+<li><p><strong>show_legend</strong> (<em>bool</em>) – Forwarded to the shift-time panel.</p></li>
+<li><p><strong>ylabel</strong> (<em>str</em><em> | </em><em>None</em>) – Forwarded to the shift-time panel.</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em> | </em><em>None</em>) – Forwarded to the shift-time panel.</p></li>
+<li><p><strong>show_sum</strong> (<em>bool</em>) – Used when <code class="docutils literal notranslate"><span class="pre">kind="violins"</span></code> only; passed to
+<a class="reference internal" href="#toad.plotting.Plotter.consensus_shift_times_violins" title="toad.plotting.Plotter.consensus_shift_times_violins"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_shift_times_violins()</span></code></a> (pooled columns).</p></li>
+<li><p><strong>show_total</strong> (<em>bool</em>) – Used when <code class="docutils literal notranslate"><span class="pre">kind="violins"</span></code> only; passed to
+<a class="reference internal" href="#toad.plotting.Plotter.consensus_shift_times_violins" title="toad.plotting.Plotter.consensus_shift_times_violins"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_shift_times_violins()</span></code></a> (pooled columns).</p></li>
+<li><p><strong>total_color</strong> (<em>str</em>) – Used when <code class="docutils literal notranslate"><span class="pre">kind="violins"</span></code> only; passed to
+<a class="reference internal" href="#toad.plotting.Plotter.consensus_shift_times_violins" title="toad.plotting.Plotter.consensus_shift_times_violins"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_shift_times_violins()</span></code></a> (pooled columns).</p></li>
+<li><p><strong>bw_method</strong> (<em>float</em>) – Violin KDE bandwidth (<code class="docutils literal notranslate"><span class="pre">Axes.violinplot</span></code>); <code class="docutils literal notranslate"><span class="pre">kind="violins"</span></code> only.</p></li>
+<li><p><strong>figsize</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – Overall figure size; default <code class="docutils literal notranslate"><span class="pre">(12,</span> <span class="pre">5.2)</span></code>.</p></li>
+<li><p><strong>width_ratios</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>) – <code class="docutils literal notranslate"><span class="pre">GridSpec</span></code> column width ratios (map, right panel).</p></li>
+<li><p><strong>wspace</strong> (<em>float</em>) – Spacing between panels (<code class="docutils literal notranslate"><span class="pre">Figure.subplots_adjust</span></code>).</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> | </em><em>ListedColormap</em>) – Map panel (see <a class="reference internal" href="#toad.plotting.Plotter.consensus_map" title="toad.plotting.Plotter.consensus_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_map()</span></code></a> for <code class="docutils literal notranslate"><span class="pre">colorbar_label</span></code>). The medians panel
+also uses the same <code class="docutils literal notranslate"><span class="pre">cmap</span></code> for summary diamond fill unless you pass
+<code class="docutils literal notranslate"><span class="pre">summary_cluster_cmap</span></code> in <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code> disables colouring). The
+violins panel uses <code class="docutils literal notranslate"><span class="pre">cmap</span></code> for per-cluster colours.</p></li>
+<li><p><strong>colorbar_shrink</strong> (<em>float</em>) – Map panel (see <a class="reference internal" href="#toad.plotting.Plotter.consensus_map" title="toad.plotting.Plotter.consensus_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_map()</span></code></a> for <code class="docutils literal notranslate"><span class="pre">colorbar_label</span></code>). The medians panel
+also uses the same <code class="docutils literal notranslate"><span class="pre">cmap</span></code> for summary diamond fill unless you pass
+<code class="docutils literal notranslate"><span class="pre">summary_cluster_cmap</span></code> in <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code> disables colouring). The
+violins panel uses <code class="docutils literal notranslate"><span class="pre">cmap</span></code> for per-cluster colours.</p></li>
+<li><p><strong>colorbar_pad</strong> (<em>float</em>) – Map panel (see <a class="reference internal" href="#toad.plotting.Plotter.consensus_map" title="toad.plotting.Plotter.consensus_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_map()</span></code></a> for <code class="docutils literal notranslate"><span class="pre">colorbar_label</span></code>). The medians panel
+also uses the same <code class="docutils literal notranslate"><span class="pre">cmap</span></code> for summary diamond fill unless you pass
+<code class="docutils literal notranslate"><span class="pre">summary_cluster_cmap</span></code> in <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code> disables colouring). The
+violins panel uses <code class="docutils literal notranslate"><span class="pre">cmap</span></code> for per-cluster colours.</p></li>
+<li><p><strong>colorbar_aspect</strong> (<em>float</em>) – Map panel (see <a class="reference internal" href="#toad.plotting.Plotter.consensus_map" title="toad.plotting.Plotter.consensus_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_map()</span></code></a> for <code class="docutils literal notranslate"><span class="pre">colorbar_label</span></code>). The medians panel
+also uses the same <code class="docutils literal notranslate"><span class="pre">cmap</span></code> for summary diamond fill unless you pass
+<code class="docutils literal notranslate"><span class="pre">summary_cluster_cmap</span></code> in <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code> disables colouring). The
+violins panel uses <code class="docutils literal notranslate"><span class="pre">cmap</span></code> for per-cluster colours.</p></li>
+<li><p><strong>colorbar_label</strong> (<em>str</em><em> | </em><em>None</em>) – Map panel (see <a class="reference internal" href="#toad.plotting.Plotter.consensus_map" title="toad.plotting.Plotter.consensus_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_map()</span></code></a> for <code class="docutils literal notranslate"><span class="pre">colorbar_label</span></code>). The medians panel
+also uses the same <code class="docutils literal notranslate"><span class="pre">cmap</span></code> for summary diamond fill unless you pass
+<code class="docutils literal notranslate"><span class="pre">summary_cluster_cmap</span></code> in <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code> disables colouring). The
+violins panel uses <code class="docutils literal notranslate"><span class="pre">cmap</span></code> for per-cluster colours.</p></li>
+<li><p><strong>map_style</strong> (<a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><em>MapStyle</em></a><em> | </em><em>dict</em><em> | </em><em>None</em>) – Map panel (see <a class="reference internal" href="#toad.plotting.Plotter.consensus_map" title="toad.plotting.Plotter.consensus_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_map()</span></code></a> for <code class="docutils literal notranslate"><span class="pre">colorbar_label</span></code>). The medians panel
+also uses the same <code class="docutils literal notranslate"><span class="pre">cmap</span></code> for summary diamond fill unless you pass
+<code class="docutils literal notranslate"><span class="pre">summary_cluster_cmap</span></code> in <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> (<code class="docutils literal notranslate"><span class="pre">None</span></code> disables colouring). The
+violins panel uses <code class="docutils literal notranslate"><span class="pre">cmap</span></code> for per-cluster colours.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Extra args for the active shift-time function (medians- or violins-specific;
+e.g. <code class="docutils literal notranslate"><span class="pre">model_point_size</span></code> / <code class="docutils literal notranslate"><span class="pre">errorbar_capsize</span></code>, or <code class="docutils literal notranslate"><span class="pre">show_scatter</span></code> / <code class="docutils literal notranslate"><span class="pre">width</span></code>).
+<code class="docutils literal notranslate"><span class="pre">ax</span></code> and <code class="docutils literal notranslate"><span class="pre">figsize</span></code> are ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(figure,</span> <span class="pre">map_axes,</span> <span class="pre">shift_axes)</span></code>. The map axes may be a cartopy <code class="docutils literal notranslate"><span class="pre">GeoAxes</span></code>; the third
+element is the right-hand (medians or violins) axes.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tuple</em>[<em>FigureBase</em>, <em>Any</em>, <em>Axes</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.consensus_rate_map">
+<span class="sig-name descname"><span class="pre">consensus_rate_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">consensus_var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_reduce</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cividis'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_colorbar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_shrink</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_aspect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cbar_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.consensus_rate_map" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.consensus_rate_map'"><span>¶</span></a></dt>
+<dd><p>Map member-support consensus rate from a consensus run (time-collapsed).</p>
+<p>Uses the companion field <code class="docutils literal notranslate"><span class="pre">{consensus_var}_rate</span></code>: at each spacetime
+cell this is (supporting inputs) / (total inputs) on native event voxels,
+including voxels below the consensus threshold. The map collapses time with
+<code class="docutils literal notranslate"><span class="pre">max</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">mean</span></code> over finite values, then masks cells where the
+result is zero (no input ever detected an event there).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>consensus_var</strong> (<em>str</em><em> | </em><em>None</em>) – Consensus labels variable; inferred when unique.</p></li>
+<li><p><strong>time_reduce</strong> (<em>Literal</em><em>[</em><em>'max'</em><em>, </em><em>'mean'</em><em>]</em>) – <code class="docutils literal notranslate"><span class="pre">"max"</span></code> (peak agreement at any time) or <code class="docutils literal notranslate"><span class="pre">"mean"</span></code> over
+timesteps with data.</p></li>
+<li><p><strong>ax</strong> (<em>Axes</em><em> | </em><em>None</em>) – Axes to draw on; if None, a new figure is created via <a class="reference internal" href="#toad.plotting.Plotter.map" title="toad.plotting.Plotter.map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">map()</span></code></a>.</p></li>
+<li><p><strong>map_style</strong> (<a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><em>MapStyle</em></a><em> | </em><em>dict</em><em> | </em><em>None</em>) – Passed to <a class="reference internal" href="#toad.plotting.Plotter.map" title="toad.plotting.Plotter.map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">map()</span></code></a> when <em>ax</em> is None.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> | </em><em>Colormap</em><em> | </em><em>None</em>) – Colormap for the consensus rate field.</p></li>
+<li><p><strong>vmin</strong> (<em>float</em>) – Color scale bounds; default <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>.</p></li>
+<li><p><strong>vmax</strong> (<em>float</em>) – Color scale bounds; default <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>.</p></li>
+<li><p><strong>add_colorbar</strong> (<em>bool</em>) – Whether to draw a colorbar (default True).</p></li>
+<li><p><strong>colorbar_orientation</strong> (<em>Literal</em><em>[</em><em>'horizontal'</em><em>, </em><em>'vertical'</em><em>] </em><em>| </em><em>None</em>) – <code class="docutils literal notranslate"><span class="pre">"horizontal"</span></code> or <code class="docutils literal notranslate"><span class="pre">"vertical"</span></code>. If None,
+xarray uses its default (vertical on the right).</p></li>
+<li><p><strong>colorbar_location</strong> (<em>str</em><em> | </em><em>None</em>) – For horizontal bars, <code class="docutils literal notranslate"><span class="pre">"left"</span></code> left-aligns the bar under the
+map with the label to its right. Otherwise passed to matplotlib <code class="docutils literal notranslate"><span class="pre">location</span></code>.</p></li>
+<li><p><strong>colorbar_shrink</strong> (<em>float</em><em> | </em><em>None</em>) – Passed to the colorbar
+(matplotlib <code class="docutils literal notranslate"><span class="pre">shrink</span></code>, <code class="docutils literal notranslate"><span class="pre">pad</span></code>, <code class="docutils literal notranslate"><span class="pre">aspect</span></code>). Omitted when None.</p></li>
+<li><p><strong>colorbar_pad</strong> (<em>float</em><em> | </em><em>None</em>) – Passed to the colorbar
+(matplotlib <code class="docutils literal notranslate"><span class="pre">shrink</span></code>, <code class="docutils literal notranslate"><span class="pre">pad</span></code>, <code class="docutils literal notranslate"><span class="pre">aspect</span></code>). Omitted when None.</p></li>
+<li><p><strong>colorbar_aspect</strong> (<em>float</em><em> | </em><em>None</em>) – Passed to the colorbar
+(matplotlib <code class="docutils literal notranslate"><span class="pre">shrink</span></code>, <code class="docutils literal notranslate"><span class="pre">pad</span></code>, <code class="docutils literal notranslate"><span class="pre">aspect</span></code>). Omitted when None.</p></li>
+<li><p><strong>colorbar_label</strong> (<em>str</em><em> | </em><em>None</em>) – Colorbar label; default <code class="docutils literal notranslate"><span class="pre">"Consensus</span> <span class="pre">rate"</span></code>.</p></li>
+<li><p><strong>cbar_kwargs</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>) – Extra keyword arguments merged into the colorbar kwargs
+(after <code class="docutils literal notranslate"><span class="pre">colorbar_*</span></code> parameters).</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Extra arguments forwarded to <code class="xref py py-meth docutils literal notranslate"><span class="pre">xarray.DataArray.plot()</span></code> or
+<code class="docutils literal notranslate"><span class="pre">plot.pcolormesh</span></code> (except <code class="docutils literal notranslate"><span class="pre">add_colorbar</span></code> and <code class="docutils literal notranslate"><span class="pre">cbar_kwargs</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(fig,</span> <span class="pre">ax)</span></code>; figure is None if <em>ax</em> was provided.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tuple</em>[<em>FigureBase</em> | None, <em>Axes</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.consensus_shift_times_medians">
+<span class="sig-name descname"><span class="pre">consensus_shift_times_medians</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">consensus_var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'std'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_point_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">18.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_point_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_point_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#1a1a1a'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread_line_lw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread_line_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#0d0d0d'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errorbar_elinewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errorbar_capsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errorbar_capthick</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">summary_marker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'D'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">summary_marker_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">65.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">summary_cluster_cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tab20b'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical_cluster_axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter_half_span</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tight_layout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.consensus_shift_times_medians" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.consensus_shift_times_medians'"><span>¶</span></a></dt>
+<dd><p>Per-input median transition time vs median-of-medians summary (from <code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_summary()</span></code>).</p>
+<p>One point per input <code class="docutils literal notranslate"><span class="pre">cluster_var</span></code> at that map’s spatial median transition time in the cluster;
+the large marker is <code class="docutils literal notranslate"><span class="pre">median_median_shift_time</span></code>. Inter-model spread defaults to
+<strong>symmetric error bars</strong> at <code class="docutils literal notranslate"><span class="pre">median_median_shift_time</span> <span class="pre">±</span> <span class="pre">std_median_shift_time</span></code> (table
+columns) when those table values are finite. If not, the same IQR line as
+<code class="docutils literal notranslate"><span class="pre">spread="iqr"</span></code> (quartiles of per-input medians) is used. With <code class="docutils literal notranslate"><span class="pre">spread="iqr"</span></code>,
+spread is always that vertical segment between the 25th and 75th percentiles of model
+medians.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>consensus_var</strong> (<em>str</em><em> | </em><em>None</em>) – Consensus labels variable; inferred if unique.</p></li>
+<li><p><strong>cluster_ids</strong> (<em>int</em><em> | </em><em>List</em><em>[</em><em>int</em><em>] </em><em>| </em><em>ndarray</em><em> | </em><em>range</em><em> | </em><em>None</em>) – Subset of consensus cluster ids; default plots every id present in the
+shift-time dataset.</p></li>
+<li><p><strong>spread</strong> (<em>Literal</em><em>[</em><em>'iqr'</em><em>, </em><em>'std'</em><em>]</em>) – <code class="docutils literal notranslate"><span class="pre">"std"</span></code> (default) — <code class="docutils literal notranslate"><span class="pre">errorbar</span></code> from table when possible, else IQR of
+per-input medians; <code class="docutils literal notranslate"><span class="pre">"iqr"</span></code> — always a thick vertical line between quartiles of
+model medians.</p></li>
+<li><p><strong>ax</strong> (<em>Axes</em><em> | </em><em>None</em>) – Axis or new figure size.</p></li>
+<li><p><strong>figsize</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – Axis or new figure size.</p></li>
+<li><p><strong>model_point_size</strong> (<em>float</em>) – Per-model scatter.</p></li>
+<li><p><strong>model_point_alpha</strong> (<em>float</em>) – Per-model scatter.</p></li>
+<li><p><strong>model_point_color</strong> (<em>str</em>) – Per-model scatter.</p></li>
+<li><p><strong>spread_line_lw</strong> (<em>float</em>) – IQR / fallback line width and colour
+(<code class="docutils literal notranslate"><span class="pre">spread="iqr"</span></code> or std fallback when table std is missing).</p></li>
+<li><p><strong>spread_line_color</strong> (<em>str</em>) – IQR / fallback line width and colour
+(<code class="docutils literal notranslate"><span class="pre">spread="iqr"</span></code> or std fallback when table std is missing).</p></li>
+<li><p><strong>errorbar_elinewidth</strong> (<em>float</em>) – <code class="docutils literal notranslate"><span class="pre">errorbar</span></code> styling
+(<code class="docutils literal notranslate"><span class="pre">spread="std"</span></code> only).</p></li>
+<li><p><strong>errorbar_capsize</strong> (<em>float</em>) – <code class="docutils literal notranslate"><span class="pre">errorbar</span></code> styling
+(<code class="docutils literal notranslate"><span class="pre">spread="std"</span></code> only).</p></li>
+<li><p><strong>errorbar_capthick</strong> (<em>float</em>) – <code class="docutils literal notranslate"><span class="pre">errorbar</span></code> styling
+(<code class="docutils literal notranslate"><span class="pre">spread="std"</span></code> only).</p></li>
+<li><p><strong>summary_marker</strong> (<em>Literal</em><em>[</em><em>'D'</em><em>, </em><em>'o'</em><em>]</em>) – Summary median marker.</p></li>
+<li><p><strong>summary_marker_size</strong> (<em>float</em>) – Summary median marker.</p></li>
+<li><p><strong>summary_cluster_cmap</strong> (<em>str</em><em> | </em><em>ListedColormap</em><em> | </em><em>None</em>) – Fill colour of each summary diamond from this colormap (same
+sampling as <a class="reference internal" href="#toad.plotting.Plotter.consensus_map" title="toad.plotting.Plotter.consensus_map"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_map()</span></code></a>). Defaults to <code class="xref py py-data docutils literal notranslate"><span class="pre">default_cmap</span></code> (<code class="docutils literal notranslate"><span class="pre">tab20b</span></code>);
+pass <code class="docutils literal notranslate"><span class="pre">None</span></code> for white faces with a black edge.</p></li>
+<li><p><strong>categorical_cluster_axis</strong> (<em>bool</em><em> | </em><em>None</em>) – If True, x positions are <code class="docutils literal notranslate"><span class="pre">0..n-1</span></code> with tick labels showing
+cluster ids (useful for sparse ids like 1,4,6). If False, x matches cluster id
+numerically. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, use categorical mode when cluster ids are not a contiguous
+block (so there are no large empty gaps between ticks).</p></li>
+<li><p><strong>jitter_half_span</strong> (<em>float</em>) – Half-width of horizontal jitter for model points (x data units).</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em> | </em><em>None</em>) – RNG seed for jitter.</p></li>
+<li><p><strong>show_legend</strong> (<em>bool</em>) – Whether to add a short legend.</p></li>
+<li><p><strong>ylabel</strong> (<em>str</em><em> | </em><em>None</em>) – Y-axis label; default <code class="xref py py-meth docutils literal notranslate"><span class="pre">_transition_time_ylabel()</span></code>.</p></li>
+<li><p><strong>tight_layout</strong> (<em>bool</em>) – If False, skip <code class="docutils literal notranslate"><span class="pre">Figure.tight_layout</span></code> (for embedding in a multi-panel
+figure; call <a class="reference internal" href="#toad.plotting.Plotter.consensus_overview" title="toad.plotting.Plotter.consensus_overview"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_overview()</span></code></a> instead).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tuple</em>[<em>FigureBase</em> | None, <em>Axes</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.consensus_shift_times_violins">
+<span class="sig-name descname"><span class="pre">consensus_shift_times_violins</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">consensus_var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">range(0,</span> <span class="pre">9)</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_scatter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tab20b'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_input_cluster_var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bw_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.18</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_sum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_total</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#666666'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kde_side</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'right'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter_half_span</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tight_layout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.consensus_shift_times_violins" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.consensus_shift_times_violins'"><span>¶</span></a></dt>
+<dd><p>Transition-time samples per consensus cluster: half-violin + scatter or full violins.</p>
+<p>Visualises the same pooled <a class="reference internal" href="toad.utils.cluster_consensus_utils.html#toad.utils.cluster_consensus_utils.consensus_shift_time_distribution" title="toad.utils.cluster_consensus_utils.consensus_shift_time_distribution"><code class="xref py py-func docutils literal notranslate"><span class="pre">consensus_shift_time_distribution()</span></code></a>
+samples that feed <code class="docutils literal notranslate"><span class="pre">pooled_median_shift_time</span></code> in <a class="reference internal" href="toad.postprocessing.html#toad.postprocessing.Aggregation.consensus_summary" title="toad.postprocessing.Aggregation.consensus_summary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">toad.postprocessing.Aggregation.consensus_summary()</span></code></a>
+(per-cluster columns), plus optional pooled groups (<code class="docutils literal notranslate"><span class="pre">sum</span></code> / <code class="docutils literal notranslate"><span class="pre">total</span></code>).
+Complement <a class="reference internal" href="#toad.plotting.Plotter.consensus_shift_times_medians" title="toad.plotting.Plotter.consensus_shift_times_medians"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_shift_times_medians()</span></code></a> for median-of-medians from the table.</p>
+<p>Uses <a class="reference internal" href="toad.postprocessing.html#toad.postprocessing.Aggregation.consensus_shift_time_distributions" title="toad.postprocessing.Aggregation.consensus_shift_time_distributions"><code class="xref py py-meth docutils literal notranslate"><span class="pre">toad.postprocessing.Aggregation.consensus_shift_time_distributions()</span></code></a>.
+For a <strong>single</strong> input map’s events only, pass <code class="docutils literal notranslate"><span class="pre">source_input_cluster_var</span></code> to match
+that column in the long table (per-input timing within consensus groups).</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">show_scatter=True</span></code> (default): half KDE on one side of each tick, fixed-width
+jittered sample points on the other; IQR and median are not clipped so they straddle
+the spine. Requires matplotlib ≥ 3.10 (<code class="docutils literal notranslate"><span class="pre">Axes.violinplot(...,</span> <span class="pre">side=...)</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">show_scatter=False</span></code>: standard symmetric violins with IQR bar and median clipped
+to each body (see <code class="xref py py-func docutils literal notranslate"><span class="pre">_style_violin_bodies_iqr_median()</span></code>).</p></li>
+</ul>
+<p>Optional pooled columns (<code class="docutils literal notranslate"><span class="pre">sum</span></code> / <code class="docutils literal notranslate"><span class="pre">total</span></code>) use <code class="docutils literal notranslate"><span class="pre">total_color</span></code>; when both are True,
+<code class="docutils literal notranslate"><span class="pre">sum</span></code> is drawn first, then <code class="docutils literal notranslate"><span class="pre">total</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>consensus_var</strong> (<em>str</em><em> | </em><em>None</em>) – Consensus labels variable; inferred if there is exactly one.</p></li>
+<li><p><strong>cluster_ids</strong> (<em>int</em><em> | </em><em>List</em><em>[</em><em>int</em><em>] </em><em>| </em><em>ndarray</em><em> | </em><em>range</em><em> | </em><em>None</em>) – Subset of consensus cluster ids. If None, plots all ids with samples.</p></li>
+<li><p><strong>show_scatter</strong> (<em>bool</em>) – If True (default), half-violin + jittered scatter; if False, full violins.</p></li>
+<li><p><strong>ax</strong> (<em>Axes</em><em> | </em><em>None</em>) – Axes to draw on; creates a new figure if None.</p></li>
+<li><p><strong>figsize</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – Figure size when creating a new figure.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> | </em><em>ListedColormap</em>) – Colormap used to pick face colours per cluster.</p></li>
+<li><p><strong>source_input_cluster_var</strong> (<em>str</em><em> | </em><em>None</em>) – If set, only transition times that came from this input
+clustering (<code class="docutils literal notranslate"><span class="pre">cluster_var</span></code> name in the long table) are used.</p></li>
+<li><p><strong>width</strong> (<em>float</em>) – Violin width passed to <code class="docutils literal notranslate"><span class="pre">Axes.violinplot</span></code> (scatter mode uses half of this per side).</p></li>
+<li><p><strong>bw_method</strong> (<em>float</em>) – KDE bandwidth factor passed to <code class="docutils literal notranslate"><span class="pre">Axes.violinplot</span></code>.</p></li>
+<li><p><strong>show_sum</strong> (<em>bool</em>) – Pooled columns (same as before).</p></li>
+<li><p><strong>show_total</strong> (<em>bool</em>) – Pooled columns (same as before).</p></li>
+<li><p><strong>total_color</strong> (<em>str</em>) – Pooled columns (same as before).</p></li>
+<li><p><strong>show_legend</strong> (<em>bool</em>) – If True (default), add a legend (three entries with scatter, two without).</p></li>
+<li><p><strong>ylabel</strong> (<em>str</em><em> | </em><em>None</em>) – Y-axis label; default <code class="xref py py-meth docutils literal notranslate"><span class="pre">_transition_time_ylabel()</span></code>.</p></li>
+<li><p><strong>kde_side</strong> (<em>Literal</em><em>[</em><em>'left'</em><em>, </em><em>'right'</em><em>]</em>) – For <code class="docutils literal notranslate"><span class="pre">show_scatter=True</span></code> only: <code class="docutils literal notranslate"><span class="pre">"left"</span></code> puts KDE left of the tick,
+jitter right; <code class="docutils literal notranslate"><span class="pre">"right"</span></code> swaps.</p></li>
+<li><p><strong>point_size</strong> (<em>float</em>) – Scatter markers when <code class="docutils literal notranslate"><span class="pre">show_scatter=True</span></code> (ignored otherwise).</p></li>
+<li><p><strong>point_alpha</strong> (<em>float</em>) – Scatter markers when <code class="docutils literal notranslate"><span class="pre">show_scatter=True</span></code> (ignored otherwise).</p></li>
+<li><p><strong>jitter_half_span</strong> (<em>float</em><em> | </em><em>None</em>) – Half-width of horizontal jitter in <em>x</em> data units; default <code class="docutils literal notranslate"><span class="pre">width</span> <span class="pre">/</span> <span class="pre">8</span></code>.</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em> | </em><em>None</em>) – RNG seed for jitter when <code class="docutils literal notranslate"><span class="pre">show_scatter=True</span></code>.</p></li>
+<li><p><strong>tight_layout</strong> (<em>bool</em>) – If True (default), call <code class="docutils literal notranslate"><span class="pre">fig.tight_layout</span></code> before returning. Set False
+when drawing into a composite figure (e.g. <a class="reference internal" href="#toad.plotting.Plotter.consensus_overview" title="toad.plotting.Plotter.consensus_overview"><code class="xref py py-meth docutils literal notranslate"><span class="pre">consensus_overview()</span></code></a>).</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Extra arguments forwarded to <code class="docutils literal notranslate"><span class="pre">Axes.violinplot</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tuple</em>[<em>FigureBase</em> | None, <em>Axes</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.consensus_timeseries">
+<span class="sig-name descname"><span class="pre">consensus_timeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">consensus_var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'raw'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_full_timeseries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tab20b'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_input_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cluster_var'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_include_n_cells</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_autosize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_fontsize_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_fontsize_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subplots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_ylabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_shift_indicator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_indicator_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.consensus_timeseries" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.consensus_timeseries'"><span>¶</span></a></dt>
+<dd><p>Overlay per-input-cluster timeseries for one consensus cluster (no map).</p>
+<p>Wraps <a class="reference internal" href="toad.postprocessing.html#toad.postprocessing.Aggregation.consensus_cluster_timeseries" title="toad.postprocessing.Aggregation.consensus_cluster_timeseries"><code class="xref py py-meth docutils literal notranslate"><span class="pre">toad.postprocessing.Aggregation.consensus_cluster_timeseries()</span></code></a>. When
+<code class="docutils literal notranslate"><span class="pre">subplots=False</span></code>, all input cluster trajectories are drawn on one axis; when
+<code class="docutils literal notranslate"><span class="pre">subplots=True</span></code>, one axis per input <code class="docutils literal notranslate"><span class="pre">cluster_var</span></code> (shared time axis). Legend
+entries and subplot titles are prefixed with <code class="docutils literal notranslate"><span class="pre">(N)</span></code>, where <code class="docutils literal notranslate"><span class="pre">N</span></code> is the number of
+grid cells in the 2D extraction mask
+(<a class="reference internal" href="toad.postprocessing.html#toad.postprocessing.Aggregation.consensus_extraction_mask_2d" title="toad.postprocessing.Aggregation.consensus_extraction_mask_2d"><code class="xref py py-meth docutils literal notranslate"><span class="pre">toad.postprocessing.Aggregation.consensus_extraction_mask_2d()</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster_id</strong> (<em>int</em>) – Consensus cluster id to extract.</p></li>
+<li><p><strong>consensus_var</strong> (<em>str</em><em> | </em><em>None</em>) – Consensus labels variable; inferred if unique.</p></li>
+<li><p><strong>var</strong> (<em>str</em><em> | </em><em>None</em>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">consensus_cluster_timeseries</span></code>.</p></li>
+<li><p><strong>cluster_vars</strong> (<em>List</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">consensus_cluster_timeseries</span></code>.</p></li>
+<li><p><strong>aggregation</strong> (<em>Literal</em><em>[</em><em>'raw'</em><em>, </em><em>'mean'</em><em>, </em><em>'sum'</em><em>, </em><em>'std'</em><em>, </em><em>'median'</em><em>, </em><em>'percentile'</em><em>, </em><em>'max'</em><em>, </em><em>'min'</em><em>] </em><em>| </em><em>str</em>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">consensus_cluster_timeseries</span></code>.</p></li>
+<li><p><strong>percentile</strong> (<em>float</em><em> | </em><em>None</em>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">consensus_cluster_timeseries</span></code>.</p></li>
+<li><p><strong>normalize</strong> (<em>Literal</em><em>[</em><em>'max'</em><em>, </em><em>'max_each'</em><em>] </em><em>| </em><em>None</em><em> | </em><em>str</em>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">consensus_cluster_timeseries</span></code>.</p></li>
+<li><p><strong>keep_full_timeseries</strong> (<em>bool</em>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">consensus_cluster_timeseries</span></code>.</p></li>
+<li><p><strong>ax</strong> (<em>Axes</em><em> | </em><em>None</em>) – Single axis; used only when <code class="docutils literal notranslate"><span class="pre">subplots=False</span></code>. Ignored when <code class="docutils literal notranslate"><span class="pre">subplots=True</span></code>.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> | </em><em>ListedColormap</em>) – Colormap for line colors (tab-like sampling).</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) – Line styling. With <code class="docutils literal notranslate"><span class="pre">aggregation="raw"</span></code>, one legend
+entry per input <code class="docutils literal notranslate"><span class="pre">cluster_var</span></code> (all per-cell lines share colour and label).</p></li>
+<li><p><strong>linewidth</strong> (<em>float</em>) – Line styling. With <code class="docutils literal notranslate"><span class="pre">aggregation="raw"</span></code>, one legend
+entry per input <code class="docutils literal notranslate"><span class="pre">cluster_var</span></code> (all per-cell lines share colour and label).</p></li>
+<li><p><strong>add_legend</strong> (<em>bool</em>) – Line styling. With <code class="docutils literal notranslate"><span class="pre">aggregation="raw"</span></code>, one legend
+entry per input <code class="docutils literal notranslate"><span class="pre">cluster_var</span></code> (all per-cell lines share colour and label).</p></li>
+<li><p><strong>legend_input_label</strong> (<em>Literal</em><em>[</em><em>'cluster_var'</em><em>, </em><em>'member_id'</em><em>, </em><em>'realisation'</em><em>]</em>) – <code class="docutils literal notranslate"><span class="pre">"cluster_var"</span></code> (default) uses the full input variable name;
+<code class="docutils literal notranslate"><span class="pre">"member_id"</span></code> uses a CMIP-style member id parsed from the name (e.g.
+<code class="docutils literal notranslate"><span class="pre">r1i1p1f1</span></code> from <code class="docutils literal notranslate"><span class="pre">mlotst_r1i1p1f1_dts_cluster</span></code>); <code class="docutils literal notranslate"><span class="pre">"realisation"</span></code> uses only
+the realisation index (e.g. <code class="docutils literal notranslate"><span class="pre">r1</span></code>, <code class="docutils literal notranslate"><span class="pre">r2</span></code>).</p></li>
+<li><p><strong>legend_include_n_cells</strong> (<em>bool</em>) – If True (default), prefix each legend entry with <code class="docutils literal notranslate"><span class="pre">(N)</span></code> where
+<code class="docutils literal notranslate"><span class="pre">N</span></code> is the number of grid cells in the extraction mask.</p></li>
+<li><p><strong>legend_autosize</strong> (<em>bool</em>) – If True (default) and <code class="docutils literal notranslate"><span class="pre">subplots=False</span></code>, shrink legend font size until
+the legend box fits inside the axes (helps many/long labels).</p></li>
+<li><p><strong>legend_fontsize_max</strong> (<em>float</em><em> | </em><em>None</em>) – Bounds for autosizing (points); max defaults to
+<a href="#id3"><span class="problematic" id="id4">:rc:`legend.fontsize`</span></a>.</p></li>
+<li><p><strong>legend_fontsize_min</strong> (<em>float</em>) – Bounds for autosizing (points); max defaults to
+<a href="#id5"><span class="problematic" id="id6">:rc:`legend.fontsize`</span></a>.</p></li>
+<li><p><strong>subplots</strong> (<em>bool</em>) – If True, one subplot per contributing input clustering variable.</p></li>
+<li><p><strong>figsize</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – Used when creating a figure.</p></li>
+<li><p><strong>show_ylabels</strong> (<em>bool</em>) – If True, set a default y label on each subplot when <code class="docutils literal notranslate"><span class="pre">subplots=True</span></code>.</p></li>
+<li><p><strong>plot_shift_indicator</strong> (<em>bool</em>) – If True (and <code class="docutils literal notranslate"><span class="pre">aggregation="raw"</span></code> with per-cell <code class="docutils literal notranslate"><span class="pre">cell_xy</span></code>
+data), overlay dots at timesteps where each cell falls inside a <strong>native</strong> cluster
+window for that input <code class="docutils literal notranslate"><span class="pre">cluster_var</span></code> (union of native ids on the consensus
+extraction footprint; uses the same masking idea as <a class="reference internal" href="#toad.plotting.Plotter.timeseries" title="toad.plotting.Plotter.timeseries"><code class="xref py py-meth docutils literal notranslate"><span class="pre">timeseries()</span></code></a>).
+Ignored for aggregated trajectories (single line per input).</p></li>
+<li><p><strong>shift_indicator_size</strong> (<em>float</em>) – Marker size in points for shift dots.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tuple</em>[<em>FigureBase</em> | None, <em>Axes</em> | <em>ndarray</em> | None]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.map">
+<span class="sig-name descname"><span class="pre">map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nrows</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_ratios</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_ratios</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subplot_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_style</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><span class="pre">MapStyle</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">FigureBase</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Axes</span><span class="p"><span class="pre">]</span></span></span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.map" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.map'"><span>¶</span></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nrows</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncols</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_ratios</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_ratios</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subplot_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_style</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><span class="pre">MapStyle</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">FigureBase</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dd><p>Create map plots with standard features.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nrows</strong> (<em>int</em>) – Number of rows in subplot grid</p></li>
+<li><p><strong>ncols</strong> (<em>int</em>) – Number of columns in subplot grid</p></li>
+<li><p><strong>figsize</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – Figure size (width, height) in inches. If None, not set (matplotlib default).</p></li>
+<li><p><strong>height_ratios</strong> (<em>List</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>) – List of height ratios for subplots</p></li>
+<li><p><strong>width_ratios</strong> (<em>List</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>) – List of width ratios for subplots</p></li>
+<li><p><strong>subplot_spec</strong> (<em>Any</em><em> | </em><em>None</em>) – A gridspec subplot spec to place the map in</p></li>
+<li><p><strong>map_style</strong> (<a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><em>MapStyle</em></a><em> | </em><em>dict</em><em> | </em><em>None</em>) – Map style configuration. Can be a MapStyle object, a dict with
+MapStyle fields, or None (uses defaults). If dict, missing keys use defaults.
+The projection is set via map_style.projection.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of (figure, axes). If nrows=1 and ncols=1, returns a single Axes.
+Otherwise, returns a numpy array of axes.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tuple</em>[<em>FigureBase</em>, <em>Axes</em> | <em>ndarray</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.max_shift_map">
+<span class="sig-name descname"><span class="pre">max_shift_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RdBu_r'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.max_shift_map" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.max_shift_map'"><span>¶</span></a></dt>
+<dd><p>Plot a map showing the value in the time dimension where the absolute value of the shift is maximal, keeping sign.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>var</strong> (<em>str</em><em> | </em><em>None</em>) – Name of the variable for which to compute the maximum shift.
+If None, TOAD will attempt to infer which variable to use. A ValueError is raised
+if the variable cannot be uniquely determined.</p></li>
+<li><p><strong>cluster_ids</strong> (<em>int</em><em> | </em><em>list</em><em>[</em><em>int</em><em>] </em><em>| </em><em>range</em><em> | </em><em>None</em>) – Optional integer or list of integers specifying which cluster IDs to analyze.
+If None, analyzes all clusters. If specified, only analyzes grid cells belonging
+to the given cluster(s).</p></li>
+<li><p><strong>ax</strong> (<em>Axes</em><em> | </em><em>None</em>) – Matplotlib axes to plot on. Creates new figure if None.</p></li>
+<li><p><strong>map_style</strong> (<a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><em>MapStyle</em></a><em> | </em><em>dict</em><em> | </em><em>None</em>) – Configuration for the map style.
+Can be a MapStyle instance or a dictionary containing style settings. Defaults to None.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> | </em><em>Colormap</em><em> | </em><em>None</em>) – Colormap to use for the plot. Can be a string name of a colormap
+recognized by matplotlib, or an actual Colormap object. Defaults to ‘RdBu_r’.</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The created matplotlib Figure (None if ax was provided) and Axes objects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[FigureBase | None, matplotlib.axes.Axes]</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>For each location, this plots the value along the time axis whose absolute value is maximal. Locations with all-NaN
+values will be masked out.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.overview">
+<span class="sig-name descname"><span class="pre">overview</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">range(0,</span> <span class="pre">6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'timeseries'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.overview" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.overview'"><span>¶</span></a></dt>
+<dd><p>Create an overview plot with map and timeseries for clusters.</p>
+<p>This is a convenience method that creates a combined visualization showing
+both the spatial distribution of clusters on a map and their corresponding
+timeseries. It automatically enables subplots and map display.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>var</strong> (<em>str</em><em> | </em><em>None</em>) – Base variable or cluster variable. If None, TOAD will attempt
+to infer which variable to use. A ValueError is raised if the variable cannot be
+uniquely determined.</p></li>
+<li><p><strong>cluster_ids</strong> (<em>int</em><em> | </em><em>List</em><em>[</em><em>int</em><em>] </em><em>| </em><em>ndarray</em><em> | </em><em>range</em><em> | </em><em>None</em>) – ID or list of IDs of clusters to plot. Defaults to range(6) (clusters 0-5).</p></li>
+<li><p><strong>map_style</strong> (<a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><em>MapStyle</em></a><em> | </em><em>dict</em><em> | </em><em>None</em>) – Map style configuration. Can be a MapStyle object, a dict with
+MapStyle fields, or None (uses defaults). If dict, missing keys use defaults.</p></li>
+<li><p><strong>mode</strong> (<em>Literal</em><em>[</em><em>'timeseries'</em><em>, </em><em>'aggregated'</em><em>]</em>) – Visualization mode. “timeseries” shows individual trajectories,
+“aggregated” shows statistical summaries (median, range, IQR).</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional arguments passed to timeseries() method.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of (figure, dict) with keys ‘map’ and ‘timeseries’.
+- ‘map’: Axes for the map plot
+- ‘timeseries’: List of axes for timeseries subplots (one per cluster)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tuple</em>[<em>FigureBase</em> | None, dict]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.shift_dist">
+<span class="sig-name descname"><span class="pre">shift_dist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yscale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'log'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.shift_dist" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.shift_dist'"><span>¶</span></a></dt>
+<dd><p>Plot histograms showing the distribution of shifts for each shift variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>figsize</strong> (<em>tuple</em><em> | </em><em>None</em>) – Figure size (width, height) in inches. If None, defaults to
+(12, 2 * number of shift variables).</p></li>
+<li><p><strong>yscale</strong> (<em>str</em>) – Scale for the y-axis. Defaults to “log”.</p></li>
+<li><p><strong>bins</strong> – Number of bins for the histogram. Defaults to 20.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of (figure, axes). Axes is a numpy array of axes (one per shift variable).</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.td">
+<span class="sig-name descname"><span class="pre">td</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="toad.TOAD.html#toad.TOAD" title="toad.TOAD"><span class="pre">TOAD</span></a></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.td" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.td'"><span>¶</span></a></dt>
+<dd></dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.time_of_max_shift_map">
+<span class="sig-name descname"><span class="pre">time_of_max_shift_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'turbo'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.time_of_max_shift_map" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.time_of_max_shift_map'"><span>¶</span></a></dt>
+<dd><p>Plot a map showing the time at which the maximal shift occurs for a given variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>var</strong> (<em>str</em><em> | </em><em>None</em>) – Name of the variable for which to compute the time of maximum shift.
+If None, TOAD will attempt to infer which variable to use. A ValueError is raised
+if the variable cannot be uniquely determined.</p></li>
+<li><p><strong>cluster_ids</strong> (<em>int</em><em> | </em><em>list</em><em>[</em><em>int</em><em>] </em><em>| </em><em>range</em><em> | </em><em>None</em>) – Optional integer or list of integers specifying which cluster IDs to analyze.
+If None, analyzes all clusters. If specified, only analyzes grid cells belonging
+to the given cluster(s).</p></li>
+<li><p><strong>ax</strong> (<em>Axes</em><em> | </em><em>None</em>) – Matplotlib axes to plot on. Creates new figure if None.</p></li>
+<li><p><strong>map_style</strong> (<a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><em>MapStyle</em></a><em> | </em><em>dict</em><em> | </em><em>None</em>) – Configuration for the map style.
+Can be a MapStyle instance or a dictionary containing style settings. Defaults to None.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> | </em><em>Colormap</em><em> | </em><em>None</em>) – Colormap to use for the plot. Can be a string name of a colormap
+recognized by matplotlib, or an actual Colormap object. Defaults to ‘turbo’.</p></li>
+<li><p><strong>shift_threshold</strong> (<em>float</em>) – Threshold value for shift magnitude above which a transition
+is detected. This value is passed to <cite>compute_transition_time</cite>. Defaults to 0.5.</p></li>
+<li><p><strong>shift_direction</strong> (<em>Literal</em><em>[</em><em>'both'</em><em>, </em><em>'positive'</em><em>, </em><em>'negative'</em><em>] </em><em>| </em><em>str</em>) – Sign of shifts to map (<code class="docutils literal notranslate"><span class="pre">"both"</span></code>, <code class="docutils literal notranslate"><span class="pre">"positive"</span></code>, or <code class="docutils literal notranslate"><span class="pre">"negative"</span></code>).
+Passed to <code class="xref py py-meth docutils literal notranslate"><span class="pre">TimeStats.compute_transition_time()</span></code>. Defaults to <code class="docutils literal notranslate"><span class="pre">"both"</span></code>.</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The created matplotlib Figure (None if ax was provided) and Axes objects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[FigureBase | None, matplotlib.axes.Axes]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.plotting.Plotter.timeseries">
+<span class="sig-name descname"><span class="pre">timeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeseries_var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tab20b'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_legend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_trajectories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajectories_sample_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajectory_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajectories_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajectories_linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_timeseries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_shift_indicator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_indicator_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_dts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_median</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">median_linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_trajectory_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_trajectory_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajectory_range_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajectory_std_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_cluster_duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_duration_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cluster_duration_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_var</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_cmap_other</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;matplotlib.colors.ListedColormap</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_include_all_clusters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subplots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hspace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_ylabels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_ylabel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_ylabel_pad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared_ylabel_fontsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">1.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_ratios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">map_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**plot_kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.plotting.Plotter.timeseries" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.plotting.Plotter.timeseries'"><span>¶</span></a></dt>
+<dd><p>Plot time series from clusters or all data.</p>
+<p>This function allows flexible plotting of individual trajectories, aggregated statistics
+(median/mean), shaded regions (full range and IQR), and shift duration indicators.
+If no clusters are provided, plots all timeseries from the dataset.</p>
+<p>Can optionally create separate subplots for each cluster, and optionally include a map
+showing cluster spatial locations alongside the timeseries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>var</strong> (<em>str</em><em> | </em><em>None</em>) – Base variable or cluster variable. If None, TOAD will attempt
+to infer which variable to use. A ValueError is raised if the variable cannot be
+uniquely determined.</p></li>
+<li><p><strong>cluster_ids</strong> (<em>int</em><em> | </em><em>List</em><em>[</em><em>int</em><em>] </em><em>| </em><em>ndarray</em><em> | </em><em>range</em><em> | </em><em>None</em>) – ID or list of IDs of clusters to plot. If None, plots all timeseries
+from the dataset (no clustering). Cannot be None if plot_map=True.</p></li>
+<li><p><strong>timeseries_var</strong> (<em>str</em><em> | </em><em>None</em>) – Variable name to plot (if different from var). Defaults to var.</p></li>
+<li><p><strong>ax</strong> (<em>Axes</em><em> | </em><em>None</em>) – Matplotlib axes to plot on. Creates new figure if None. Ignored if subplots=True
+or plot_map=True.</p></li>
+<li><p><strong>color</strong> (<em>str</em><em> | </em><em>None</em>) – Single color to use for all plotted clusters. Overrides cmap.</p></li>
+<li><p><strong>cmap</strong> (<em>str</em><em> | </em><em>ListedColormap</em>) – Colormap to use if plotting multiple clusters and color is None.</p></li>
+<li><p><strong>normalize</strong> (<em>Literal</em><em>[</em><em>'max'</em><em>, </em><em>'max_each'</em><em>] </em><em>| </em><em>None</em><em> | </em><em>str</em>) – Method to normalize timeseries (‘max’, ‘max_each’). Defaults to None.</p></li>
+<li><p><strong>add_legend</strong> (<em>bool</em>) – If True, add a legend indicating cluster IDs.</p></li>
+<li><p><strong>plot_trajectories</strong> (<em>bool</em>) – If True, plot individual cell trajectories.</p></li>
+<li><p><strong>max_trajectories</strong> (<em>int</em>) – Maximum number of individual trajectories to plot (per cluster if
+clusters provided, or total if plotting all data). Ignored when trajectory_ids is set.</p></li>
+<li><p><strong>trajectories_sample_seed</strong> (<em>int</em>) – Seed for the random number generator used to sample trajectories. Defaults to 0.</p></li>
+<li><p><strong>trajectory_ids</strong> (<em>List</em><em>[</em><em>int</em><em>] </em><em>| </em><em>None</em>) – Exact integer indices of cells to plot. Overrides max_trajectories and
+trajectories_sample_seed. Out-of-range indices are silently skipped.</p></li>
+<li><p><strong>trajectories_alpha</strong> (<em>float</em>) – Alpha transparency for individual time series lines. Defaults to 0.5.</p></li>
+<li><p><strong>trajectories_linewidth</strong> (<em>float</em>) – Linewidth for individual time series lines. Defaults to 0.5.</p></li>
+<li><p><strong>full_timeseries</strong> (<em>bool</em>) – If True, plot the full timeseries for each cell. If False,
+only plot the segment belonging to the cluster.</p></li>
+<li><p><strong>highlight_color</strong> (<em>str</em><em> | </em><em>None</em>) – Color to highlight the actual cluster segment
+when full_timeseries is True.</p></li>
+<li><p><strong>highlight_alpha</strong> (<em>float</em>) – Alpha for the cluster highlight segment.</p></li>
+<li><p><strong>highlight_linewidth</strong> (<em>float</em>) – Line width for the cluster highlight segment.</p></li>
+<li><p><strong>plot_shift_indicator</strong> (<em>bool</em>) – If True, overlay a dot on each trajectory at every timestep where
+that cell is assigned to the cluster (i.e. where the shift is detected).
+Only applies when clusters are provided.</p></li>
+<li><p><strong>shift_indicator_size</strong> (<em>float</em>) – Marker size (in points) for the shift detection dots. Defaults to 5.0.</p></li>
+<li><p><strong>plot_dts</strong> (<em>bool</em>) – If True, plot shifts variable in timeseries instead of base variable.</p></li>
+<li><p><strong>plot_median</strong> (<em>bool</em>) – If True, plot the median timeseries curve.</p></li>
+<li><p><strong>plot_mean</strong> (<em>bool</em>) – If True, plot the mean timeseries curve.</p></li>
+<li><p><strong>median_linewidth</strong> (<em>float</em>) – Linewidth for the median curve.</p></li>
+<li><p><strong>mean_linewidth</strong> (<em>float</em>) – Linewidth for the mean curve.</p></li>
+<li><p><strong>plot_trajectory_range</strong> (<em>bool</em>) – If True, plot the full range (min to max) as a shaded area.</p></li>
+<li><p><strong>plot_trajectory_std</strong> (<em>bool</em>) – If True, plot the 68% interquartile range (16th to 84th percentile) as a shaded area.</p></li>
+<li><p><strong>trajectory_range_alpha</strong> (<em>float</em>) – Alpha transparency for the full range shaded area.</p></li>
+<li><p><strong>trajectory_std_alpha</strong> (<em>float</em>) – Alpha transparency for the IQR shaded area.</p></li>
+<li><p><strong>plot_cluster_duration</strong> (<em>bool</em>) – If True, adds horizontal shading indicating the cluster’s
+temporal extent (start to end). Only applies when clusters are provided.</p></li>
+<li><p><strong>cluster_duration_color</strong> (<em>str</em><em> | </em><em>None</em>) – Color for shift duration shading. Uses cluster color if None.</p></li>
+<li><p><strong>cluster_duration_alpha</strong> (<em>float</em>) – Alpha for the shift duration shading.</p></li>
+<li><p><strong>plot_map</strong> (<em>bool</em>) – If True, include a map showing cluster spatial locations alongside timeseries.
+Defaults to False.</p></li>
+<li><p><strong>map_var</strong> (<em>str</em><em> | </em><em>None</em>) – Variable name whose data to plot in the map. Defaults to var if None. Only used if plot_map=True.</p></li>
+<li><p><strong>map_cmap_other</strong> (<em>str</em><em> | </em><em>Colormap</em><em> | </em><em>None</em>) – Colormap for remaining clusters on map. Only used if plot_map=True.</p></li>
+<li><p><strong>map_include_all_clusters</strong> (<em>bool</em>) – If True, plot all clusters on the map. If False, only plot selected clusters.
+Only used if plot_map=True.</p></li>
+<li><p><strong>subplots</strong> (<em>bool</em>) – If True, create one subplot per cluster. Defaults to False. If plot_map=True and multiple
+clusters, subplots are automatically enabled.</p></li>
+<li><p><strong>ncols</strong> (<em>int</em>) – Number of columns for subplot grid when subplots=True. Defaults to 1.</p></li>
+<li><p><strong>figsize</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – Figure size (width, height) in inches. Used when subplots=True or plot_map=True.</p></li>
+<li><p><strong>wspace</strong> (<em>float</em>) – Width space between timeseries subplots (if ncols &gt; 1).</p></li>
+<li><p><strong>hspace</strong> (<em>float</em>) – Height space between timeseries rows.</p></li>
+<li><p><strong>show_ylabels</strong> (<em>bool</em>) – If True, show y-axis label on the timeseries plots. Only relevant for subplots.</p></li>
+<li><p><strong>shared_ylabel</strong> (<em>str</em><em> | </em><em>None</em>) – If set, draw one rotated y-label beside the timeseries column instead of
+per-panel labels. Pass <code class="docutils literal notranslate"><span class="pre">"auto"</span></code> to use the first panel’s inferred label or
+variable metadata. Ignored when <code class="docutils literal notranslate"><span class="pre">subplots=False</span></code>.</p></li>
+<li><p><strong>shared_ylabel_pad</strong> (<em>float</em>) – Horizontal gap between the shared label and the leftmost subplot
+(figure fraction).</p></li>
+<li><p><strong>shared_ylabel_fontsize</strong> (<em>float</em><em> | </em><em>None</em>) – Font size for the shared label; defaults to <code class="docutils literal notranslate"><span class="pre">axes.labelsize</span></code>.</p></li>
+<li><p><strong>vertical</strong> (<em>bool</em>) – If True, arrange map above timeseries plots. Otherwise, map is placed to the left.
+Only used if plot_map=True.</p></li>
+<li><p><strong>width_ratios</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>) – Tuple of relative widths for map vs. timeseries section (used in horizontal layout).
+Only used if plot_map=True.</p></li>
+<li><p><strong>height_ratios</strong> (<em>Tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – Optional tuple of relative heights for map vs. timeseries section (used in vertical layout).
+Only used if plot_map=True.</p></li>
+<li><p><strong>**plot_kwargs</strong> (<em>Any</em>) – Additional arguments passed to xarray.plot for each trajectory.</p></li>
+<li><p><strong>map_style</strong> (<a class="reference internal" href="toad.plotting.MapStyle.html#toad.plotting.MapStyle" title="toad.plotting.MapStyle"><em>MapStyle</em></a><em> | </em><em>dict</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>**plot_kwargs</strong></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of (figure, axes).
+- If plot_map=False and single plot: (figure, Axes)
+- If plot_map=False and subplots=True: (figure, List[Axes])
+- If plot_map=True: (figure, dict) with keys ‘map’ and ‘timeseries’
+Figure is None if ax was provided and subplots=False and plot_map=False.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If no timeseries found for a given cluster ID, if nothing is set to plot,
+    if cluster_ids is None when plot_map=True, or if plotting all data when plot_map=True.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Tuple</em>[<em>FigureBase</em> | None, <em>Axes</em> | <em>List</em>[<em>Axes</em>] | dict | None]</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+</section>
+</div><div class="flex justify-between items-center pt-6 mt-12 border-t border-border gap-4">
+<div class="mr-auto">
+<a class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input hover:bg-accent hover:text-accent-foreground py-2 px-4" href="toad.shifts.ASDETECT.html">
+<svg class="mr-2 h-4 w-4" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<polyline points="15 18 9 12 15 6"></polyline>
+</svg>
+        toad.shifts.ASDETECT
+      </a>
+</div>
+<div class="ml-auto">
+<a class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input hover:bg-accent hover:text-accent-foreground py-2 px-4" href="toad.plotting.MapStyle.html">
+        toad.plotting.MapStyle
+        <svg class="ml-2 h-4 w-4" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<polyline points="9 18 15 12 9 6"></polyline>
+</svg>
+</a>
+</div>
+</div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
+<div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] h-full overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
+<ul>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter'" class="reference internal" href="#toad.plotting.Plotter"><code class="docutils literal notranslate"><span class="pre">Plotter</span></code></a><ul>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.__init__'" class="reference internal" href="#toad.plotting.Plotter.__init__"><code class="docutils literal notranslate"><span class="pre">Plotter.__init__()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.cluster_map'" class="reference internal" href="#toad.plotting.Plotter.cluster_map"><code class="docutils literal notranslate"><span class="pre">Plotter.cluster_map()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.cluster_occurrence_rate_map'" class="reference internal" href="#toad.plotting.Plotter.cluster_occurrence_rate_map"><code class="docutils literal notranslate"><span class="pre">Plotter.cluster_occurrence_rate_map()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.cluster_overview'" class="reference internal" href="#toad.plotting.Plotter.cluster_overview"><code class="docutils literal notranslate"><span class="pre">Plotter.cluster_overview()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.cluster_shift_times_violins'" class="reference internal" href="#toad.plotting.Plotter.cluster_shift_times_violins"><code class="docutils literal notranslate"><span class="pre">Plotter.cluster_shift_times_violins()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.consensus_map'" class="reference internal" href="#toad.plotting.Plotter.consensus_map"><code class="docutils literal notranslate"><span class="pre">Plotter.consensus_map()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.consensus_overview'" class="reference internal" href="#toad.plotting.Plotter.consensus_overview"><code class="docutils literal notranslate"><span class="pre">Plotter.consensus_overview()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.consensus_rate_map'" class="reference internal" href="#toad.plotting.Plotter.consensus_rate_map"><code class="docutils literal notranslate"><span class="pre">Plotter.consensus_rate_map()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.consensus_shift_times_medians'" class="reference internal" href="#toad.plotting.Plotter.consensus_shift_times_medians"><code class="docutils literal notranslate"><span class="pre">Plotter.consensus_shift_times_medians()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.consensus_shift_times_violins'" class="reference internal" href="#toad.plotting.Plotter.consensus_shift_times_violins"><code class="docutils literal notranslate"><span class="pre">Plotter.consensus_shift_times_violins()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.consensus_timeseries'" class="reference internal" href="#toad.plotting.Plotter.consensus_timeseries"><code class="docutils literal notranslate"><span class="pre">Plotter.consensus_timeseries()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.map'" class="reference internal" href="#toad.plotting.Plotter.map"><code class="docutils literal notranslate"><span class="pre">Plotter.map()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.max_shift_map'" class="reference internal" href="#toad.plotting.Plotter.max_shift_map"><code class="docutils literal notranslate"><span class="pre">Plotter.max_shift_map()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.overview'" class="reference internal" href="#toad.plotting.Plotter.overview"><code class="docutils literal notranslate"><span class="pre">Plotter.overview()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.shift_dist'" class="reference internal" href="#toad.plotting.Plotter.shift_dist"><code class="docutils literal notranslate"><span class="pre">Plotter.shift_dist()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.td'" class="reference internal" href="#toad.plotting.Plotter.td"><code class="docutils literal notranslate"><span class="pre">Plotter.td</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.time_of_max_shift_map'" class="reference internal" href="#toad.plotting.Plotter.time_of_max_shift_map"><code class="docutils literal notranslate"><span class="pre">Plotter.time_of_max_shift_map()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.plotting.Plotter.timeseries'" class="reference internal" href="#toad.plotting.Plotter.timeseries"><code class="docutils literal notranslate"><span class="pre">Plotter.timeseries()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</aside>
+</main>
+</div>
+</div><footer class="py-6 border-t border-border md:py-0">
+<div class="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+<div class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
+<p class="text-sm leading-loose text-center text-muted-foreground md:text-left">© 2026, TOAD Developers Built with <a class="font-medium underline underline-offset-4" href="https://www.sphinx-doc.org" rel="noreferrer">Sphinx 9.1.0</a></p>
+</div>
+</div>
+</footer>
+</div>
+<script src="../_static/documentation_options.js?v=5929fcd5"></script>
+<script src="../_static/doctools.js?v=fd6eb6e6"></script>
+<script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+<script defer="defer" src="../_static/theme.js?v=5db23cf8"></script>
+</body>
+</html>

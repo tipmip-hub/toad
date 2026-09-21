@@ -1,0 +1,15 @@
+toad.shifts.methods
+===================
+
+.. automodule:: toad.shifts.methods
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   asdetect
+   base
+   edge

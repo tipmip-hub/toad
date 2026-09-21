@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+
+<html :class="{ 'dark' : darkMode === true }" data-content_root="../" lang="en" x-data="{ darkMode: $persist(window.matchMedia('(prefers-color-scheme: dark)').matches), activeSection: ''}">
+<head>
+<script>
+    (function () {
+      // Set initial color scheme
+      if ((localStorage.getItem("_x_darkMode") === "true") || (window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.documentElement.classList.add("dark");
+      }
+
+      // Watch for media preference changes
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+        localStorage.setItem("_x_darkMode", event.matches);
+        document.documentElement.classList.toggle("dark", event.matches);
+      });
+    })();
+  </script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8"/>
+<meta content="#ffffff" media="(prefers-color-scheme: light)" name="theme-color"/>
+<meta content="#030711" media="(prefers-color-scheme: dark)" name="theme-color"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>toad.postprocessing.stats | toad  documentation</title>
+<meta content="toad.postprocessing.stats | toad  documentation" property="og:title"/>
+<meta content="toad.postprocessing.stats | toad  documentation" name="twitter:title"/>
+<link href="../_static/pygments.css?v=8d216cef" rel="stylesheet" type="text/css"/>
+<link href="../_static/theme.css?v=d6d7c91b" rel="stylesheet" type="text/css"/>
+<link href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/custom.css?v=a187b300" rel="stylesheet" type="text/css"/>
+<link href="../_static/awesome-myst-nb.css?v=7c7ea10c" rel="stylesheet" type="text/css"/>
+<link href="../_static/favicon.png" rel="icon"/>
+<link href="../search.html" rel="search" title="Search"/>
+<link href="../genindex.html" rel="index" title="Index"/>
+<link href="toad.postprocessing.stats.general.html" rel="next" title="toad.postprocessing.stats.general"/>
+<link href="toad.postprocessing.member_support_consensus.html" rel="prev" title="toad.postprocessing.member_support_consensus"/>
+</head>
+<body :class="{ 'overflow-hidden': showSidebar }" class="min-h-screen font-sans antialiased bg-background text-foreground" x-data="{ showSidebar: false, showScrollTop: false }">
+<div @click.self="showSidebar = false" class="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm md:hidden" x-cloak="" x-show="showSidebar"></div><div class="relative flex flex-col min-h-screen" id="page"><a class="absolute top-0 left-0 z-[100] block bg-background p-4 text-xl transition -translate-x-full opacity-0 focus:translate-x-0 focus:opacity-100" href="#content">
+      Skip to content
+    </a><header class="sticky top-0 z-40 w-full border-b shadow-xs border-border bg-background/90 backdrop-blur"><div class="container flex items-center h-14">
+<div class="hidden mr-4 md:flex">
+<a class="flex items-center mr-6" href="../sidebar_main_nav_links.html">
+<img alt="Logo" class="mr-2 dark:invert" height="24" src="../_static/toad.png" width="24"/><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">toad  documentation</span>
+</a></div><button @click="showSidebar = true" class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden" type="button">
+<svg aria-hidden="true" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z"></path>
+</svg>
+<span class="sr-only">Toggle navigation menu</span>
+</button>
+<div class="flex items-center justify-between flex-1 gap-2 sm:gap-4 md:justify-end">
+<div class="flex-1 w-full md:w-auto md:flex-none"><form @keydown.k.window.meta="$refs.search.focus()" action="../search.html" class="relative flex items-center group" id="searchbox" method="get">
+<input aria-label="Search the docs" class="inline-flex items-center font-medium transition-colors bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background border border-input hover:bg-accent focus:bg-accent hover:text-accent-foreground focus:text-accent-foreground hover:placeholder-accent-foreground py-2 px-4 relative h-9 w-full justify-start rounded-[0.5rem] text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64" id="search-input" name="q" placeholder="Search ..." type="search" x-ref="search"/>
+<kbd class="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none text-muted-foreground items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex group-hover:bg-accent group-hover:text-accent-foreground">
+<span class="text-xs">⌘</span>
+    K
+  </kbd>
+</form>
+</div>
+<nav class="flex items-center gap-1">
+<a href="https://github.com/tipmip-methods/toad" rel="noopener nofollow" title="Visit GitHub">
+<div class="inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9">
+<svg fill="currentColor" height="16" viewbox="0 0 16 16" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+</svg>
+</div>
+</a>
+<button @click="darkMode = !darkMode" class="relative inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9" title="Toggle color scheme" type="button">
+<svg class="absolute transition-all scale-100 rotate-0 dark:-rotate-90 dark:scale-0" fill="currentColor" height="16" viewbox="0 96 960 960" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 685q45.456 0 77.228-31.772Q589 621.456 589 576q0-45.456-31.772-77.228Q525.456 467 480 467q-45.456 0-77.228 31.772Q371 530.544 371 576q0 45.456 31.772 77.228Q434.544 685 480 685Zm0 91q-83 0-141.5-58.5T280 576q0-83 58.5-141.5T480 376q83 0 141.5 58.5T680 576q0 83-58.5 141.5T480 776ZM80 621.5q-19.152 0-32.326-13.174T34.5 576q0-19.152 13.174-32.326T80 530.5h80q19.152 0 32.326 13.174T205.5 576q0 19.152-13.174 32.326T160 621.5H80Zm720 0q-19.152 0-32.326-13.174T754.5 576q0-19.152 13.174-32.326T800 530.5h80q19.152 0 32.326 13.174T925.5 576q0 19.152-13.174 32.326T880 621.5h-80Zm-320-320q-19.152 0-32.326-13.174T434.5 256v-80q0-19.152 13.174-32.326T480 130.5q19.152 0 32.326 13.174T525.5 176v80q0 19.152-13.174 32.326T480 301.5Zm0 720q-19.152 0-32.326-13.17Q434.5 995.152 434.5 976v-80q0-19.152 13.174-32.326T480 850.5q19.152 0 32.326 13.174T525.5 896v80q0 19.152-13.174 32.33-13.174 13.17-32.326 13.17ZM222.174 382.065l-43-42Q165.5 327.391 166 308.239t13.174-33.065q13.435-13.674 32.587-13.674t32.065 13.674l42.239 43q12.674 13.435 12.555 31.706-.12 18.272-12.555 31.946-12.674 13.674-31.445 13.413-18.772-.261-32.446-13.174Zm494 494.761-42.239-43q-12.674-13.435-12.674-32.087t12.674-31.565Q686.609 756.5 705.38 757q18.772.5 32.446 13.174l43 41.761Q794.5 824.609 794 843.761t-13.174 33.065Q767.391 890.5 748.239 890.5t-32.065-13.674Zm-42-494.761Q660.5 369.391 661 350.62q.5-18.772 13.174-32.446l41.761-43Q728.609 261.5 747.761 262t33.065 13.174q13.674 13.435 13.674 32.587t-13.674 32.065l-43 42.239q-13.435 12.674-31.706 12.555-18.272-.12-31.946-12.555Zm-495 494.761Q165.5 863.391 165.5 844.239t13.674-32.065l43-42.239q13.435-12.674 32.087-12.674t31.565 12.674Q299.5 782.609 299 801.38q-.5 18.772-13.174 32.446l-41.761 43Q231.391 890.5 212.239 890t-33.065-13.174ZM480 576Z"></path>
+</svg>
+<svg class="absolute transition-all scale-0 rotate-90 dark:rotate-0 dark:scale-100" fill="currentColor" height="16" viewbox="0 96 960 960" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 936q-151 0-255.5-104.5T120 576q0-138 90-239.5T440 218q25-3 39 18t-1 44q-17 26-25.5 55t-8.5 61q0 90 63 153t153 63q31 0 61.5-9t54.5-25q21-14 43-1.5t19 39.5q-14 138-117.5 229T480 936Zm0-80q88 0 158-48.5T740 681q-20 5-40 8t-40 3q-123 0-209.5-86.5T364 396q0-20 3-40t8-40q-78 32-126.5 102T200 576q0 116 82 198t198 82Zm-10-270Z"></path>
+</svg>
+</button>
+</nav>
+</div>
+</div>
+</header>
+<div class="flex-1"><div class="container md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }" class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full overflow-y-auto border-r border-border md:sticky" id="left-sidebar">
+<a class="justify-start text-sm md:!hidden bg-background" href="../sidebar_main_nav_links.html">
+<img alt="Logo" class="mr-2 dark:invert" height="16" src="../_static/toad.png" width="16"/><span class="font-bold text-clip whitespace-nowrap">toad  documentation</span>
+</a>
+<div class="relative overflow-hidden md:overflow-auto my-4 md:my-0">
+<div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start</a></li>
+<li class="toctree-l1" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="../tutorials.html">Tutorials<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul x-cloak="" x-show="expanded">
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/basics.html">TOAD Basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/custom_clustering.html">Implement your own clustering method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/custom_shifts_detection.html">Implement your own shifts detection method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/consensus.html">Consensus clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/consensus.html#imports">Imports</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/consensus.html#prepare-data">Prepare data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/consensus.html#computes-shifts-and-clusters">Computes shifts and clusters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/consensus.html#compute-consensus">Compute consensus</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/consensus.html#visualise-consensus">Visualise consensus</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../consensus_clustering.html">Consensus clustering</a></li>
+<li class="toctree-l1 current" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="../api_ref.html">API Reference<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul class="current" x-show="expanded">
+<li class="toctree-l2"><a class="reference internal" href="toad.TOAD.html">toad.TOAD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.shifts.ASDETECT.html">toad.shifts.ASDETECT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.plotting.Plotter.html">toad.plotting.Plotter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.plotting.MapStyle.html">toad.plotting.MapStyle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.regridding.HealPixRegridder.html">toad.regridding.HealPixRegridder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.regridding.base.BaseRegridder.html">toad.regridding.base.BaseRegridder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.shifts.html">toad.shifts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.clustering.html">toad.clustering</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="toad.postprocessing.html">toad.postprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="toad.utils.html">toad.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../scientific_ref.html">Scientific References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+</nav>
+</div>
+</div>
+<button @click="showSidebar = false" class="absolute md:hidden right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100" type="button">
+<svg class="h-4 w-4" fill="currentColor" height="24" stroke="none" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 632 284 828q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536 576l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480 632Z"></path>
+</svg>
+</button>
+</aside>
+<main class="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+<div class="w-full min-w-0 mx-auto">
+<nav aria-label="breadcrumbs" class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
+<a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground" href="../sidebar_main_nav_links.html">
+<span class="hidden md:inline">toad  documentation</span>
+<svg aria-label="Home" class="md:hidden" fill="currentColor" height="18" stroke="none" viewbox="0 96 960 960" width="18" xmlns="http://www.w3.org/2000/svg">
+<path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z"></path>
+</svg>
+</a>
+<div class="mr-1">/</div><a class="hover:text-foreground overflow-hidden text-ellipsis whitespace-nowrap" href="../api_ref.html">API Reference</a>
+<div class="mr-1">/</div><a class="hover:text-foreground overflow-hidden text-ellipsis whitespace-nowrap" href="toad.postprocessing.html">toad.postprocessing</a>
+<div class="mr-1">/</div><span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">toad.postprocessing.stats</span>
+</nav>
+<div id="content" role="main">
+<section id="module-toad.postprocessing.stats">
+<span id="toad-postprocessing-stats"></span><h1>toad.postprocessing.stats<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#module-toad.postprocessing.stats"><span>¶</span></a></h1>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#toad.postprocessing.stats.Stats" title="toad.postprocessing.stats.Stats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Stats</span></code></a>(toad, var)</p></td>
+<td><p>Interface to access specialized statistics calculators for clusters: time, space, and general metrics.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.GeneralStats">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">toad.postprocessing.stats.</span></span><span class="sig-name descname"><span class="pre">GeneralStats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">toad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.GeneralStats" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.GeneralStats'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>General cluster statistics, such as cluster score.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>var</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.GeneralStats.aggregate_cluster_scores">
+<span class="sig-name descname"><span class="pre">aggregate_cluster_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.GeneralStats.aggregate_cluster_scores" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.GeneralStats.aggregate_cluster_scores'"><span>¶</span></a></dt>
+<dd><p>Compute a score for multiple clusters and aggregate the results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster_ids</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – List of cluster IDs</p></li>
+<li><p><strong>score_method</strong> (<em>str</em>) – Name of the scoring method (e.g., “score_nonlinearity”)</p></li>
+<li><p><strong>aggregation</strong> (<em>str</em><em> | </em><em>Callable</em>) – “mean”, “median”, “weighted”, or custom function</p></li>
+<li><p><strong>weights</strong> (<em>ndarray</em><em> | </em><em>None</em>) – Weights for each cluster (if aggregation=”weighted”)</p></li>
+<li><p><strong>**kwargs</strong> – Arguments passed to the scoring method</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Aggregated score across all clusters</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.GeneralStats.score_consistency">
+<span class="sig-name descname"><span class="pre">score_consistency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.GeneralStats.score_consistency" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.GeneralStats.score_consistency'"><span>¶</span></a></dt>
+<dd><p>Measures how internally consistent a cluster is by analyzing the similarity between its time series.</p>
+<p>Uses hierarchical clustering to group similar time series and computes an inconsistency score.
+The final score is inverted so higher values indicate more consistency.</p>
+<p>The method works by:
+1. Computing pairwise R² correlations between all time series in the cluster
+2. Converting correlations to distances (1 - R²)
+3. Performing hierarchical clustering using Ward linkage
+4. Calculating inconsistency coefficients at the highest level
+5. Converting to a consistency score by taking the inverse</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cluster_id</strong> (<em>int</em>) – ID of the cluster to evaluate.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Consistency score between 0-1, where:</dt><dd><p>1.0: Perfect consistency (all time series are identical)
+~0.5: Moderate consistency
+0.0: No consistency (single point or completely inconsistent)</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>Kobe De Maeyer Master Thesis (2025)</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.GeneralStats.score_heaviside">
+<span class="sig-name descname"><span class="pre">score_heaviside</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_score_fit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="k"><span class="pre">False</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'mean'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'sum'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'std'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'median'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'percentile'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'max'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'min'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'max'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'max_each'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.GeneralStats.score_heaviside" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.GeneralStats.score_heaviside'"><span>¶</span></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">score_heaviside</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_score_fit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="k"><span class="pre">True</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'mean'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'sum'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'std'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'median'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'percentile'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'max'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'min'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'max'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'max_each'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">→</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dd><p>Evaluates how closely the spatially aggregated cluster time series resembles a perfect Heaviside function.</p>
+<p>A score of 1 indicates a perfect step function, while 0 indicates a linear trend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster_id</strong> – ID of the cluster to score.</p></li>
+<li><p><strong>return_score_fit</strong> – If True, returns linear regression fit along with score.</p></li>
+<li><p><strong>aggregation</strong> (<em>Literal</em><em>[</em><em>'mean'</em><em>, </em><em>'sum'</em><em>, </em><em>'std'</em><em>, </em><em>'median'</em><em>, </em><em>'percentile'</em><em>, </em><em>'max'</em><em>, </em><em>'min'</em><em>] </em><em>| </em><em>str</em>) – How to aggregate spatial data. Options are:
+- “mean” - Average across space
+- “median” - Median across space
+- “sum” - Sum across space
+- “std” - Standard deviation across space
+- “percentile” - Percentile across space (requires percentile arg)
+- “max” - Maximum across space
+- “min” - Minimum across space</p></li>
+<li><p><strong>percentile</strong> – Percentile value between 0-1 when using percentile aggregation.</p></li>
+<li><p><strong>normalize</strong> (<em>Literal</em><em>[</em><em>'max'</em><em>, </em><em>'max_each'</em><em>] </em><em>| </em><em>None</em><em> | </em><em>str</em>) – How to normalize the data. Options are:
+- “max” - Normalize by maximum value
+- “max_each” - Normalize each trajectory by its own maximum value
+- None: Do not normalize</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cluster score between 0-1 if return_score_fit is False.
+tuple: (score, linear_fit) if return_score_fit is True, where score is a float between 0-1 and linear_fit is the fitted values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>Kobe De Maeyer Master Thesis (2025)</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.GeneralStats.score_nonlinearity">
+<span class="sig-name descname"><span class="pre">score_nonlinearity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalise_against_unclustered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.GeneralStats.score_nonlinearity" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.GeneralStats.score_nonlinearity'"><span>¶</span></a></dt>
+<dd><p>Computes nonlinearity of a cluster’s aggregated time series using RMSE from a linear fit.</p>
+<p>The score measures how much the time series deviates from a linear trend.</p>
+<dl class="simple">
+<dt>When normalise_against_unclustered=True:</dt><dd><ul class="simple">
+<li><p>Score &gt; 1: Cluster is more nonlinear than typical unclustered behavior</p></li>
+<li><p>Score ≈ 1: Cluster has similar nonlinearity to unclustered data</p></li>
+<li><p>Score &lt; 1: Cluster is more linear than unclustered data</p></li>
+</ul>
+</dd>
+<dt>When normalise_against_unclustered=False:</dt><dd><ul class="simple">
+<li><p>Returns raw RMSE (0 = perfectly linear, higher = more nonlinear)</p></li>
+<li><p>Useful for comparing clusters to each other</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster_id</strong> (<em>int</em>) – Cluster ID to evaluate.</p></li>
+<li><p><strong>aggregation</strong> (<em>Literal</em><em>[</em><em>'mean'</em><em>, </em><em>'sum'</em><em>, </em><em>'std'</em><em>, </em><em>'median'</em><em>, </em><em>'percentile'</em><em>]</em>) – How to aggregate spatial data:
+- “mean”: Average across space
+- “median”: Median across space
+- “sum”: Sum across space
+- “std”: Standard deviation across space
+- “percentile”: Percentile across space (requires percentile arg)</p></li>
+<li><p><strong>percentile</strong> (<em>float</em><em> | </em><em>None</em>) – Percentile value between 0–1 (only used if aggregation=”percentile”)</p></li>
+<li><p><strong>normalise_against_unclustered</strong> (<em>bool</em>) – If True, normalise score by average RMSE of unclustered points.
+This helps identify clusters that stand out from background behavior.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Nonlinearity score. Higher means more nonlinear behavior.</dt><dd><p>Interpretation depends on normalise_against_unclustered parameter.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>Kobe De Maeyer Master Thesis (2025)</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.GeneralStats.score_overview">
+<span class="sig-name descname"><span class="pre">score_overview</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exclude_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.GeneralStats.score_overview" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.GeneralStats.score_overview'"><span>¶</span></a></dt>
+<dd><p>Compute all available scores for every cluster and return as a pandas DataFrame.</p>
+<p>This function computes all scoring methods defined in score_dictionary for each cluster
+and returns the results in a structured DataFrame format, similar to the consensus summary.
+Includes cluster size, spatial means, shift time statistics, and an aggregate score.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exclude_noise</strong> (<em>bool</em>) – Whether to exclude noise points (cluster ID -1). Defaults to True.</p></li>
+<li><p><strong>shift_threshold</strong> (<em>float</em>) – Minimum shift threshold for computing transition times. Defaults to 0.0.</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments passed to scoring methods. These will be
+applied to all scoring methods that accept them. Common parameters include:
+- aggregation: Aggregation method for methods that support it (default: “mean”)
+- percentile: Percentile value for percentile aggregation
+- normalize: Normalization method for score_heaviside
+- normalise_against_unclustered: Boolean for score_nonlinearity (default: False)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>DataFrame with one row per cluster containing:</dt><dd><ul class="simple">
+<li><p>cluster_id: Cluster identifier</p></li>
+<li><p>All score columns from score_dictionary</p></li>
+<li><p>size: Number of space-time grid cells in the cluster</p></li>
+<li><p>mean_{spatial_dim0}: Average spatial coordinate for first dimension</p></li>
+<li><p>mean_{spatial_dim1}: Average spatial coordinate for second dimension</p></li>
+<li><p>mean_shift_time: Mean transition time for the cluster</p></li>
+<li><p>std_shift_time: Standard deviation of transition times within the cluster</p></li>
+<li><p>aggregate_score: Product of all score values</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="n">td</span><span class="o">.</span><span class="n">stats</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="s2">"temperature"</span><span class="p">)</span><span class="o">.</span><span class="n">score_overview</span><span class="p">()</span>
+</span></code></pre></div>
+</div>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.GeneralStats.score_spatial_autocorrelation">
+<span class="sig-name descname"><span class="pre">score_spatial_autocorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.GeneralStats.score_spatial_autocorrelation" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.GeneralStats.score_spatial_autocorrelation'"><span>¶</span></a></dt>
+<dd><p>Computes average pairwise similarity (R²) between all time series in a cluster.</p>
+<p>This measures how spatially coherent the cluster behavior is.</p>
+<p>The score is calculated by:
+1. Getting all time series for cells in the cluster
+2. Computing pairwise R² correlations between all time series
+3. Taking the mean of the upper triangle of the correlation matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cluster_id</strong> (<em>int</em>) – ID of the cluster to evaluate.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Similarity score between 0-1, where:</dt><dd><p>1.0: Perfect similarity (all time series identical)
+~0.5: Moderate spatial coherence
+0.0: No similarity (completely uncorrelated)</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>Kobe De Maeyer Master Thesis (2025)</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.SpaceStats">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">toad.postprocessing.stats.</span></span><span class="sig-name descname"><span class="pre">SpaceStats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">toad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.SpaceStats" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.SpaceStats'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class containing functions for calculating space-related statistics for clusters, such as mean, median, std, etc.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.SpaceStats.all_stats">
+<span class="sig-name descname"><span class="pre">all_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.SpaceStats.all_stats" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.SpaceStats.all_stats'"><span>¶</span></a></dt>
+<dd><p>Return all cluster stats</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.SpaceStats.central_point_for_labeling">
+<span class="sig-name descname"><span class="pre">central_point_for_labeling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.SpaceStats.central_point_for_labeling" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.SpaceStats.central_point_for_labeling'"><span>¶</span></a></dt>
+<dd><p>Calculates a central point within the cluster’s spatial footprint suitable for labeling.</p>
+<p>This method uses the Euclidean Distance Transform to find the point within
+the cluster footprint that is furthest from any edge (the “pole of
+inaccessibility”). This ensures the point is robustly inside the cluster shape,
+even for complex geometries like rings or C-shapes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cluster_id</strong> – The ID of the cluster to analyze.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing the (y, x) coordinates of the calculated central point.
+Returns (np.nan, np.nan) if the footprint is empty.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[float, float]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.SpaceStats.footprint_cumulative_area">
+<span class="sig-name descname"><span class="pre">footprint_cumulative_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.SpaceStats.footprint_cumulative_area" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.SpaceStats.footprint_cumulative_area'"><span>¶</span></a></dt>
+<dd><p>Returns the total number of spatial cells that were ever touched by the cluster.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.SpaceStats.footprint_mean">
+<span class="sig-name descname"><span class="pre">footprint_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.SpaceStats.footprint_mean" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.SpaceStats.footprint_mean'"><span>¶</span></a></dt>
+<dd><p>Returns the mean of the spatial coordinates of the cluster footprint.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.SpaceStats.footprint_median">
+<span class="sig-name descname"><span class="pre">footprint_median</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.SpaceStats.footprint_median" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.SpaceStats.footprint_median'"><span>¶</span></a></dt>
+<dd><p>Returns the median of the spatial coordinates of the cluster footprint.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.SpaceStats.footprint_std">
+<span class="sig-name descname"><span class="pre">footprint_std</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.SpaceStats.footprint_std" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.SpaceStats.footprint_std'"><span>¶</span></a></dt>
+<dd><p>Returns the standard deviation of the spatial coordinates of the cluster footprint.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.SpaceStats.mean">
+<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.SpaceStats.mean" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.SpaceStats.mean'"><span>¶</span></a></dt>
+<dd><p>Returns the mean of the spatial coordinates across space and time.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.SpaceStats.median">
+<span class="sig-name descname"><span class="pre">median</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.SpaceStats.median" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.SpaceStats.median'"><span>¶</span></a></dt>
+<dd><p>Returns the median of the spatial coordinates across space and time.</p>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.SpaceStats.std">
+<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.SpaceStats.std" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.SpaceStats.std'"><span>¶</span></a></dt>
+<dd><p>Returns the standard deviation of the spatial coordinates across space and time.</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.Stats">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">toad.postprocessing.stats.</span></span><span class="sig-name descname"><span class="pre">Stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">toad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.Stats" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.Stats'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Interface to access specialized statistics calculators for clusters: time, space, and general metrics.</p>
+<p>Used when calling td.stats(var) explicitly; _StatsAccessor in core.py delegates here for td.stats.time etc.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.Stats.cluster_summary">
+<span class="sig-name descname"><span class="pre">cluster_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">extended</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.Stats.cluster_summary" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.Stats.cluster_summary'"><span>¶</span></a></dt>
+<dd><p>Per-cluster overview table of time, space, and size metrics.</p>
+<p>Provides a compact dashboard of all detected clusters for quick inspection,
+CSV export, or downstream filtering — analogous to
+<a class="reference internal" href="toad.postprocessing.html#toad.postprocessing.Aggregation.consensus_summary" title="toad.postprocessing.Aggregation.consensus_summary"><code class="xref py py-meth docutils literal notranslate"><span class="pre">toad.postprocessing.Aggregation.consensus_summary()</span></code></a> for consensus labels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster_ids</strong> (<em>int</em><em> | </em><em>list</em><em>[</em><em>int</em><em>] </em><em>| </em><em>range</em><em> | </em><em>None</em>) – Subset of clusters to include. Defaults to all non-noise clusters.</p></li>
+<li><p><strong>extended</strong> (<em>bool</em>) – If True, add IQR timing bounds, shift amplitudes, pooled transition
+times, and clustering metadata from variable attributes.</p></li>
+<li><p><strong>shift_threshold</strong> (<em>float</em>) – Minimum shift magnitude for pooled transition-time columns
+(extended mode only).</p></li>
+<li><p><strong>exclude_noise</strong> (<em>bool</em>) – Whether to exclude noise (cluster ID -1) when <code class="docutils literal notranslate"><span class="pre">cluster_ids</span></code>
+is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame with one row per cluster. Minimal columns always include
+<code class="docutils literal notranslate"><span class="pre">cluster_id</span></code>, <code class="docutils literal notranslate"><span class="pre">start_time</span></code>, <code class="docutils literal notranslate"><span class="pre">end_time</span></code>, <code class="docutils literal notranslate"><span class="pre">duration_timesteps</span></code>,
+<code class="docutils literal notranslate"><span class="pre">size</span></code>, <code class="docutils literal notranslate"><span class="pre">footprint_area</span></code>, <code class="docutils literal notranslate"><span class="pre">median_time</span></code>, and spatial centre columns
+(<code class="docutils literal notranslate"><span class="pre">center_lat</span></code>/<code class="docutils literal notranslate"><span class="pre">center_lon</span></code> when geographic coordinates exist).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>DataFrame</em></p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="gp">&gt;&gt;&gt; </span><span class="n">td</span><span class="o">.</span><span class="n">cluster_summary</span><span class="p">(</span><span class="s2">"temperature"</span><span class="p">)</span>
+</span><span id="line-2"><span class="gp">&gt;&gt;&gt; </span><span class="n">td</span><span class="o">.</span><span class="n">stats</span><span class="p">(</span><span class="s2">"temperature"</span><span class="p">)</span><span class="o">.</span><span class="n">cluster_summary</span><span class="p">(</span><span class="n">extended</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span></code></pre></div>
+</div>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.Stats.general">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">general</span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.Stats.general" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.Stats.general'"><span>¶</span></a></dt>
+<dd><p>Access general statistics for clusters.</p>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.Stats.space">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">space</span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.Stats.space" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.Stats.space'"><span>¶</span></a></dt>
+<dd><p>Access space-related statistics for clusters.</p>
+</dd></dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.Stats.time">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">time</span></span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.Stats.time" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.Stats.time'"><span>¶</span></a></dt>
+<dd><p>Access time-related statistics for clusters.</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">toad.postprocessing.stats.</span></span><span class="sig-name descname"><span class="pre">TimeStats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">toad</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats'"><span>¶</span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class containing functions for calculating time-related statistics for clusters, such as start time, peak time, etc.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.all_stats">
+<span class="sig-name descname"><span class="pre">all_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.all_stats" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.all_stats'"><span>¶</span></a></dt>
+<dd><p>Return all cluster stats</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.compute_transition_time">
+<span class="sig-name descname"><span class="pre">compute_transition_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.compute_transition_time" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.compute_transition_time'"><span>¶</span></a></dt>
+<dd><p>Computes the transition time for each grid cell.</p>
+<p>This method identifies the time point of maximum rate of change (peak shift) for each
+spatial location in the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster_ids</strong> (<em>int</em><em> | </em><em>list</em><em>[</em><em>int</em><em>] </em><em>| </em><em>range</em><em> | </em><em>None</em>) – Optional integer or list of integers specifying which cluster IDs to analyze.
+If None, analyzes all clusters. If specified, only analyzes grid cells belonging
+to the given cluster(s).</p></li>
+<li><p><strong>shift_threshold</strong> (<em>float</em>) – Optional float specifying the minimum absolute shift value that should
+be considered a valid transition. Defaults to 0.5. Grid cells with maximum shift
+values below this threshold will be marked as having no transition (NaN).</p></li>
+<li><p><strong>shift_direction</strong> (<em>Literal</em><em>[</em><em>'both'</em><em>, </em><em>'positive'</em><em>, </em><em>'negative'</em><em>] </em><em>| </em><em>str</em>) – Sign of shifts to retain when locating the global peak per grid cell.
+Options are <code class="docutils literal notranslate"><span class="pre">"both"</span></code>, <code class="docutils literal notranslate"><span class="pre">"positive"</span></code>, and <code class="docutils literal notranslate"><span class="pre">"negative"</span></code> (same convention as
+<a class="reference internal" href="toad.clustering.html#toad.clustering.compute_clusters" title="toad.clustering.compute_clusters"><code class="xref py py-func docutils literal notranslate"><span class="pre">toad.clustering.compute_clusters()</span></code></a>). Defaults to <code class="docutils literal notranslate"><span class="pre">"both"</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>xarray DataArray containing the transition time for each grid cell. Grid cells
+with no detected transition will contain NaN values. The output has the same
+spatial dimensions as the input shifts data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>DataArray</em></p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Shifts are restricted to the requested sign before locating the global peak per
+grid cell via <code class="xref py py-func docutils literal notranslate"><span class="pre">toad.utils.shift_selection_utils._peak_global_for_ts()</span></code>
+(middle of any maximum-<a href="#id1"><span class="problematic" id="id2">|shift|</span></a> plateau), so e.g. <code class="docutils literal notranslate"><span class="pre">shift_direction="negative"</span></code>
+returns the timing of the largest negative shift.</p>
+<p>Grid cells with no peak above <code class="docutils literal notranslate"><span class="pre">shift_threshold</span></code> in the requested direction
+return NaN.</p>
+</div>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.duration">
+<span class="sig-name descname"><span class="pre">duration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.duration" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.duration'"><span>¶</span></a></dt>
+<dd><p>Return duration of the cluster in time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cluster_id</strong> – ID of the cluster to calculate duration for.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Duration of the cluster. If the original dataset uses cftime format,</dt><dd><p>the duration is returned in seconds.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.duration_timesteps">
+<span class="sig-name descname"><span class="pre">duration_timesteps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.duration_timesteps" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.duration_timesteps'"><span>¶</span></a></dt>
+<dd><p>Return duration of the cluster in timesteps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.end" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.end'"><span>¶</span></a></dt>
+<dd><p>Return the end time of the cluster.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | <em>datetime</em> | <em>datetime64</em></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.end_timestep">
+<span class="sig-name descname"><span class="pre">end_timestep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.end_timestep" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.end_timestep'"><span>¶</span></a></dt>
+<dd><p>Return the end index of the cluster</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.iqr">
+<span class="sig-name descname"><span class="pre">iqr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_quantile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_quantile</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.iqr" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.iqr'"><span>¶</span></a></dt>
+<dd><p>Get start and end time of the specified interquantile range of the cluster temporal density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster_id</strong> – ID of the cluster</p></li>
+<li><p><strong>lower_quantile</strong> (<em>float</em>) – Lower bound of the interquantile range (0-1)</p></li>
+<li><p><strong>upper_quantile</strong> (<em>float</em>) – Upper bound of the interquantile range (0-1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Start time and end time of the interquantile range in original time format</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.iqr_50">
+<span class="sig-name descname"><span class="pre">iqr_50</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.iqr_50" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.iqr_50'"><span>¶</span></a></dt>
+<dd><p>Get start and end time of the 50% interquantile range of the cluster temporal density</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[float | <em>datetime</em> | <em>datetime64</em>, float | <em>datetime</em> | <em>datetime64</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.iqr_68">
+<span class="sig-name descname"><span class="pre">iqr_68</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.iqr_68" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.iqr_68'"><span>¶</span></a></dt>
+<dd><p>Get start and end time of the 68% interquantile range of the cluster temporal density</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[float | <em>datetime</em> | <em>datetime64</em>, float | <em>datetime</em> | <em>datetime64</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.iqr_90">
+<span class="sig-name descname"><span class="pre">iqr_90</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.iqr_90" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.iqr_90'"><span>¶</span></a></dt>
+<dd><p>Get start and end time of the 90% interquantile range of the cluster temporal density</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[float | <em>datetime</em> | <em>datetime64</em>, float | <em>datetime</em> | <em>datetime64</em>]</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.mean">
+<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.mean" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.mean'"><span>¶</span></a></dt>
+<dd><p>Return mean time value of the cluster.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | <em>datetime</em> | <em>datetime64</em></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.mean_shift_magnitude">
+<span class="sig-name descname"><span class="pre">mean_shift_magnitude</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.mean_shift_magnitude" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.mean_shift_magnitude'"><span>¶</span></a></dt>
+<dd><p>Alias for value_change(aggregation=”mean”).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.median">
+<span class="sig-name descname"><span class="pre">median</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.median" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.median'"><span>¶</span></a></dt>
+<dd><p>Median model time while the cluster mask is active anywhere in space.</p>
+<p>This summarises the cluster’s temporal footprint in the 3D cluster mask
+(equivalent to <a class="reference internal" href="#toad.postprocessing.stats.TimeStats.median_activity_time" title="toad.postprocessing.stats.TimeStats.median_activity_time"><code class="xref py py-meth docutils literal notranslate"><span class="pre">median_activity_time()</span></code></a>). It is <strong>not</strong> the median
+per-cell peak shift time; for that, use <a class="reference internal" href="#toad.postprocessing.stats.TimeStats.pooled_median_transition_time" title="toad.postprocessing.stats.TimeStats.pooled_median_transition_time"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pooled_median_transition_time()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | <em>datetime</em> | <em>datetime64</em></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.median_activity_time">
+<span class="sig-name descname"><span class="pre">median_activity_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.median_activity_time" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.median_activity_time'"><span>¶</span></a></dt>
+<dd><p>Median model time while the cluster exists anywhere in space.</p>
+<p>See <a class="reference internal" href="#toad.postprocessing.stats.TimeStats.median" title="toad.postprocessing.stats.TimeStats.median"><code class="xref py py-meth docutils literal notranslate"><span class="pre">median()</span></code></a> for details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | <em>datetime</em> | <em>datetime64</em></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.membership_peak">
+<span class="sig-name descname"><span class="pre">membership_peak</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.membership_peak" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.membership_peak'"><span>¶</span></a></dt>
+<dd><p>Return the time of the largest cluster temporal density.</p>
+<p>If there’s a plateau at the maximum value, returns the center of the plateau.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | <em>datetime</em> | <em>datetime64</em></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.membership_peak_density">
+<span class="sig-name descname"><span class="pre">membership_peak_density</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.membership_peak_density" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.membership_peak_density'"><span>¶</span></a></dt>
+<dd><p>Return the largest cluster temporal density</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.pooled_median_transition_time">
+<span class="sig-name descname"><span class="pre">pooled_median_transition_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.pooled_median_transition_time" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.pooled_median_transition_time'"><span>¶</span></a></dt>
+<dd><p>Median of per-cell peak-shift times within the cluster.</p>
+<p>Each grid cell contributes one transition time: the model time of
+maximum <code class="docutils literal notranslate"><span class="pre">|shift|</span></code> above <code class="docutils literal notranslate"><span class="pre">shift_threshold</span></code> (same field as
+<a class="reference internal" href="#toad.postprocessing.stats.TimeStats.compute_transition_time" title="toad.postprocessing.stats.TimeStats.compute_transition_time"><code class="xref py py-meth docutils literal notranslate"><span class="pre">compute_transition_time()</span></code></a>). This pools all cells in the cluster,
+analogous to <code class="docutils literal notranslate"><span class="pre">pooled_median_shift_time</span></code> in
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Aggregation.consensus_summary()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster_id</strong> (<em>int</em>)</p></li>
+<li><p><strong>shift_threshold</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float | <em>datetime</em> | <em>datetime64</em></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.pooled_std_transition_time">
+<span class="sig-name descname"><span class="pre">pooled_std_transition_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.pooled_std_transition_time" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.pooled_std_transition_time'"><span>¶</span></a></dt>
+<dd><p>Sample standard deviation of per-cell peak-shift times in the cluster.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster_id</strong> (<em>int</em>)</p></li>
+<li><p><strong>shift_threshold</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.start" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.start'"><span>¶</span></a></dt>
+<dd><p>Return the start time of the cluster.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | <em>datetime</em> | <em>datetime64</em></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.start_timestep">
+<span class="sig-name descname"><span class="pre">start_timestep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.start_timestep" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.start_timestep'"><span>¶</span></a></dt>
+<dd><p>Return the start index of the cluster</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.std">
+<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.std" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.std'"><span>¶</span></a></dt>
+<dd><p>Return standard deviation of the time of the cluster.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.steepest_gradient">
+<span class="sig-name descname"><span class="pre">steepest_gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.steepest_gradient" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.steepest_gradient'"><span>¶</span></a></dt>
+<dd><p>Return the time of the steepest gradient (largest rate of change, up or down)
+of the median cluster timeseries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float | <em>datetime</em> | <em>datetime64</em></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.steepest_gradient_timestep">
+<span class="sig-name descname"><span class="pre">steepest_gradient_timestep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.steepest_gradient_timestep" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.steepest_gradient_timestep'"><span>¶</span></a></dt>
+<dd><p>Return the index of the steepest gradient (largest rate of change, up or down)
+of the median cluster timeseries inside the cluster time bounds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.summary">
+<span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.summary" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.summary'"><span>¶</span></a></dt>
+<dd><p>Per-cluster table of activity-time vs pooled transition-time summaries.</p>
+<p>Returns one row per cluster with:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">median_activity_time</span></code> — median timestep while the cluster mask is
+active anywhere in space (<a class="reference internal" href="#toad.postprocessing.stats.TimeStats.median_activity_time" title="toad.postprocessing.stats.TimeStats.median_activity_time"><code class="xref py py-meth docutils literal notranslate"><span class="pre">median_activity_time()</span></code></a>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pooled_median_transition_time</span></code> / <code class="docutils literal notranslate"><span class="pre">pooled_std_transition_time</span></code> —
+median and sample std of per-cell peak-shift times (pooled over all
+cells), matching the spirit of <code class="docutils literal notranslate"><span class="pre">pooled_*</span></code> columns in
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Aggregation.consensus_summary()</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_transition_cells</span></code> — number of cells with a finite transition time.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">start</span></code> / <code class="docutils literal notranslate"><span class="pre">end</span></code> — first and last timestep with any cluster member.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cluster_ids</strong> (<em>int</em><em> | </em><em>list</em><em>[</em><em>int</em><em>] </em><em>| </em><em>range</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>shift_threshold</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>DataFrame</em></p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.value_at_end">
+<span class="sig-name descname"><span class="pre">value_at_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.value_at_end" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.value_at_end'"><span>¶</span></a></dt>
+<dd><p>Return aggregated cluster value at the end timestep.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>aggregation</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.value_at_iqr_90_end">
+<span class="sig-name descname"><span class="pre">value_at_iqr_90_end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.value_at_iqr_90_end" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.value_at_iqr_90_end'"><span>¶</span></a></dt>
+<dd><p>Return aggregated cluster value at the upper iqr_90 bound.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>aggregation</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.value_at_iqr_90_start">
+<span class="sig-name descname"><span class="pre">value_at_iqr_90_start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.value_at_iqr_90_start" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.value_at_iqr_90_start'"><span>¶</span></a></dt>
+<dd><p>Return aggregated cluster value at the lower iqr_90 bound.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>aggregation</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.value_at_start">
+<span class="sig-name descname"><span class="pre">value_at_start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.value_at_start" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.value_at_start'"><span>¶</span></a></dt>
+<dd><p>Return aggregated cluster value at the start timestep.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>aggregation</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.value_change">
+<span class="sig-name descname"><span class="pre">value_change</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.value_change" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.value_change'"><span>¶</span></a></dt>
+<dd><p>Return signed aggregated value change across full span (end - start).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>aggregation</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="toad.postprocessing.stats.TimeStats.value_change_iqr_90">
+<span class="sig-name descname"><span class="pre">value_change_iqr_90</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cluster_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em><span class="sig-paren">)</span><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#toad.postprocessing.stats.TimeStats.value_change_iqr_90" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#toad.postprocessing.stats.TimeStats.value_change_iqr_90'"><span>¶</span></a></dt>
+<dd><p>Return signed aggregated value change across iqr_90 bounds (upper - lower).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>aggregation</strong> (<em>str</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+<p class="rubric">Modules</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="toad.postprocessing.stats.general.html#module-toad.postprocessing.stats.general" title="toad.postprocessing.stats.general"><code class="xref py py-obj docutils literal notranslate"><span class="pre">general</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="toad.postprocessing.stats.space.html#module-toad.postprocessing.stats.space" title="toad.postprocessing.stats.space"><code class="xref py py-obj docutils literal notranslate"><span class="pre">space</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="toad.postprocessing.stats.time.html#module-toad.postprocessing.stats.time" title="toad.postprocessing.stats.time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</div><div class="flex justify-between items-center pt-6 mt-12 border-t border-border gap-4">
+<div class="mr-auto">
+<a class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input hover:bg-accent hover:text-accent-foreground py-2 px-4" href="toad.postprocessing.member_support_consensus.html">
+<svg class="mr-2 h-4 w-4" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<polyline points="15 18 9 12 15 6"></polyline>
+</svg>
+        toad.postprocessing.member_support_consensus
+      </a>
+</div>
+<div class="ml-auto">
+<a class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input hover:bg-accent hover:text-accent-foreground py-2 px-4" href="toad.postprocessing.stats.general.html">
+        toad.postprocessing.stats.general
+        <svg class="ml-2 h-4 w-4" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<polyline points="9 18 15 12 9 6"></polyline>
+</svg>
+</a>
+</div>
+</div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
+<div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] h-full overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
+<ul>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.GeneralStats'" class="reference internal" href="#toad.postprocessing.stats.GeneralStats"><code class="docutils literal notranslate"><span class="pre">GeneralStats</span></code></a><ul>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.GeneralStats.aggregate_cluster_scores'" class="reference internal" href="#toad.postprocessing.stats.GeneralStats.aggregate_cluster_scores"><code class="docutils literal notranslate"><span class="pre">GeneralStats.aggregate_cluster_scores()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.GeneralStats.score_consistency'" class="reference internal" href="#toad.postprocessing.stats.GeneralStats.score_consistency"><code class="docutils literal notranslate"><span class="pre">GeneralStats.score_consistency()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.GeneralStats.score_heaviside'" class="reference internal" href="#toad.postprocessing.stats.GeneralStats.score_heaviside"><code class="docutils literal notranslate"><span class="pre">GeneralStats.score_heaviside()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.GeneralStats.score_nonlinearity'" class="reference internal" href="#toad.postprocessing.stats.GeneralStats.score_nonlinearity"><code class="docutils literal notranslate"><span class="pre">GeneralStats.score_nonlinearity()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.GeneralStats.score_overview'" class="reference internal" href="#toad.postprocessing.stats.GeneralStats.score_overview"><code class="docutils literal notranslate"><span class="pre">GeneralStats.score_overview()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.GeneralStats.score_spatial_autocorrelation'" class="reference internal" href="#toad.postprocessing.stats.GeneralStats.score_spatial_autocorrelation"><code class="docutils literal notranslate"><span class="pre">GeneralStats.score_spatial_autocorrelation()</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.SpaceStats'" class="reference internal" href="#toad.postprocessing.stats.SpaceStats"><code class="docutils literal notranslate"><span class="pre">SpaceStats</span></code></a><ul>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.SpaceStats.all_stats'" class="reference internal" href="#toad.postprocessing.stats.SpaceStats.all_stats"><code class="docutils literal notranslate"><span class="pre">SpaceStats.all_stats()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.SpaceStats.central_point_for_labeling'" class="reference internal" href="#toad.postprocessing.stats.SpaceStats.central_point_for_labeling"><code class="docutils literal notranslate"><span class="pre">SpaceStats.central_point_for_labeling()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.SpaceStats.footprint_cumulative_area'" class="reference internal" href="#toad.postprocessing.stats.SpaceStats.footprint_cumulative_area"><code class="docutils literal notranslate"><span class="pre">SpaceStats.footprint_cumulative_area()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.SpaceStats.footprint_mean'" class="reference internal" href="#toad.postprocessing.stats.SpaceStats.footprint_mean"><code class="docutils literal notranslate"><span class="pre">SpaceStats.footprint_mean()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.SpaceStats.footprint_median'" class="reference internal" href="#toad.postprocessing.stats.SpaceStats.footprint_median"><code class="docutils literal notranslate"><span class="pre">SpaceStats.footprint_median()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.SpaceStats.footprint_std'" class="reference internal" href="#toad.postprocessing.stats.SpaceStats.footprint_std"><code class="docutils literal notranslate"><span class="pre">SpaceStats.footprint_std()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.SpaceStats.mean'" class="reference internal" href="#toad.postprocessing.stats.SpaceStats.mean"><code class="docutils literal notranslate"><span class="pre">SpaceStats.mean()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.SpaceStats.median'" class="reference internal" href="#toad.postprocessing.stats.SpaceStats.median"><code class="docutils literal notranslate"><span class="pre">SpaceStats.median()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.SpaceStats.std'" class="reference internal" href="#toad.postprocessing.stats.SpaceStats.std"><code class="docutils literal notranslate"><span class="pre">SpaceStats.std()</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.Stats'" class="reference internal" href="#toad.postprocessing.stats.Stats"><code class="docutils literal notranslate"><span class="pre">Stats</span></code></a><ul>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.Stats.cluster_summary'" class="reference internal" href="#toad.postprocessing.stats.Stats.cluster_summary"><code class="docutils literal notranslate"><span class="pre">Stats.cluster_summary()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.Stats.general'" class="reference internal" href="#toad.postprocessing.stats.Stats.general"><code class="docutils literal notranslate"><span class="pre">Stats.general</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.Stats.space'" class="reference internal" href="#toad.postprocessing.stats.Stats.space"><code class="docutils literal notranslate"><span class="pre">Stats.space</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.Stats.time'" class="reference internal" href="#toad.postprocessing.stats.Stats.time"><code class="docutils literal notranslate"><span class="pre">Stats.time</span></code></a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats'" class="reference internal" href="#toad.postprocessing.stats.TimeStats"><code class="docutils literal notranslate"><span class="pre">TimeStats</span></code></a><ul>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.all_stats'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.all_stats"><code class="docutils literal notranslate"><span class="pre">TimeStats.all_stats()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.compute_transition_time'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.compute_transition_time"><code class="docutils literal notranslate"><span class="pre">TimeStats.compute_transition_time()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.duration'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.duration"><code class="docutils literal notranslate"><span class="pre">TimeStats.duration()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.duration_timesteps'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.duration_timesteps"><code class="docutils literal notranslate"><span class="pre">TimeStats.duration_timesteps()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.end'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.end"><code class="docutils literal notranslate"><span class="pre">TimeStats.end()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.end_timestep'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.end_timestep"><code class="docutils literal notranslate"><span class="pre">TimeStats.end_timestep()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.iqr'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.iqr"><code class="docutils literal notranslate"><span class="pre">TimeStats.iqr()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.iqr_50'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.iqr_50"><code class="docutils literal notranslate"><span class="pre">TimeStats.iqr_50()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.iqr_68'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.iqr_68"><code class="docutils literal notranslate"><span class="pre">TimeStats.iqr_68()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.iqr_90'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.iqr_90"><code class="docutils literal notranslate"><span class="pre">TimeStats.iqr_90()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.mean'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.mean"><code class="docutils literal notranslate"><span class="pre">TimeStats.mean()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.mean_shift_magnitude'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.mean_shift_magnitude"><code class="docutils literal notranslate"><span class="pre">TimeStats.mean_shift_magnitude()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.median'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.median"><code class="docutils literal notranslate"><span class="pre">TimeStats.median()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.median_activity_time'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.median_activity_time"><code class="docutils literal notranslate"><span class="pre">TimeStats.median_activity_time()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.membership_peak'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.membership_peak"><code class="docutils literal notranslate"><span class="pre">TimeStats.membership_peak()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.membership_peak_density'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.membership_peak_density"><code class="docutils literal notranslate"><span class="pre">TimeStats.membership_peak_density()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.pooled_median_transition_time'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.pooled_median_transition_time"><code class="docutils literal notranslate"><span class="pre">TimeStats.pooled_median_transition_time()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.pooled_std_transition_time'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.pooled_std_transition_time"><code class="docutils literal notranslate"><span class="pre">TimeStats.pooled_std_transition_time()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.start'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.start"><code class="docutils literal notranslate"><span class="pre">TimeStats.start()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.start_timestep'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.start_timestep"><code class="docutils literal notranslate"><span class="pre">TimeStats.start_timestep()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.std'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.std"><code class="docutils literal notranslate"><span class="pre">TimeStats.std()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.steepest_gradient'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.steepest_gradient"><code class="docutils literal notranslate"><span class="pre">TimeStats.steepest_gradient()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.steepest_gradient_timestep'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.steepest_gradient_timestep"><code class="docutils literal notranslate"><span class="pre">TimeStats.steepest_gradient_timestep()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.summary'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.summary"><code class="docutils literal notranslate"><span class="pre">TimeStats.summary()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.value_at_end'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.value_at_end"><code class="docutils literal notranslate"><span class="pre">TimeStats.value_at_end()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.value_at_iqr_90_end'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.value_at_iqr_90_end"><code class="docutils literal notranslate"><span class="pre">TimeStats.value_at_iqr_90_end()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.value_at_iqr_90_start'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.value_at_iqr_90_start"><code class="docutils literal notranslate"><span class="pre">TimeStats.value_at_iqr_90_start()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.value_at_start'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.value_at_start"><code class="docutils literal notranslate"><span class="pre">TimeStats.value_at_start()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.value_change'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.value_change"><code class="docutils literal notranslate"><span class="pre">TimeStats.value_change()</span></code></a></li>
+<li><a :data-current="activeSection === '#toad.postprocessing.stats.TimeStats.value_change_iqr_90'" class="reference internal" href="#toad.postprocessing.stats.TimeStats.value_change_iqr_90"><code class="docutils literal notranslate"><span class="pre">TimeStats.value_change_iqr_90()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</aside>
+</main>
+</div>
+</div><footer class="py-6 border-t border-border md:py-0">
+<div class="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+<div class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
+<p class="text-sm leading-loose text-center text-muted-foreground md:text-left">© 2026, TOAD Developers Built with <a class="font-medium underline underline-offset-4" href="https://www.sphinx-doc.org" rel="noreferrer">Sphinx 9.1.0</a></p>
+</div>
+</div>
+</footer>
+</div>
+<script src="../_static/documentation_options.js?v=5929fcd5"></script>
+<script src="../_static/doctools.js?v=fd6eb6e6"></script>
+<script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+<script defer="defer" src="../_static/theme.js?v=5db23cf8"></script>
+</body>
+</html>

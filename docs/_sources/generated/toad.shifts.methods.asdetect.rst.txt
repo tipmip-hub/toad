@@ -1,0 +1,26 @@
+toad.shifts.methods.asdetect
+============================
+
+.. automodule:: toad.shifts.methods.asdetect
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compute_gradients_from_segments
+      construct_detection_ts
+      get_gradients_double
+      linear_fit
+      mad
+      mad_from_median
+      median
+      polyfit
+      update_detection_ts_two_sided
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ASDETECT
+   

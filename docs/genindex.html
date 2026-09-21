@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en" data-content_root="./"
+  x-data="{ darkMode: $persist(window.matchMedia('(prefers-color-scheme: dark)').matches), activeSection: ''}"
+  :class="{ 'dark' : darkMode === true }">
+
+<head>
+  <script>
+    (function () {
+      // Set initial color scheme
+      if ((localStorage.getItem("_x_darkMode") === "true") || (window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.documentElement.classList.add("dark");
+      }
+
+      // Watch for media preference changes
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+        localStorage.setItem("_x_darkMode", event.matches);
+        document.documentElement.classList.toggle("dark", event.matches);
+      });
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#030711" />
+  
+  <title>Index | toad  documentation</title>
+  <meta property="og:title" content="Index | toad  documentation" />
+  <meta name="twitter:title" content="Index | toad  documentation" />
+  <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8d216cef" />
+  <link rel="stylesheet" type="text/css" href="_static/theme.css?v=d6d7c91b" />
+  <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+  <link rel="stylesheet" type="text/css" href="_static/custom.css?v=a187b300" />
+  <link rel="stylesheet" type="text/css" href="_static/awesome-myst-nb.css?v=7c7ea10c" />
+  <link rel="icon" href="_static/favicon.png" />
+  <link rel="search" title="Search" href="search.html" />
+  <link rel="index" title="Index" href="#" />
+</head>
+
+<body x-data="{ showSidebar: false, showScrollTop: false }"
+  class="min-h-screen font-sans antialiased bg-background text-foreground" :class="{ 'overflow-hidden': showSidebar }">
+  <div x-cloak x-show="showSidebar"
+    class="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm md:hidden"
+    @click.self="showSidebar = false"></div><div id="page" class="relative flex flex-col min-h-screen"><a href="#content"
+      class="absolute top-0 left-0 z-[100] block bg-background p-4 text-xl transition -translate-x-full opacity-0 focus:translate-x-0 focus:opacity-100">
+      Skip to content
+    </a><header class="sticky top-0 z-40 w-full border-b shadow-xs border-border bg-background/90 backdrop-blur"><div class="container flex items-center h-14">
+    <div class="hidden mr-4 md:flex">
+      <a href="sidebar_main_nav_links.html" class="flex items-center mr-6">
+        <img height="24" width="24" class="mr-2 dark:invert" src="_static/toad.png" alt="Logo" /><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">toad  documentation</span>
+      </a></div><button
+      class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden"
+      type="button" @click="showSidebar = true">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 96 960 960" aria-hidden="true"
+        fill="currentColor">
+        <path
+          d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z" />
+      </svg>
+      <span class="sr-only">Toggle navigation menu</span>
+    </button>
+    <div class="flex items-center justify-between flex-1 gap-2 sm:gap-4 md:justify-end">
+      <div class="flex-1 w-full md:w-auto md:flex-none"><form id="searchbox"
+      action="search.html"
+      method="get"
+      class="relative flex items-center group"
+      @keydown.k.window.meta="$refs.search.focus()">
+  <input x-ref="search"
+          name="q"
+          id="search-input"
+          type="search"
+          aria-label="Search the docs"
+          placeholder="Search ..."
+          class="inline-flex items-center font-medium transition-colors bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background border border-input hover:bg-accent focus:bg-accent hover:text-accent-foreground focus:text-accent-foreground hover:placeholder-accent-foreground py-2 px-4 relative h-9 w-full justify-start rounded-[0.5rem] text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64" />
+  <kbd class="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none text-muted-foreground items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex group-hover:bg-accent group-hover:text-accent-foreground">
+    <span class="text-xs">⌘</span>
+    K
+  </kbd>
+</form>
+      </div>
+      <nav class="flex items-center gap-1">
+        <a href="https://github.com/tipmip-methods/toad" title="Visit GitHub" rel="noopener nofollow">
+          <div
+            class="inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+</svg>
+          </div>
+        </a>
+        
+        <button @click="darkMode = !darkMode"
+          class="relative inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9"
+          type="button"
+          title="Toggle color scheme">
+          <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 96 960 960" fill="currentColor"
+            class="absolute transition-all scale-100 rotate-0 dark:-rotate-90 dark:scale-0">
+            <path
+              d="M480 685q45.456 0 77.228-31.772Q589 621.456 589 576q0-45.456-31.772-77.228Q525.456 467 480 467q-45.456 0-77.228 31.772Q371 530.544 371 576q0 45.456 31.772 77.228Q434.544 685 480 685Zm0 91q-83 0-141.5-58.5T280 576q0-83 58.5-141.5T480 376q83 0 141.5 58.5T680 576q0 83-58.5 141.5T480 776ZM80 621.5q-19.152 0-32.326-13.174T34.5 576q0-19.152 13.174-32.326T80 530.5h80q19.152 0 32.326 13.174T205.5 576q0 19.152-13.174 32.326T160 621.5H80Zm720 0q-19.152 0-32.326-13.174T754.5 576q0-19.152 13.174-32.326T800 530.5h80q19.152 0 32.326 13.174T925.5 576q0 19.152-13.174 32.326T880 621.5h-80Zm-320-320q-19.152 0-32.326-13.174T434.5 256v-80q0-19.152 13.174-32.326T480 130.5q19.152 0 32.326 13.174T525.5 176v80q0 19.152-13.174 32.326T480 301.5Zm0 720q-19.152 0-32.326-13.17Q434.5 995.152 434.5 976v-80q0-19.152 13.174-32.326T480 850.5q19.152 0 32.326 13.174T525.5 896v80q0 19.152-13.174 32.33-13.174 13.17-32.326 13.17ZM222.174 382.065l-43-42Q165.5 327.391 166 308.239t13.174-33.065q13.435-13.674 32.587-13.674t32.065 13.674l42.239 43q12.674 13.435 12.555 31.706-.12 18.272-12.555 31.946-12.674 13.674-31.445 13.413-18.772-.261-32.446-13.174Zm494 494.761-42.239-43q-12.674-13.435-12.674-32.087t12.674-31.565Q686.609 756.5 705.38 757q18.772.5 32.446 13.174l43 41.761Q794.5 824.609 794 843.761t-13.174 33.065Q767.391 890.5 748.239 890.5t-32.065-13.674Zm-42-494.761Q660.5 369.391 661 350.62q.5-18.772 13.174-32.446l41.761-43Q728.609 261.5 747.761 262t33.065 13.174q13.674 13.435 13.674 32.587t-13.674 32.065l-43 42.239q-13.435 12.674-31.706 12.555-18.272-.12-31.946-12.555Zm-495 494.761Q165.5 863.391 165.5 844.239t13.674-32.065l43-42.239q13.435-12.674 32.087-12.674t31.565 12.674Q299.5 782.609 299 801.38q-.5 18.772-13.174 32.446l-41.761 43Q231.391 890.5 212.239 890t-33.065-13.174ZM480 576Z" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 96 960 960" fill="currentColor"
+            class="absolute transition-all scale-0 rotate-90 dark:rotate-0 dark:scale-100">
+            <path
+              d="M480 936q-151 0-255.5-104.5T120 576q0-138 90-239.5T440 218q25-3 39 18t-1 44q-17 26-25.5 55t-8.5 61q0 90 63 153t153 63q31 0 61.5-9t54.5-25q21-14 43-1.5t19 39.5q-14 138-117.5 229T480 936Zm0-80q88 0 158-48.5T740 681q-20 5-40 8t-40 3q-123 0-209.5-86.5T364 396q0-20 3-40t8-40q-78 32-126.5 102T200 576q0 116 82 198t198 82Zm-10-270Z" />
+          </svg>
+        </button>
+      </nav>
+    </div>
+  </div>
+</header>
+
+    <div class="flex-1"><div
+        class="container md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside id="left-sidebar"
+  class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full overflow-y-auto border-r border-border md:sticky"
+  :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }">
+
+    <a href="sidebar_main_nav_links.html" class="justify-start text-sm md:!hidden bg-background">
+      <img height="16" width="16" class="mr-2 dark:invert" src="_static/toad.png" alt="Logo" /><span class="font-bold text-clip whitespace-nowrap">toad  documentation</span>
+    </a>
+
+    <div class="relative overflow-hidden md:overflow-auto my-4 md:my-0">
+      <div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/basics.html">TOAD Basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/custom_clustering.html">Implement your own clustering method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/custom_shifts_detection.html">Implement your own shifts detection method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/consensus.html">Consensus clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/consensus.html#imports">Imports</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/consensus.html#prepare-data">Prepare data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/consensus.html#computes-shifts-and-clusters">Computes shifts and clusters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/consensus.html#compute-consensus">Compute consensus</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/consensus.html#visualise-consensus">Visualise consensus</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="consensus_clustering.html">Consensus clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_ref.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.TOAD.html">toad.TOAD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.shifts.ASDETECT.html">toad.shifts.ASDETECT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.plotting.Plotter.html">toad.plotting.Plotter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.plotting.MapStyle.html">toad.plotting.MapStyle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.regridding.HealPixRegridder.html">toad.regridding.HealPixRegridder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.regridding.base.BaseRegridder.html">toad.regridding.base.BaseRegridder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.shifts.html">toad.shifts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.clustering.html">toad.clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.postprocessing.html">toad.postprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.utils.html">toad.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="scientific_ref.html">Scientific References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="release_notes.html">Release Notes</a></li>
+</ul>
+
+</nav>
+      </div>
+    </div>
+    <button type="button" @click="showSidebar = false"
+      class="absolute md:hidden right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 96 960 960" fill="currentColor"
+        stroke="none" class="h-4 w-4">
+        <path
+          d="M480 632 284 828q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536 576l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480 632Z" />
+      </svg>
+    </button>
+  </aside>
+          <main class="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+<div class="w-full min-w-0 mx-auto">
+<nav aria-label="breadcrumbs"
+     class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
+  <a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground"
+     href="sidebar_main_nav_links.html">
+    <span class="hidden md:inline">toad  documentation</span>
+    <svg xmlns="http://www.w3.org/2000/svg"
+         height="18"
+         width="18"
+         viewBox="0 96 960 960"
+         aria-label="Home"
+         fill="currentColor"
+         stroke="none"
+         class="md:hidden">
+      <path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z" />
+    </svg>
+  </a>
+  
+<div class="mr-1">/</div><span aria-current="page"
+        class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">Index</span>
+</nav>
+
+<div id="content" role="main">
+
+  <h1 id="index">Index</h1>
+  <h2 id="_">_</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.__init__">__init__() (toad.plotting.MapStyle method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.__init__">(toad.plotting.Plotter method)</a>
+</li>
+        <li><a href="generated/toad.regridding.base.BaseRegridder.html#toad.regridding.base.BaseRegridder.__init__">(toad.regridding.base.BaseRegridder method)</a>
+</li>
+        <li><a href="generated/toad.regridding.HealPixRegridder.html#toad.regridding.HealPixRegridder.__init__">(toad.regridding.HealPixRegridder method)</a>
+</li>
+        <li><a href="generated/toad.shifts.ASDETECT.html#toad.shifts.ASDETECT.__init__">(toad.shifts.ASDETECT method)</a>
+</li>
+        <li><a href="generated/toad.TOAD.html#toad.TOAD.__init__">(toad.TOAD method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="A">A</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.add_labels">add_labels (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.aggregate">aggregate (toad.TOAD property)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.stats.general.html#toad.postprocessing.stats.general.GeneralStats.aggregate_cluster_scores">aggregate_cluster_scores() (toad.postprocessing.stats.general.GeneralStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.GeneralStats.aggregate_cluster_scores">(toad.postprocessing.stats.GeneralStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Aggregation">Aggregation (class in toad.postprocessing)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.aggregation.html#toad.postprocessing.aggregation.Aggregation">(class in toad.postprocessing.aggregation)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.stats.space.html#toad.postprocessing.stats.space.SpaceStats.all_stats">all_stats() (toad.postprocessing.stats.space.SpaceStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.SpaceStats.all_stats">(toad.postprocessing.stats.SpaceStats method)</a>
+</li>
+        <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.all_stats">(toad.postprocessing.stats.time.TimeStats method)</a>
+</li>
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.all_stats">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.shifts.ASDETECT.html#toad.shifts.ASDETECT">ASDETECT (class in toad.shifts)</a>, <a href="generated/toad.shifts.html#toad.shifts.ASDETECT">[1]</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.shifts.methods.asdetect.html#toad.shifts.methods.asdetect.ASDETECT">(class in toad.shifts.methods.asdetect)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="B">B</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.base_vars">base_vars (toad.TOAD property)</a>
+</li>
+      <li><a href="generated/toad.regridding.base.BaseRegridder.html#toad.regridding.base.BaseRegridder">BaseRegridder (class in toad.regridding.base)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.border_linewidth">border_linewidth (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.borders">borders (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.utils.repr_html.html#toad.utils.repr_html.build_variable_hierarchy">build_variable_hierarchy() (in module toad.utils.repr_html)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="C">C</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.stats.space.html#toad.postprocessing.stats.space.SpaceStats.central_point_for_labeling">central_point_for_labeling() (toad.postprocessing.stats.space.SpaceStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.SpaceStats.central_point_for_labeling">(toad.postprocessing.stats.SpaceStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.cluster_alpha">cluster_alpha (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.cluster_map">cluster_map() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Aggregation.cluster_occurrence_rate">cluster_occurrence_rate() (toad.postprocessing.Aggregation method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.aggregation.html#toad.postprocessing.aggregation.Aggregation.cluster_occurrence_rate">(toad.postprocessing.aggregation.Aggregation method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.cluster_occurrence_rate_map">cluster_occurrence_rate_map() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.cluster_overview">cluster_overview() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.cluster_shift_times_violins">cluster_shift_times_violins() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Stats.cluster_summary">cluster_summary() (toad.postprocessing.Stats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.Stats.cluster_summary">(toad.postprocessing.stats.Stats method)</a>
+</li>
+        <li><a href="generated/toad.TOAD.html#toad.TOAD.cluster_summary">(toad.TOAD method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.cluster_vars">cluster_vars (toad.TOAD property)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.cluster_vars_for_var">cluster_vars_for_var() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.coastline_linewidth">coastline_linewidth (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.clustering.html#toad.clustering.combined_spatial_nonlinearity">combined_spatial_nonlinearity() (in module toad.clustering)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.clustering.optimizing.html#toad.clustering.optimizing.combined_spatial_nonlinearity">(in module toad.clustering.optimizing)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.shifts.methods.edge.html#toad.shifts.methods.edge.compute_abruptness_1D">compute_abruptness_1D() (in module toad.shifts.methods.edge)</a>
+</li>
+      <li><a href="generated/toad.clustering.html#toad.clustering.compute_clusters">compute_clusters() (in module toad.clustering)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.TOAD.html#toad.TOAD.compute_clusters">(toad.TOAD method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Aggregation.compute_consensus">compute_consensus() (toad.postprocessing.Aggregation method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.aggregation.html#toad.postprocessing.aggregation.Aggregation.compute_consensus">(toad.postprocessing.aggregation.Aggregation method)</a>
+</li>
+        <li><a href="generated/toad.TOAD.html#toad.TOAD.compute_consensus">(toad.TOAD method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.shifts.methods.asdetect.html#toad.shifts.methods.asdetect.compute_gradients_from_segments">compute_gradients_from_segments() (in module toad.shifts.methods.asdetect)</a>
+</li>
+      <li><a href="generated/toad.shifts.html#toad.shifts.compute_shifts">compute_shifts() (in module toad.shifts)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.TOAD.html#toad.TOAD.compute_shifts">(toad.TOAD method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.compute_transition_time">compute_transition_time() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.compute_transition_time">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Aggregation.consensus_cluster_timeseries">consensus_cluster_timeseries() (toad.postprocessing.Aggregation method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.aggregation.html#toad.postprocessing.aggregation.Aggregation.consensus_cluster_timeseries">(toad.postprocessing.aggregation.Aggregation method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.consensus_cluster_vars">consensus_cluster_vars (toad.TOAD property)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Aggregation.consensus_extraction_mask_2d">consensus_extraction_mask_2d() (toad.postprocessing.Aggregation method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.aggregation.html#toad.postprocessing.aggregation.Aggregation.consensus_extraction_mask_2d">(toad.postprocessing.aggregation.Aggregation method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.consensus_map">consensus_map() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.consensus_overview">consensus_overview() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.consensus_rate_map">consensus_rate_map() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.consensus_rate_var_name">consensus_rate_var_name() (toad.TOAD static method)</a>
+</li>
+      <li><a href="generated/toad.utils.cluster_consensus_utils.html#toad.utils.cluster_consensus_utils.consensus_shift_time_distribution">consensus_shift_time_distribution() (in module toad.utils.cluster_consensus_utils)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Aggregation.consensus_shift_time_distribution">(toad.postprocessing.Aggregation method)</a>
+</li>
+        <li><a href="generated/toad.postprocessing.aggregation.html#toad.postprocessing.aggregation.Aggregation.consensus_shift_time_distribution">(toad.postprocessing.aggregation.Aggregation method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.utils.cluster_consensus_utils.html#toad.utils.cluster_consensus_utils.consensus_shift_time_distributions">consensus_shift_time_distributions() (in module toad.utils.cluster_consensus_utils)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Aggregation.consensus_shift_time_distributions">(toad.postprocessing.Aggregation method)</a>
+</li>
+        <li><a href="generated/toad.postprocessing.aggregation.html#toad.postprocessing.aggregation.Aggregation.consensus_shift_time_distributions">(toad.postprocessing.aggregation.Aggregation method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.consensus_shift_times_medians">consensus_shift_times_medians() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.consensus_shift_times_violins">consensus_shift_times_violins() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Aggregation.consensus_summary">consensus_summary() (toad.postprocessing.Aggregation method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.aggregation.html#toad.postprocessing.aggregation.Aggregation.consensus_summary">(toad.postprocessing.aggregation.Aggregation method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.consensus_timeseries">consensus_timeseries() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.shifts.methods.asdetect.html#toad.shifts.methods.asdetect.construct_detection_ts">construct_detection_ts() (in module toad.shifts.methods.asdetect)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.shifts.methods.edge.html#toad.shifts.methods.edge.construct_detection_ts">(in module toad.shifts.methods.edge)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.continent_shading">continent_shading (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.continent_shading_color">continent_shading_color (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.contour_linewidth">contour_linewidth (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.utils.html#toad.utils.convert_numeric_to_original_time">convert_numeric_to_original_time() (in module toad.utils)</a>
+</li>
+      <li><a href="generated/toad.utils.html#toad.utils.convert_time_to_seconds">convert_time_to_seconds() (in module toad.utils)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.SpacetimeGridContext.coords_spatial">coords_spatial (toad.postprocessing.member_support_consensus.SpacetimeGridContext attribute)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="D">D</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.data">data (toad.TOAD attribute)</a>
+</li>
+      <li><a href="generated/toad.clustering.optimizing.html#toad.clustering.optimizing.default_opt_params">default_opt_params (in module toad.clustering.optimizing)</a>
+</li>
+      <li><a href="generated/toad.utils.html#toad.utils.deprecated">deprecated() (in module toad.utils)</a>
+</li>
+      <li><a href="generated/toad.utils.html#toad.utils.detect_latlon_names">detect_latlon_names() (in module toad.utils)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.drop_clusters">drop_clusters() (toad.TOAD method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.drop_consensus_clusters">drop_consensus_clusters() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.drop_shifts">drop_shifts() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.duration">duration() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.duration">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.duration_timesteps">duration_timesteps() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.duration_timesteps">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="E">E</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.shifts.html#toad.shifts.EDGE">EDGE (class in toad.shifts)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.shifts.methods.edge.html#toad.shifts.methods.edge.EDGE">(class in toad.shifts.methods.edge)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.end">end() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.end">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.end_timestep">end_timestep() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.end_timestep">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.extent">extent (toad.plotting.MapStyle attribute)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="F">F</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.clustering.html#toad.clustering.SpaceTimeDBSCAN.fit_predict">fit_predict() (toad.clustering.SpaceTimeDBSCAN method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.shifts.ASDETECT.html#toad.shifts.ASDETECT.fit_predict">(toad.shifts.ASDETECT method)</a>, <a href="generated/toad.shifts.html#toad.shifts.ASDETECT.fit_predict">[1]</a>
+</li>
+        <li><a href="generated/toad.shifts.html#toad.shifts.EDGE.fit_predict">(toad.shifts.EDGE method)</a>
+</li>
+        <li><a href="generated/toad.shifts.methods.asdetect.html#toad.shifts.methods.asdetect.ASDETECT.fit_predict">(toad.shifts.methods.asdetect.ASDETECT method)</a>
+</li>
+        <li><a href="generated/toad.shifts.methods.base.html#toad.shifts.methods.base.ShiftsMethod.fit_predict">(toad.shifts.methods.base.ShiftsMethod method)</a>
+</li>
+        <li><a href="generated/toad.shifts.methods.edge.html#toad.shifts.methods.edge.EDGE.fit_predict">(toad.shifts.methods.edge.EDGE method)</a>
+</li>
+        <li><a href="generated/toad.shifts.html#toad.shifts.ShiftsMethod.fit_predict">(toad.shifts.ShiftsMethod method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.stats.space.html#toad.postprocessing.stats.space.SpaceStats.footprint_cumulative_area">footprint_cumulative_area() (toad.postprocessing.stats.space.SpaceStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.SpaceStats.footprint_cumulative_area">(toad.postprocessing.stats.SpaceStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.space.html#toad.postprocessing.stats.space.SpaceStats.footprint_mean">footprint_mean() (toad.postprocessing.stats.space.SpaceStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.SpaceStats.footprint_mean">(toad.postprocessing.stats.SpaceStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.space.html#toad.postprocessing.stats.space.SpaceStats.footprint_median">footprint_median() (toad.postprocessing.stats.space.SpaceStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.SpaceStats.footprint_median">(toad.postprocessing.stats.SpaceStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.space.html#toad.postprocessing.stats.space.SpaceStats.footprint_std">footprint_std() (toad.postprocessing.stats.space.SpaceStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.SpaceStats.footprint_std">(toad.postprocessing.stats.SpaceStats method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="G">G</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Stats.general">general (toad.postprocessing.Stats property)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.Stats.general">(toad.postprocessing.stats.Stats property)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.GeneralStats">GeneralStats (class in toad.postprocessing.stats)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.general.html#toad.postprocessing.stats.general.GeneralStats">(class in toad.postprocessing.stats.general)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.get_base_var">get_base_var() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.get_cluster_counts">get_cluster_counts() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.get_cluster_ids">get_cluster_ids() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.get_cluster_mask">get_cluster_mask() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.get_cluster_mask_spatial">get_cluster_mask_spatial() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.get_cluster_times">get_cluster_times() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.get_cluster_timeseries">get_cluster_timeseries() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.get_clusters">get_clusters() (toad.TOAD method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.shifts.methods.asdetect.html#toad.shifts.methods.asdetect.get_gradients_double">get_gradients_double() (in module toad.shifts.methods.asdetect)</a>
+</li>
+      <li><a href="generated/toad.utils.html#toad.utils.get_latlon_info">get_latlon_info() (in module toad.utils)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.get_shifts">get_shifts() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.utils.html#toad.utils.get_space_dims">get_space_dims() (in module toad.utils)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.get_timeseries">get_timeseries() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.utils.html#toad.utils.get_unique_variable_name">get_unique_variable_name() (in module toad.utils)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.grid_alpha">grid_alpha (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.grid_color">grid_color (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.grid_labels">grid_labels (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.grid_lines">grid_lines (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.grid_style">grid_style (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.grid_width">grid_width (toad.plotting.MapStyle attribute)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="H">H</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.regridding.HealPixRegridder.html#toad.regridding.HealPixRegridder.healpix_to_latlon">healpix_to_latlon() (toad.regridding.HealPixRegridder method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.regridding.HealPixRegridder.html#toad.regridding.HealPixRegridder">HealPixRegridder (class in toad.regridding)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="I">I</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.utils.cluster_consensus_utils.html#toad.utils.cluster_consensus_utils.infer_stitch_meridian">infer_stitch_meridian() (in module toad.utils.cluster_consensus_utils)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.iqr">iqr() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.iqr">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.iqr_50">iqr_50() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.iqr_50">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.iqr_68">iqr_68() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.iqr_68">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.iqr_90">iqr_90() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.iqr_90">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.utils.html#toad.utils.is_regular_grid">is_regular_grid() (in module toad.utils)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="L">L</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.utils.cluster_consensus_utils.html#toad.utils.cluster_consensus_utils.label_field_shift_time_distributions">label_field_shift_time_distributions() (in module toad.utils.cluster_consensus_utils)</a>
+</li>
+      <li><a href="generated/toad.utils.cluster_consensus_utils.html#toad.utils.cluster_consensus_utils.label_field_shift_time_samples">label_field_shift_time_samples() (in module toad.utils.cluster_consensus_utils)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Aggregation.label_shift_time_distributions">label_shift_time_distributions() (toad.postprocessing.Aggregation method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.aggregation.html#toad.postprocessing.aggregation.Aggregation.label_shift_time_distributions">(toad.postprocessing.aggregation.Aggregation method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Aggregation.label_shift_time_samples">label_shift_time_samples() (toad.postprocessing.Aggregation method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.aggregation.html#toad.postprocessing.aggregation.Aggregation.label_shift_time_samples">(toad.postprocessing.aggregation.Aggregation method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.regridding.HealPixRegridder.html#toad.regridding.HealPixRegridder.latlon_to_healpix">latlon_to_healpix() (toad.regridding.HealPixRegridder method)</a>
+</li>
+      <li><a href="generated/toad.shifts.methods.asdetect.html#toad.shifts.methods.asdetect.linear_fit">linear_fit() (in module toad.shifts.methods.asdetect)</a>
+</li>
+      <li><a href="generated/toad.shifts.ASDETECT.html#toad.shifts.ASDETECT.LMIN_MIN">LMIN_MIN (toad.shifts.ASDETECT attribute)</a>, <a href="generated/toad.shifts.html#toad.shifts.ASDETECT.LMIN_MIN">[1]</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.shifts.methods.asdetect.html#toad.shifts.methods.asdetect.ASDETECT.LMIN_MIN">(toad.shifts.methods.asdetect.ASDETECT attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.utils.repr_html.html#toad.utils.repr_html.load_toad_logo_html">load_toad_logo_html() (in module toad.utils.repr_html)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="M">M</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.shifts.methods.asdetect.html#toad.shifts.methods.asdetect.mad">mad() (in module toad.shifts.methods.asdetect)</a>
+</li>
+      <li><a href="generated/toad.shifts.methods.asdetect.html#toad.shifts.methods.asdetect.mad_from_median">mad_from_median() (in module toad.shifts.methods.asdetect)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.map">map() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.map_frame">map_frame (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.regridding.base.BaseRegridder.html#toad.regridding.base.BaseRegridder.map_orig_to_regrid">map_orig_to_regrid() (toad.regridding.base.BaseRegridder method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.regridding.HealPixRegridder.html#toad.regridding.HealPixRegridder.map_orig_to_regrid">(toad.regridding.HealPixRegridder method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle">MapStyle (class in toad.plotting)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.max_shift_map">max_shift_map() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.stats.space.html#toad.postprocessing.stats.space.SpaceStats.mean">mean() (toad.postprocessing.stats.space.SpaceStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.SpaceStats.mean">(toad.postprocessing.stats.SpaceStats method)</a>
+</li>
+        <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.mean">(toad.postprocessing.stats.time.TimeStats method)</a>
+</li>
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.mean">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.mean_shift_magnitude">mean_shift_magnitude() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.mean_shift_magnitude">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.shifts.methods.asdetect.html#toad.shifts.methods.asdetect.median">median() (in module toad.shifts.methods.asdetect)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.space.html#toad.postprocessing.stats.space.SpaceStats.median">(toad.postprocessing.stats.space.SpaceStats method)</a>
+</li>
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.SpaceStats.median">(toad.postprocessing.stats.SpaceStats method)</a>
+</li>
+        <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.median">(toad.postprocessing.stats.time.TimeStats method)</a>
+</li>
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.median">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.median_activity_time">median_activity_time() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.median_activity_time">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.membership_peak">membership_peak() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.membership_peak">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.membership_peak_density">membership_peak_density() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.membership_peak_density">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.min_consensus_members">min_consensus_members() (in module toad.postprocessing.member_support_consensus)</a>
+</li>
+      <li>
+    module
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.clustering.html#module-toad.clustering">toad.clustering</a>
+</li>
+        <li><a href="generated/toad.clustering.optimizing.html#module-toad.clustering.optimizing">toad.clustering.optimizing</a>
+</li>
+        <li><a href="generated/toad.postprocessing.html#module-toad.postprocessing">toad.postprocessing</a>
+</li>
+        <li><a href="generated/toad.postprocessing.aggregation.html#module-toad.postprocessing.aggregation">toad.postprocessing.aggregation</a>
+</li>
+        <li><a href="generated/toad.postprocessing.member_support_consensus.html#module-toad.postprocessing.member_support_consensus">toad.postprocessing.member_support_consensus</a>
+</li>
+        <li><a href="generated/toad.postprocessing.stats.html#module-toad.postprocessing.stats">toad.postprocessing.stats</a>
+</li>
+        <li><a href="generated/toad.postprocessing.stats.general.html#module-toad.postprocessing.stats.general">toad.postprocessing.stats.general</a>
+</li>
+        <li><a href="generated/toad.postprocessing.stats.space.html#module-toad.postprocessing.stats.space">toad.postprocessing.stats.space</a>
+</li>
+        <li><a href="generated/toad.postprocessing.stats.time.html#module-toad.postprocessing.stats.time">toad.postprocessing.stats.time</a>
+</li>
+        <li><a href="generated/toad.shifts.html#module-toad.shifts">toad.shifts</a>
+</li>
+        <li><a href="generated/toad.shifts.methods.html#module-toad.shifts.methods">toad.shifts.methods</a>
+</li>
+        <li><a href="generated/toad.shifts.methods.asdetect.html#module-toad.shifts.methods.asdetect">toad.shifts.methods.asdetect</a>
+</li>
+        <li><a href="generated/toad.shifts.methods.base.html#module-toad.shifts.methods.base">toad.shifts.methods.base</a>
+</li>
+        <li><a href="generated/toad.shifts.methods.edge.html#module-toad.shifts.methods.edge">toad.shifts.methods.edge</a>
+</li>
+        <li><a href="generated/toad.utils.html#module-toad.utils">toad.utils</a>
+</li>
+        <li><a href="generated/toad.utils.cluster_consensus_utils.html#module-toad.utils.cluster_consensus_utils">toad.utils.cluster_consensus_utils</a>
+</li>
+        <li><a href="generated/toad.utils.repr_html.html#module-toad.utils.repr_html">toad.utils.repr_html</a>
+</li>
+        <li><a href="generated/toad.utils.shift_selection_utils.html#module-toad.utils.shift_selection_utils">toad.utils.shift_selection_utils</a>
+</li>
+      </ul></li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="N">N</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.SpacetimeGridContext.n_space">n_space (toad.postprocessing.member_support_consensus.SpacetimeGridContext attribute)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.native_spatial_edges">native_spatial_edges() (in module toad.postprocessing.member_support_consensus)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.numeric_time_values">numeric_time_values (toad.TOAD property)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.numeric_time_values_unit">numeric_time_values_unit() (toad.TOAD method)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="O">O</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.ocean_shading">ocean_shading (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.ocean_shading_color">ocean_shading_color (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.other_cluster_alpha">other_cluster_alpha (toad.plotting.MapStyle attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.other_legend">other_legend (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.other_legend_pos">other_legend_pos (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.overview">overview() (toad.plotting.Plotter method)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="P">P</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.path">path (toad.TOAD attribute)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.plot">plot (toad.TOAD property)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.plot_contour">plot_contour (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.plot_fill">plot_fill (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter">Plotter (class in toad.plotting)</a>
+</li>
+      <li><a href="generated/toad.shifts.methods.asdetect.html#toad.shifts.methods.asdetect.polyfit">polyfit() (in module toad.shifts.methods.asdetect)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.pooled_median_transition_time">pooled_median_transition_time() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.pooled_median_transition_time">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.pooled_std_transition_time">pooled_std_transition_time() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.pooled_std_transition_time">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.preprocess">preprocess (toad.TOAD property)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.projection">projection (toad.plotting.MapStyle attribute)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="R">R</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.regridding.base.BaseRegridder.html#toad.regridding.base.BaseRegridder.regrid">regrid() (toad.regridding.base.BaseRegridder method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.regridding.HealPixRegridder.html#toad.regridding.HealPixRegridder.regrid">(toad.regridding.HealPixRegridder method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.regridding.base.BaseRegridder.html#toad.regridding.base.BaseRegridder.regrid_clusters_back">regrid_clusters_back() (toad.regridding.base.BaseRegridder method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.regridding.HealPixRegridder.html#toad.regridding.HealPixRegridder.regrid_clusters_back">(toad.regridding.HealPixRegridder method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.remove_cluster">remove_cluster() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.utils.repr_html.html#toad.utils.repr_html.render_consensus_variables_html">render_consensus_variables_html() (in module toad.utils.repr_html)</a>
+</li>
+      <li><a href="generated/toad.utils.repr_html.html#toad.utils.repr_html.render_hierarchy_html">render_hierarchy_html() (in module toad.utils.repr_html)</a>
+</li>
+      <li><a href="generated/toad.plotting.MapStyle.html#toad.plotting.MapStyle.resolution">resolution (toad.plotting.MapStyle attribute)</a>
+</li>
+      <li><a href="generated/toad.utils.cluster_consensus_utils.html#toad.utils.cluster_consensus_utils.resolve_stitch_meridian">resolve_stitch_meridian() (in module toad.utils.cluster_consensus_utils)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="S">S</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.save">save() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.stats.general.html#toad.postprocessing.stats.general.GeneralStats.score_consistency">score_consistency() (toad.postprocessing.stats.general.GeneralStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.GeneralStats.score_consistency">(toad.postprocessing.stats.GeneralStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.general.html#toad.postprocessing.stats.general.GeneralStats.score_heaviside">score_heaviside() (toad.postprocessing.stats.general.GeneralStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.GeneralStats.score_heaviside">(toad.postprocessing.stats.GeneralStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.general.html#toad.postprocessing.stats.general.GeneralStats.score_nonlinearity">score_nonlinearity() (toad.postprocessing.stats.general.GeneralStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.GeneralStats.score_nonlinearity">(toad.postprocessing.stats.GeneralStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.general.html#toad.postprocessing.stats.general.GeneralStats.score_overview">score_overview() (toad.postprocessing.stats.general.GeneralStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.GeneralStats.score_overview">(toad.postprocessing.stats.GeneralStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.general.html#toad.postprocessing.stats.general.GeneralStats.score_spatial_autocorrelation">score_spatial_autocorrelation() (toad.postprocessing.stats.general.GeneralStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.GeneralStats.score_spatial_autocorrelation">(toad.postprocessing.stats.GeneralStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.shifts.ASDETECT.html#toad.shifts.ASDETECT.segmentation">segmentation (toad.shifts.ASDETECT attribute)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.shifts.methods.asdetect.html#toad.shifts.methods.asdetect.ASDETECT.segmentation">(toad.shifts.methods.asdetect.ASDETECT attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.set_log_level">set_log_level() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.shift_dist">shift_dist() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.shift_vars">shift_vars (toad.TOAD property)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.shift_vars_for_var">shift_vars_for_var() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.shifts.html#toad.shifts.ShiftsMethod">ShiftsMethod (class in toad.shifts)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.shifts.methods.base.html#toad.shifts.methods.base.ShiftsMethod">(class in toad.shifts.methods.base)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.clustering.html#toad.clustering.SpaceTimeDBSCAN.skip_time_scaling">skip_time_scaling (toad.clustering.SpaceTimeDBSCAN attribute)</a>
+</li>
+      <li><a href="generated/toad.shifts.methods.edge.html#toad.shifts.methods.edge.sobel_edge_detection">sobel_edge_detection() (in module toad.shifts.methods.edge)</a>
+</li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.sort_clusters">sort_clusters() (toad.TOAD method)</a>
+</li>
+      <li><a href="generated/toad.clustering.html#toad.clustering.sorted_cluster_labels">sorted_cluster_labels() (in module toad.clustering)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Stats.space">space (toad.postprocessing.Stats property)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.Stats.space">(toad.postprocessing.stats.Stats property)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.space_dims">space_dims (toad.TOAD property)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.SpaceStats">SpaceStats (class in toad.postprocessing.stats)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.space.html#toad.postprocessing.stats.space.SpaceStats">(class in toad.postprocessing.stats.space)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.clustering.html#toad.clustering.SpaceTimeDBSCAN">SpaceTimeDBSCAN (class in toad.clustering)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.SpacetimeGridContext">SpacetimeGridContext (class in toad.postprocessing.member_support_consensus)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.SpacetimeGridContext.spatial_dims">spatial_dims (toad.postprocessing.member_support_consensus.SpacetimeGridContext attribute)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.SpacetimeGridContext.spatial_ec">spatial_ec (toad.postprocessing.member_support_consensus.SpacetimeGridContext attribute)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.SpacetimeGridContext.spatial_er">spatial_er (toad.postprocessing.member_support_consensus.SpacetimeGridContext attribute)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.start">start() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.start">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.start_timestep">start_timestep() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.start_timestep">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Stats">Stats (class in toad.postprocessing)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.Stats">(class in toad.postprocessing.stats)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD.stats">stats (toad.TOAD property)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.stats.space.html#toad.postprocessing.stats.space.SpaceStats.std">std() (toad.postprocessing.stats.space.SpaceStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.SpaceStats.std">(toad.postprocessing.stats.SpaceStats method)</a>
+</li>
+        <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.std">(toad.postprocessing.stats.time.TimeStats method)</a>
+</li>
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.std">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.steepest_gradient">steepest_gradient() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.steepest_gradient">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.steepest_gradient_timestep">steepest_gradient_timestep() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.steepest_gradient_timestep">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.SpacetimeGridContext.stitch_meridian">stitch_meridian (toad.postprocessing.member_support_consensus.SpacetimeGridContext attribute)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.summary">summary() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.summary">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="T">T</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.SpacetimeGridContext.T">T (toad.postprocessing.member_support_consensus.SpacetimeGridContext attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.td">td (toad.plotting.Plotter attribute)</a>
+</li>
+      <li><a href="generated/toad.shifts.methods.edge.html#toad.shifts.methods.edge.thin_and_threshold_edges">thin_and_threshold_edges() (in module toad.shifts.methods.edge)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.html#toad.postprocessing.Stats.time">time (toad.postprocessing.Stats property)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.Stats.time">(toad.postprocessing.stats.Stats property)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.SpacetimeGridContext.time_coord">time_coord (toad.postprocessing.member_support_consensus.SpacetimeGridContext attribute)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.SpacetimeGridContext.time_dim">time_dim (toad.postprocessing.member_support_consensus.SpacetimeGridContext attribute)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.time_of_max_shift_map">time_of_max_shift_map() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.plotting.Plotter.html#toad.plotting.Plotter.timeseries">timeseries() (toad.plotting.Plotter method)</a>
+</li>
+      <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats">TimeStats (class in toad.postprocessing.stats)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats">(class in toad.postprocessing.stats.time)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.TOAD.html#toad.TOAD">TOAD (class in toad)</a>
+</li>
+      <li>
+    toad.clustering
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.clustering.html#module-toad.clustering">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.clustering.optimizing
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.clustering.optimizing.html#module-toad.clustering.optimizing">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.postprocessing
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.html#module-toad.postprocessing">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.postprocessing.aggregation
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.aggregation.html#module-toad.postprocessing.aggregation">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.postprocessing.member_support_consensus
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.member_support_consensus.html#module-toad.postprocessing.member_support_consensus">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.postprocessing.stats
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#module-toad.postprocessing.stats">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li>
+    toad.postprocessing.stats.general
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.general.html#module-toad.postprocessing.stats.general">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.postprocessing.stats.space
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.space.html#module-toad.postprocessing.stats.space">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.postprocessing.stats.time
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.time.html#module-toad.postprocessing.stats.time">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.shifts
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.shifts.html#module-toad.shifts">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.shifts.methods
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.shifts.methods.html#module-toad.shifts.methods">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.shifts.methods.asdetect
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.shifts.methods.asdetect.html#module-toad.shifts.methods.asdetect">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.shifts.methods.base
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.shifts.methods.base.html#module-toad.shifts.methods.base">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.shifts.methods.edge
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.shifts.methods.edge.html#module-toad.shifts.methods.edge">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.utils
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.utils.html#module-toad.utils">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.utils.cluster_consensus_utils
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.utils.cluster_consensus_utils.html#module-toad.utils.cluster_consensus_utils">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.utils.repr_html
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.utils.repr_html.html#module-toad.utils.repr_html">module</a>
+</li>
+      </ul></li>
+      <li>
+    toad.utils.shift_selection_utils
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.utils.shift_selection_utils.html#module-toad.utils.shift_selection_utils">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="U">U</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.shifts.methods.asdetect.html#toad.shifts.methods.asdetect.update_detection_ts_two_sided">update_detection_ts_two_sided() (in module toad.shifts.methods.asdetect)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="V">V</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.value_at_end">value_at_end() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.value_at_end">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.value_at_iqr_90_end">value_at_iqr_90_end() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.value_at_iqr_90_end">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.value_at_iqr_90_start">value_at_iqr_90_start() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.value_at_iqr_90_start">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.value_at_start">value_at_start() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.value_at_start">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.value_change">value_change() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.value_change">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+      <li><a href="generated/toad.postprocessing.stats.time.html#toad.postprocessing.stats.time.TimeStats.value_change_iqr_90">value_change_iqr_90() (toad.postprocessing.stats.time.TimeStats method)</a>
+
+      <ul style="list-style-type:none">
+        <li><a href="generated/toad.postprocessing.stats.html#toad.postprocessing.stats.TimeStats.value_change_iqr_90">(toad.postprocessing.stats.TimeStats method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="X">X</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.SpacetimeGridContext.x_len">x_len (toad.postprocessing.member_support_consensus.SpacetimeGridContext attribute)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+  <h2 id="Y">Y</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul style="margin-left:0;list-style-type:none">
+      <li><a href="generated/toad.postprocessing.member_support_consensus.html#toad.postprocessing.member_support_consensus.SpacetimeGridContext.y_len">y_len (toad.postprocessing.member_support_consensus.SpacetimeGridContext attribute)</a>
+</li>
+  </ul></td>
+  </tr>
+      </table>
+  
+
+</div><div class="flex justify-between items-center pt-6 mt-12 border-t border-border gap-4">
+</div></div>
+<aside id="right-sidebar" class="hidden text-sm xl:block">
+<div class="sticky top-16 -mt-10 max-h-[calc(var(--vh)-4rem)] overflow-y-auto pt-6 space-y-2">
+<a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#_">_</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#A">A</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#B">B</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#C">C</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#D">D</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#E">E</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#F">F</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#G">G</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#H">H</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#I">I</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#L">L</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#M">M</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#N">N</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#O">O</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#P">P</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#R">R</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#S">S</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#T">T</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#U">U</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#V">V</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#X">X</a><a class="pt-2 block text-muted-foreground no-underline transition-colors hover:text-foreground focus-visible:outline-offset-[-1px]" href="#Y">Y</a>
+</div>
+</aside>
+          </main>
+        </div>
+      </div><footer class="py-6 border-t border-border md:py-0">
+    <div class="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+      <div class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
+        <p class="text-sm leading-loose text-center text-muted-foreground md:text-left">© 2026, TOAD Developers&nbsp;Built with <a class="font-medium underline underline-offset-4"
+    href="https://www.sphinx-doc.org"
+    rel="noreferrer">Sphinx 9.1.0</a></p>
+</div>
+</div>
+</footer>
+    </div>
+    
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="_static/theme.js?v=5db23cf8"></script>
+    
+</body>
+
+</html>

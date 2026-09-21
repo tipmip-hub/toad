@@ -1,0 +1,19 @@
+﻿toad.shifts
+===========
+
+.. automodule:: toad.shifts
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compute_shifts
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   methods

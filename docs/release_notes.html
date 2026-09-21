@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html :class="{ 'dark' : darkMode === true }" data-content_root="./" lang="en" x-data="{ darkMode: $persist(window.matchMedia('(prefers-color-scheme: dark)').matches), activeSection: ''}">
+<head>
+<script>
+    (function () {
+      // Set initial color scheme
+      if ((localStorage.getItem("_x_darkMode") === "true") || (window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.documentElement.classList.add("dark");
+      }
+
+      // Watch for media preference changes
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+        localStorage.setItem("_x_darkMode", event.matches);
+        document.documentElement.classList.toggle("dark", event.matches);
+      });
+    })();
+  </script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8"/>
+<meta content="#ffffff" media="(prefers-color-scheme: light)" name="theme-color"/>
+<meta content="#030711" media="(prefers-color-scheme: dark)" name="theme-color"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Release Notes | toad  documentation</title>
+<meta content="Release Notes | toad  documentation" property="og:title"/>
+<meta content="Release Notes | toad  documentation" name="twitter:title"/>
+<link href="_static/pygments.css?v=8d216cef" rel="stylesheet" type="text/css"/>
+<link href="_static/theme.css?v=d6d7c91b" rel="stylesheet" type="text/css"/>
+<link href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" rel="stylesheet" type="text/css"/>
+<link href="_static/custom.css?v=a187b300" rel="stylesheet" type="text/css"/>
+<link href="_static/awesome-myst-nb.css?v=7c7ea10c" rel="stylesheet" type="text/css"/>
+<link href="_static/favicon.png" rel="icon"/>
+<link href="search.html" rel="search" title="Search"/>
+<link href="genindex.html" rel="index" title="Index"/>
+<link href="scientific_ref.html" rel="prev" title="Scientific References"/>
+</head>
+<body :class="{ 'overflow-hidden': showSidebar }" class="min-h-screen font-sans antialiased bg-background text-foreground" x-data="{ showSidebar: false, showScrollTop: false }">
+<div @click.self="showSidebar = false" class="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm md:hidden" x-cloak="" x-show="showSidebar"></div><div class="relative flex flex-col min-h-screen" id="page"><a class="absolute top-0 left-0 z-[100] block bg-background p-4 text-xl transition -translate-x-full opacity-0 focus:translate-x-0 focus:opacity-100" href="#content">
+      Skip to content
+    </a><header class="sticky top-0 z-40 w-full border-b shadow-xs border-border bg-background/90 backdrop-blur"><div class="container flex items-center h-14">
+<div class="hidden mr-4 md:flex">
+<a class="flex items-center mr-6" href="sidebar_main_nav_links.html">
+<img alt="Logo" class="mr-2 dark:invert" height="24" src="_static/toad.png" width="24"/><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">toad  documentation</span>
+</a></div><button @click="showSidebar = true" class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden" type="button">
+<svg aria-hidden="true" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z"></path>
+</svg>
+<span class="sr-only">Toggle navigation menu</span>
+</button>
+<div class="flex items-center justify-between flex-1 gap-2 sm:gap-4 md:justify-end">
+<div class="flex-1 w-full md:w-auto md:flex-none"><form @keydown.k.window.meta="$refs.search.focus()" action="search.html" class="relative flex items-center group" id="searchbox" method="get">
+<input aria-label="Search the docs" class="inline-flex items-center font-medium transition-colors bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background border border-input hover:bg-accent focus:bg-accent hover:text-accent-foreground focus:text-accent-foreground hover:placeholder-accent-foreground py-2 px-4 relative h-9 w-full justify-start rounded-[0.5rem] text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64" id="search-input" name="q" placeholder="Search ..." type="search" x-ref="search"/>
+<kbd class="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none text-muted-foreground items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex group-hover:bg-accent group-hover:text-accent-foreground">
+<span class="text-xs">⌘</span>
+    K
+  </kbd>
+</form>
+</div>
+<nav class="flex items-center gap-1">
+<a href="https://github.com/tipmip-methods/toad" rel="noopener nofollow" title="Visit GitHub">
+<div class="inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9">
+<svg fill="currentColor" height="16" viewbox="0 0 16 16" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+</svg>
+</div>
+</a>
+<button @click="darkMode = !darkMode" class="relative inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9" title="Toggle color scheme" type="button">
+<svg class="absolute transition-all scale-100 rotate-0 dark:-rotate-90 dark:scale-0" fill="currentColor" height="16" viewbox="0 96 960 960" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 685q45.456 0 77.228-31.772Q589 621.456 589 576q0-45.456-31.772-77.228Q525.456 467 480 467q-45.456 0-77.228 31.772Q371 530.544 371 576q0 45.456 31.772 77.228Q434.544 685 480 685Zm0 91q-83 0-141.5-58.5T280 576q0-83 58.5-141.5T480 376q83 0 141.5 58.5T680 576q0 83-58.5 141.5T480 776ZM80 621.5q-19.152 0-32.326-13.174T34.5 576q0-19.152 13.174-32.326T80 530.5h80q19.152 0 32.326 13.174T205.5 576q0 19.152-13.174 32.326T160 621.5H80Zm720 0q-19.152 0-32.326-13.174T754.5 576q0-19.152 13.174-32.326T800 530.5h80q19.152 0 32.326 13.174T925.5 576q0 19.152-13.174 32.326T880 621.5h-80Zm-320-320q-19.152 0-32.326-13.174T434.5 256v-80q0-19.152 13.174-32.326T480 130.5q19.152 0 32.326 13.174T525.5 176v80q0 19.152-13.174 32.326T480 301.5Zm0 720q-19.152 0-32.326-13.17Q434.5 995.152 434.5 976v-80q0-19.152 13.174-32.326T480 850.5q19.152 0 32.326 13.174T525.5 896v80q0 19.152-13.174 32.33-13.174 13.17-32.326 13.17ZM222.174 382.065l-43-42Q165.5 327.391 166 308.239t13.174-33.065q13.435-13.674 32.587-13.674t32.065 13.674l42.239 43q12.674 13.435 12.555 31.706-.12 18.272-12.555 31.946-12.674 13.674-31.445 13.413-18.772-.261-32.446-13.174Zm494 494.761-42.239-43q-12.674-13.435-12.674-32.087t12.674-31.565Q686.609 756.5 705.38 757q18.772.5 32.446 13.174l43 41.761Q794.5 824.609 794 843.761t-13.174 33.065Q767.391 890.5 748.239 890.5t-32.065-13.674Zm-42-494.761Q660.5 369.391 661 350.62q.5-18.772 13.174-32.446l41.761-43Q728.609 261.5 747.761 262t33.065 13.174q13.674 13.435 13.674 32.587t-13.674 32.065l-43 42.239q-13.435 12.674-31.706 12.555-18.272-.12-31.946-12.555Zm-495 494.761Q165.5 863.391 165.5 844.239t13.674-32.065l43-42.239q13.435-12.674 32.087-12.674t31.565 12.674Q299.5 782.609 299 801.38q-.5 18.772-13.174 32.446l-41.761 43Q231.391 890.5 212.239 890t-33.065-13.174ZM480 576Z"></path>
+</svg>
+<svg class="absolute transition-all scale-0 rotate-90 dark:rotate-0 dark:scale-100" fill="currentColor" height="16" viewbox="0 96 960 960" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 936q-151 0-255.5-104.5T120 576q0-138 90-239.5T440 218q25-3 39 18t-1 44q-17 26-25.5 55t-8.5 61q0 90 63 153t153 63q31 0 61.5-9t54.5-25q21-14 43-1.5t19 39.5q-14 138-117.5 229T480 936Zm0-80q88 0 158-48.5T740 681q-20 5-40 8t-40 3q-123 0-209.5-86.5T364 396q0-20 3-40t8-40q-78 32-126.5 102T200 576q0 116 82 198t198 82Zm-10-270Z"></path>
+</svg>
+</button>
+</nav>
+</div>
+</div>
+</header>
+<div class="flex-1"><div class="container md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }" class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full overflow-y-auto border-r border-border md:sticky" id="left-sidebar">
+<a class="justify-start text-sm md:!hidden bg-background" href="sidebar_main_nav_links.html">
+<img alt="Logo" class="mr-2 dark:invert" height="16" src="_static/toad.png" width="16"/><span class="font-bold text-clip whitespace-nowrap">toad  documentation</span>
+</a>
+<div class="relative overflow-hidden md:overflow-auto my-4 md:my-0">
+<div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="tutorials.html">Tutorials<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul x-cloak="" x-show="expanded">
+<li class="toctree-l2"><a class="reference internal" href="tutorials/basics.html">TOAD Basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/custom_clustering.html">Implement your own clustering method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/custom_shifts_detection.html">Implement your own shifts detection method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/consensus.html">Consensus clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/consensus.html#imports">Imports</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/consensus.html#prepare-data">Prepare data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/consensus.html#computes-shifts-and-clusters">Computes shifts and clusters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/consensus.html#compute-consensus">Compute consensus</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials/consensus.html#visualise-consensus">Visualise consensus</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="consensus_clustering.html">Consensus clustering</a></li>
+<li class="toctree-l1" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="api_ref.html">API Reference<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul x-cloak="" x-show="expanded">
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.TOAD.html">toad.TOAD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.shifts.ASDETECT.html">toad.shifts.ASDETECT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.plotting.Plotter.html">toad.plotting.Plotter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.plotting.MapStyle.html">toad.plotting.MapStyle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.regridding.HealPixRegridder.html">toad.regridding.HealPixRegridder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.regridding.base.BaseRegridder.html">toad.regridding.base.BaseRegridder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.shifts.html">toad.shifts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.clustering.html">toad.clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.postprocessing.html">toad.postprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generated/toad.utils.html">toad.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="scientific_ref.html">Scientific References</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Release Notes</a></li>
+</ul>
+</nav>
+</div>
+</div>
+<button @click="showSidebar = false" class="absolute md:hidden right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100" type="button">
+<svg class="h-4 w-4" fill="currentColor" height="24" stroke="none" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 632 284 828q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536 576l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480 632Z"></path>
+</svg>
+</button>
+</aside>
+<main class="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+<div class="w-full min-w-0 mx-auto">
+<nav aria-label="breadcrumbs" class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
+<a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground" href="sidebar_main_nav_links.html">
+<span class="hidden md:inline">toad  documentation</span>
+<svg aria-label="Home" class="md:hidden" fill="currentColor" height="18" stroke="none" viewbox="0 96 960 960" width="18" xmlns="http://www.w3.org/2000/svg">
+<path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z"></path>
+</svg>
+</a>
+<div class="mr-1">/</div><span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">Release Notes</span>
+</nav>
+<div id="content" role="main">
+<section id="release-notes">
+<h1>Release Notes<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#release-notes"><span>¶</span></a></h1>
+<section id="changelog">
+<h2>Changelog<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#changelog" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#changelog'"><span>¶</span></a></h2>
+<p>All notable changes to this project will be documented in this file.</p>
+<p>The format is based on <a class="reference external" href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>,
+and this project adheres to <a class="reference external" href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<section id="unreleased">
+<h3><a class="reference external" href="https://github.com/tipmip-methods/toad/compare/v1.0.8...HEAD">Unreleased</a><a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#unreleased" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#unreleased'"><span>¶</span></a></h3>
+</section>
+<section id="id1">
+<h3><a class="reference external" href="https://github.com/tipmip-methods/toad/compare/v1.0.7...v1.0.8">1.0.8</a> - 2026-06-22<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id1" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id1'"><span>¶</span></a></h3>
+<section id="changed">
+<h4>Changed<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#changed"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">compute_consensus</span></code> redesigned</strong> — spacetime member-support consensus on the native grid; requires <code class="docutils literal notranslate"><span class="pre">min_consensus</span></code>, <code class="docutils literal notranslate"><span class="pre">temporal_tolerance</span></code>, and <code class="docutils literal notranslate"><span class="pre">spatial_tolerance</span></code>. Replaces the old edge-vote method; results will differ. See <code class="docutils literal notranslate"><span class="pre">tutorials/consensus.ipynb</span></code>.</p></li>
+<li><p>Consensus companion field and plot API renamed: <code class="docutils literal notranslate"><span class="pre">*_consistency</span></code> → <code class="docutils literal notranslate"><span class="pre">*_rate</span></code>, <code class="docutils literal notranslate"><span class="pre">consensus_consistency_map()</span></code> → <code class="docutils literal notranslate"><span class="pre">consensus_rate_map()</span></code>, summary column <code class="docutils literal notranslate"><span class="pre">mean_consistency</span></code> → <code class="docutils literal notranslate"><span class="pre">mean_consensus_rate</span></code>.</p></li>
+<li><p>HealPix regridding now uses <strong><code class="docutils literal notranslate"><span class="pre">astropy-healpix</span></code></strong> instead of the <code class="docutils literal notranslate"><span class="pre">healpix</span></code> package.</p></li>
+<li><p>Clustering and transition times work with <strong>time-last</strong> dimension order (e.g. <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">time</span></code>).</p></li>
+</ul>
+</section>
+<section id="added">
+<h4>Added<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#added"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">SpaceTimeDBSCAN</span></code></strong> — built-in clusterer with separate spatial and temporal neighbourhood sizes (<code class="docutils literal notranslate"><span class="pre">spatial_eps</span></code>, <code class="docutils literal notranslate"><span class="pre">temporal_eps</span></code>).</p></li>
+<li><p>Consensus <strong>rate</strong> field (<code class="docutils literal notranslate"><span class="pre">{consensus_var}_rate</span></code>), <strong><code class="docutils literal notranslate"><span class="pre">stitch_meridian</span></code></strong>, <strong><code class="docutils literal notranslate"><span class="pre">cluster_occurrence_rate()</span></code></strong>, expanded summary/plots, and consensus tutorial + docs.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">TOAD(...,</span> <span class="pre">auto_clean=True)</span></code></strong> — optional CMIP-style cleanup on load (off by default).</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">cluster_summary()</span></code></strong> on <code class="docutils literal notranslate"><span class="pre">TOAD</span></code> and <code class="docutils literal notranslate"><span class="pre">Stats</span></code> — per-cluster overview table (time span, size, footprint, centre; optional IQR, shift amplitudes, pooled transition times, and clustering metadata). Analogous to <code class="docutils literal notranslate"><span class="pre">consensus_summary</span></code> for standard cluster variables.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">TimeStats</span></code> timing summaries</strong> — <code class="docutils literal notranslate"><span class="pre">median_activity_time</span></code>, <code class="docutils literal notranslate"><span class="pre">pooled_median_transition_time</span></code>, <code class="docutils literal notranslate"><span class="pre">pooled_std_transition_time</span></code>, and <code class="docutils literal notranslate"><span class="pre">summary()</span></code> DataFrame contrasting cluster temporal footprint vs per-cell peak-shift times (same field as <code class="docutils literal notranslate"><span class="pre">compute_transition_time</span></code> / <code class="docutils literal notranslate"><span class="pre">time_of_max_shift_map</span></code>).</p></li>
+</ul>
+</section>
+<section id="removed">
+<h4>Removed<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#removed"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>Old edge-vote consensus and <strong><code class="docutils literal notranslate"><span class="pre">regridder=</span></code></strong> on <code class="docutils literal notranslate"><span class="pre">compute_consensus</span></code> (HealPix remains for <code class="docutils literal notranslate"><span class="pre">compute_clusters</span></code>).</p></li>
+</ul>
+</section>
+<section id="fixed">
+<h4>Fixed<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#fixed"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>Dimension-order bugs in clustering and transition times; HealPix regridder out-of-bounds error.</p></li>
+<li><p>Explicit <strong><code class="docutils literal notranslate"><span class="pre">astropy</span></code> dependency</strong> for HealPix lon/lat unit conversion (CI deptry).</p></li>
+<li><p>HDBSCAN <strong><code class="docutils literal notranslate"><span class="pre">allow_single_cluster=True</span></code> by default</strong> when sklearn supports it.</p></li>
+</ul>
+</section>
+</section>
+<section id="id2">
+<h3><a class="reference external" href="https://github.com/tipmip-methods/toad/compare/v1.0.6...v1.0.7">1.0.7</a> - 2026-03-26<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id2" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id2'"><span>¶</span></a></h3>
+<section id="id3">
+<h4>Fixed<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id3"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>Timeseries subplots no longer force y-axis lower limit to zero (removed spurious <code class="docutils literal notranslate"><span class="pre">axhline(0)</span></code> call in subplot cleanup)</p></li>
+</ul>
+</section>
+</section>
+<section id="id4">
+<h3><a class="reference external" href="https://github.com/tipmip-methods/toad/compare/v1.0.5...v1.0.6">1.0.6</a> - 2026-03-11<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id4" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id4'"><span>¶</span></a></h3>
+<section id="id5">
+<h4>Added<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id5"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>Stats can now be accessed as a property (e.g. <code class="docutils literal notranslate"><span class="pre">td.stats.time.start(cluster_id=0)</span></code>) when using a single cluster variable</p></li>
+<li><p>Function for removing specific clusters by id (useful for filtering clusters of no interest)</p></li>
+<li><p>Function for sorting clusters (e.g. by magnitude, median shift time, or to reset indexing after removal)</p></li>
+<li><p>New time stats: <code class="docutils literal notranslate"><span class="pre">value_at_start</span></code>, <code class="docutils literal notranslate"><span class="pre">value_at_end</span></code>, <code class="docutils literal notranslate"><span class="pre">value_change</span></code>, <code class="docutils literal notranslate"><span class="pre">value_at_iqr_90_start</span></code>/<code class="docutils literal notranslate"><span class="pre">value_at_iqr_90_end</span></code>, <code class="docutils literal notranslate"><span class="pre">value_change_iqr_90</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_cluster_times()</span></code> — returns flattened array of time values for every cell in a cluster</p></li>
+<li><p>Variable inference for <code class="docutils literal notranslate"><span class="pre">get_base_var()</span></code>, <code class="docutils literal notranslate"><span class="pre">get_shifts()</span></code>, and <code class="docutils literal notranslate"><span class="pre">get_timeseries()</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trajectory_ids</span></code> parameter in td.plot.timeseries() shows exact cell indices (instead of random sample)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_shift_indicator</span></code> in timeseries plots to mark detection timestep per cell on each trajectory</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DEFAULT_SHIFT_THRESHOLD</span></code> constant in <code class="docutils literal notranslate"><span class="pre">toad.utils</span></code> for the default clustering threshold</p></li>
+</ul>
+</section>
+<section id="id6">
+<h4>Changed<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id6"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">get_cluster_timeseries()</span></code> deprecated in favour of <code class="docutils literal notranslate"><span class="pre">get_timeseries()</span></code>; deprecated alias logs a warning</p></li>
+<li><p>Timeseries plot: <code class="docutils literal notranslate"><span class="pre">plot_shift_indicator</span></code> now marks detection timesteps; duration shading renamed to <code class="docutils literal notranslate"><span class="pre">plot_cluster_duration</span></code></p></li>
+<li><p>Replaced internal <code class="docutils literal notranslate"><span class="pre">assert</span></code> checks with proper error messages (validation now works when Python is run with optimisations)</p></li>
+</ul>
+</section>
+<section id="deprecated">
+<h4>Deprecated<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#deprecated"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">get_cluster_timeseries()</span></code> — use <code class="docutils literal notranslate"><span class="pre">get_timeseries()</span></code> instead</p></li>
+</ul>
+</section>
+<section id="id7">
+<h4>Removed<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id7"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>Synthetic shifts generator (development tool)</p></li>
+<li><p>Redundant core methods: <code class="docutils literal notranslate"><span class="pre">get_active_clusters_count_per_timestep</span></code>, <code class="docutils literal notranslate"><span class="pre">apply_cluster_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">apply_cluster_mask_spatial</span></code>, <code class="docutils literal notranslate"><span class="pre">apply_cluster_mask_temporal</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cluster_density_temporal</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cluster_density_spatial</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cluster_mask_temporal</span></code>, <code class="docutils literal notranslate"><span class="pre">get_cluster_data</span></code> — use stats API instead</p></li>
+</ul>
+</section>
+<section id="id8">
+<h4>Fixed<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id8"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>More robust variable selection in consensus clustering (cluster variable is now specified directly instead of inferred from shifts)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compute_transition_time</span></code> now restricted to cluster period (previously used largest shift in each grid cell regardless of period)</p></li>
+<li><p>Z-order of contours in cluster maps (clusters now correctly layered)</p></li>
+<li><p>Enhanced error handling in asdetect for short time series (validates <code class="docutils literal notranslate"><span class="pre">lmin</span></code> &lt; <code class="docutils literal notranslate"><span class="pre">lmax</span></code> with guiding error message for common defaults)</p></li>
+<li><p>Steepest gradient: fix handling of NaN values and time indexing</p></li>
+<li><p>Timeseries plot: <code class="docutils literal notranslate"><span class="pre">keep_full_timeseries</span></code> now correctly applied throughout; cluster duration shading hidden when showing only the cluster period</p></li>
+</ul>
+</section>
+</section>
+<section id="id9">
+<h3><a class="reference external" href="https://github.com/tipmip-methods/toad/compare/v1.0.4...v1.0.5">1.0.5</a> - 2026-02-12<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id9" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id9'"><span>¶</span></a></h3>
+<section id="id10">
+<h4>Added<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id10"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>Allow custom cluster methods to turn off temporal scaling by adding <code class="docutils literal notranslate"><span class="pre">skip_time_scaling</span> <span class="pre">=</span> <span class="pre">True</span></code> as a class variable to the method.</p></li>
+<li><p>Allow disabling the gradient legend in cluster maps (set <code class="docutils literal notranslate"><span class="pre">other_legend=False</span></code> in <code class="docutils literal notranslate"><span class="pre">MapStyle</span></code>)</p></li>
+<li><p>Added progress bar for cluster consensus computation (<code class="docutils literal notranslate"><span class="pre">show_progress</span></code> parameter)</p></li>
+<li><p>Added comprehensive tests for plotting and postprocessing functions</p></li>
+</ul>
+</section>
+<section id="id11">
+<h4>Changed<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id11"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>Cluster output now distinguishes between grid cells classified as noise by the clustering algorithm (-1) and grid cells with no detected abrupt shifts (NaN). Previously both were labeled -1.</p></li>
+<li><p>Enhanced variable inference in TOAD methods</p></li>
+<li><p>Relaxed dependency version pins for numpy, scipy, and scikit-learn (removed upper bounds)</p></li>
+</ul>
+</section>
+<section id="id12">
+<h4>Fixed<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id12"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>Fixed base variable inference in <code class="docutils literal notranslate"><span class="pre">get_cluster_timeseries</span></code> for scoring functions</p></li>
+<li><p>Fixed dependency configuration: added <code class="docutils literal notranslate"><span class="pre">tqdm</span></code> as direct dependency, corrected deptry module name mappings and ignore lists</p></li>
+</ul>
+</section>
+</section>
+<section id="id13">
+<h3><a class="reference external" href="https://github.com/tipmip-methods/toad/compare/v1.0.3...v1.0.4">1.0.4</a> - 2026-01-27<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id13" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id13'"><span>¶</span></a></h3>
+<section id="id14">
+<h4>Changed<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id14"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>Updated README.md installation instructions to include pip installation command.</p></li>
+</ul>
+</section>
+</section>
+<section id="id15">
+<h3><a class="reference external" href="https://github.com/tipmip-methods/toad/compare/v1.0.2...v1.0.3">1.0.3</a> - 2026-01-27<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id15" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id15'"><span>¶</span></a></h3>
+<section id="id16">
+<h4>Fixed<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id16"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>Fixed image paths in README.md to use absolute URLs for proper display on PyPI</p></li>
+</ul>
+</section>
+</section>
+<section id="id17">
+<h3><a class="reference external" href="https://github.com/tipmip-methods/toad/compare/v1.0.1...v1.0.2">1.0.2</a> - 2026-01-27<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id17" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id17'"><span>¶</span></a></h3>
+<section id="id18">
+<h4>Changed<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id18"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>Updated PyPI publishing workflow to use Trusted Publishers (OIDC) instead of API tokens for improved security</p></li>
+</ul>
+</section>
+</section>
+<section id="id19">
+<h3><a class="reference external" href="https://github.com/tipmip-methods/toad/compare/v1.0.0...v1.0.1">1.0.1</a> - 2026-01-27<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id19" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id19'"><span>¶</span></a></h3>
+<section id="id20">
+<h4>Changed<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id20"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>Updated README.md with improved installation and usage instructions</p></li>
+<li><p>Enhanced documentation structure and content</p></li>
+<li><p>Reorganized and updated existing tutorials</p></li>
+</ul>
+</section>
+<section id="id21">
+<h4>Added<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id21"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>Added CITATION.cff for citation support</p></li>
+<li><p>Added CONTRIBUTING.md with contribution guidelines</p></li>
+<li><p>Added GitHub Actions workflow for publishing to PyPI — first PyPI release!</p></li>
+<li><p>Added Github Actions workflow for automatically creating draft release when tag with v* is pushed to main.</p></li>
+</ul>
+</section>
+</section>
+<section id="id22">
+<h3><a class="reference external" href="https://github.com/tipmip-methods/toad/releases/tag/v1.0.0">1.0.0</a> - 2026-01-22<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id22" x-intersect.margin.0%.0%.-70%.0%="activeSection = '#id22'"><span>¶</span></a></h3>
+<section id="id23">
+<h4>Added<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#id23"><span>¶</span></a></h4>
+<ul class="simple">
+<li><p>First public release of the TOAD package</p></li>
+</ul>
+</section>
+</section>
+</section>
+</section>
+</div><div class="flex justify-between items-center pt-6 mt-12 border-t border-border gap-4">
+<div class="mr-auto">
+<a class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input hover:bg-accent hover:text-accent-foreground py-2 px-4" href="scientific_ref.html">
+<svg class="mr-2 h-4 w-4" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<polyline points="15 18 9 12 15 6"></polyline>
+</svg>
+        Scientific References
+      </a>
+</div>
+</div></div><aside class="hidden text-sm xl:block" id="right-sidebar">
+<div class="sticky top-16 -mt-10 max-h-[calc(100vh-5rem)] h-full overflow-y-auto pt-6 space-y-2"><p class="font-medium">On this page</p>
+<ul>
+<li><a :data-current="activeSection === '#changelog'" class="reference internal" href="#changelog">Changelog</a><ul>
+<li><a :data-current="activeSection === '#unreleased'" class="reference internal" href="#unreleased">Unreleased</a></li>
+<li><a :data-current="activeSection === '#id1'" class="reference internal" href="#id1">1.0.8 - 2026-06-22</a><ul>
+<li><a :data-current="activeSection === '#changed'" class="reference internal" href="#changed">Changed</a></li>
+<li><a :data-current="activeSection === '#added'" class="reference internal" href="#added">Added</a></li>
+<li><a :data-current="activeSection === '#removed'" class="reference internal" href="#removed">Removed</a></li>
+<li><a :data-current="activeSection === '#fixed'" class="reference internal" href="#fixed">Fixed</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#id2'" class="reference internal" href="#id2">1.0.7 - 2026-03-26</a><ul>
+<li><a :data-current="activeSection === '#id3'" class="reference internal" href="#id3">Fixed</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#id4'" class="reference internal" href="#id4">1.0.6 - 2026-03-11</a><ul>
+<li><a :data-current="activeSection === '#id5'" class="reference internal" href="#id5">Added</a></li>
+<li><a :data-current="activeSection === '#id6'" class="reference internal" href="#id6">Changed</a></li>
+<li><a :data-current="activeSection === '#deprecated'" class="reference internal" href="#deprecated">Deprecated</a></li>
+<li><a :data-current="activeSection === '#id7'" class="reference internal" href="#id7">Removed</a></li>
+<li><a :data-current="activeSection === '#id8'" class="reference internal" href="#id8">Fixed</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#id9'" class="reference internal" href="#id9">1.0.5 - 2026-02-12</a><ul>
+<li><a :data-current="activeSection === '#id10'" class="reference internal" href="#id10">Added</a></li>
+<li><a :data-current="activeSection === '#id11'" class="reference internal" href="#id11">Changed</a></li>
+<li><a :data-current="activeSection === '#id12'" class="reference internal" href="#id12">Fixed</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#id13'" class="reference internal" href="#id13">1.0.4 - 2026-01-27</a><ul>
+<li><a :data-current="activeSection === '#id14'" class="reference internal" href="#id14">Changed</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#id15'" class="reference internal" href="#id15">1.0.3 - 2026-01-27</a><ul>
+<li><a :data-current="activeSection === '#id16'" class="reference internal" href="#id16">Fixed</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#id17'" class="reference internal" href="#id17">1.0.2 - 2026-01-27</a><ul>
+<li><a :data-current="activeSection === '#id18'" class="reference internal" href="#id18">Changed</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#id19'" class="reference internal" href="#id19">1.0.1 - 2026-01-27</a><ul>
+<li><a :data-current="activeSection === '#id20'" class="reference internal" href="#id20">Changed</a></li>
+<li><a :data-current="activeSection === '#id21'" class="reference internal" href="#id21">Added</a></li>
+</ul>
+</li>
+<li><a :data-current="activeSection === '#id22'" class="reference internal" href="#id22">1.0.0 - 2026-01-22</a><ul>
+<li><a :data-current="activeSection === '#id23'" class="reference internal" href="#id23">Added</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</aside>
+</main>
+</div>
+</div><footer class="py-6 border-t border-border md:py-0">
+<div class="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+<div class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
+<p class="text-sm leading-loose text-center text-muted-foreground md:text-left">© 2026, TOAD Developers Built with <a class="font-medium underline underline-offset-4" href="https://www.sphinx-doc.org" rel="noreferrer">Sphinx 9.1.0</a></p>
+</div>
+</div>
+</footer>
+</div>
+<script src="_static/documentation_options.js?v=5929fcd5"></script>
+<script src="_static/doctools.js?v=fd6eb6e6"></script>
+<script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+<script defer="defer" src="_static/theme.js?v=5db23cf8"></script>
+</body>
+</html>
