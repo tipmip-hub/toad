@@ -8,13 +8,14 @@ from toad.clustering import compute_clusters
 from toad.utils import _attrs
 from toad.utils.shift_selection_utils import (
     _compute_dts_peak_sign_mask,
-    _episode_magnitude,
+    _plateau_magnitude,
 )
 
 
-def test_episode_magnitude_window_means():
-    base = np.array([100.0, 100.0, 100.0, 150.0, 150.0, 150.0])
-    mag = _episode_magnitude(base, start=2, end=3, pre_window=2, post_window=2)
+def test_plateau_magnitude_window_means():
+    # peak at 3: pre [0:2)=100, post [5:7)=150  with L=3, G=1
+    base = np.array([100.0, 100.0, 100.0, 125.0, 150.0, 150.0, 150.0])
+    mag = _plateau_magnitude(base, peak=3, L=3, G=1)
     assert mag == pytest.approx(50.0)
 
 
@@ -55,7 +56,8 @@ def test_local_peak_mask_filters_small_episodes():
         shift_selection="local",
         base=ds["test"],
         min_event_magnitude=25.0,
-        min_event_magnitude_window=2,
+        min_event_magnitude_L=3,
+        min_event_magnitude_G=1,
     )
     assert not (mask.sel(lon=0.0) != 0).any()
     assert (mask.sel(lon=1.0) != 0).any()
@@ -92,7 +94,8 @@ def test_compute_clusters_respects_min_event_magnitude():
         shift_threshold=0.5,
         shift_selection="local",
         min_event_magnitude=25.0,
-        min_event_magnitude_window=2,
+        min_event_magnitude_L=3,
+        min_event_magnitude_G=1,
         disable_regridder=True,
         overwrite=True,
     )
@@ -100,6 +103,8 @@ def test_compute_clusters_respects_min_event_magnitude():
     assert not np.isfinite(clusters[:, 0, 0]).any()
     assert np.isfinite(clusters[:, 1, 1]).any()
     assert td.data["test_dts_cluster"].attrs[_attrs.MIN_EVENT_MAGNITUDE] == 25.0
+    assert td.data["test_dts_cluster"].attrs[_attrs.MIN_EVENT_MAGNITUDE_L] == 3
+    assert td.data["test_dts_cluster"].attrs[_attrs.MIN_EVENT_MAGNITUDE_G] == 1
     assert td.data["test_dts_cluster"].attrs[_attrs.N_DATA_POINTS] == 1
 
 
@@ -159,7 +164,9 @@ def test_collect_episode_magnitudes_local_episodes():
         ds["test"],
         "time",
         shift_threshold=0.5,
-        window=3,
+        L=3,
+        G=1,
     )
     assert mags.size == 1
+    # peak at index 4: pre mean[1:3]=100, post mean[6:8]=130
     assert mags[0] == pytest.approx(30.0)

@@ -74,7 +74,8 @@ def compute_clusters(
     shift_direction: Literal["both", "positive", "negative"] | str = "both",
     shift_selection: Literal["local", "global", "all"] | str = "local",
     min_event_magnitude: float | None = None,
-    min_event_magnitude_window: int = 3,
+    min_event_magnitude_L: int = 25,
+    min_event_magnitude_G: int = 10,
     time_weight: float = 1,
     regridder: BaseRegridder | None = None,
     disable_regridder: bool = False,
@@ -118,11 +119,14 @@ def compute_clusters(
             - "all": Cluster all shift values that meet the threshold and direction criteria. Includes all data points above threshold, not just peaks.
             Defaults to "local".
         min_event_magnitude: Minimum absolute change in the base variable per detected dts
-            episode (physical units). Pre/post levels are window means just outside each
-            episode. When set, only episodes meeting this threshold are clustered. Defaults
-            to None (no magnitude filter).
-        min_event_magnitude_window: Steps before/after each dts episode used for pre/post
-            level means when ``min_event_magnitude`` is set. Defaults to 3.
+            episode (physical units). Magnitude is the peak-anchored plateau difference
+            with outer half-width ``min_event_magnitude_L`` and guard
+            ``min_event_magnitude_G``. When set, only episodes meeting this threshold are
+            clustered. Defaults to None (no magnitude filter).
+        min_event_magnitude_L: Outer half-width (time steps) around the dts peak for
+            plateau means when ``min_event_magnitude`` is set. Defaults to 25.
+        min_event_magnitude_G: Guard half-width (time steps) excluded around the peak.
+            Requires ``L > G >= 0``. Defaults to 10.
         time_weight: Controls the relative influence of time in clustering. By default, time values are automatically scaled to match the standard deviation of the spatial coordinates. Increasing time_weight gives more emphasis to the temporal dimension, resulting in clusters that are tighter in time (shorter delays between abrupt events). Decreasing it emphasizes the spatial dimensions, allowing clusters to span a wider range of shift times. Defaults to 1.
         regridder: The regridding method to use from `toad.clustering.regridding`. Defaults to None. If None and coordinates are lat/lon, a HealPixRegridder will be created automatically.
         disable_regridder: Whether to disable the regridder. Defaults to False.
@@ -242,7 +246,8 @@ def compute_clusters(
             shift_direction=shift_direction,
             shift_selection=shift_selection,
             min_event_magnitude=min_event_magnitude,
-            min_event_magnitude_window=min_event_magnitude_window,
+            min_event_magnitude_L=min_event_magnitude_L,
+            min_event_magnitude_G=min_event_magnitude_G,
             time_weight=time_weight,
             regridder=regridder,
             output_label=new_output_label,
@@ -282,7 +287,8 @@ def compute_clusters(
             shift_selection=shift_selection,
             base=base_da,
             min_event_magnitude=min_event_magnitude,
-            min_event_magnitude_window=min_event_magnitude_window,
+            min_event_magnitude_L=min_event_magnitude_L,
+            min_event_magnitude_G=min_event_magnitude_G,
         )
         if shift_direction == "both":
             cond = (mask_da != 0) & has_valid_data
@@ -305,7 +311,8 @@ def compute_clusters(
                 td.time_dim,
                 shift_threshold,
                 min_event_magnitude,
-                min_event_magnitude_window=min_event_magnitude_window,
+                min_event_magnitude_L=min_event_magnitude_L,
+                min_event_magnitude_G=min_event_magnitude_G,
             )
             cond = cond & episode_mask
 
@@ -506,7 +513,8 @@ def compute_clusters(
     }
     if min_event_magnitude is not None:
         cluster_attrs[_attrs.MIN_EVENT_MAGNITUDE] = min_event_magnitude
-        cluster_attrs[_attrs.MIN_EVENT_MAGNITUDE_WINDOW] = min_event_magnitude_window
+        cluster_attrs[_attrs.MIN_EVENT_MAGNITUDE_L] = min_event_magnitude_L
+        cluster_attrs[_attrs.MIN_EVENT_MAGNITUDE_G] = min_event_magnitude_G
     clusters.attrs.update(cluster_attrs)
     if cluster_sign is not None:
         cluster_sign.attrs.update(

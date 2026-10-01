@@ -389,7 +389,8 @@ class TOAD:
         shift_direction: Literal["both", "positive", "negative"] | str = "both",
         shift_selection: Literal["local", "global", "all"] | str = "local",
         min_event_magnitude: float | None = None,
-        min_event_magnitude_window: int = 3,
+        min_event_magnitude_L: int = 25,
+        min_event_magnitude_G: int = 10,
         time_weight: float = 1,
         regridder: BaseRegridder | None = None,
         disable_regridder: bool = False,
@@ -435,9 +436,12 @@ class TOAD:
                 "all": Cluster all shift values that meet the threshold and direction criteria. Includes all data points above threshold, not just peaks.
                 Defaults to "local".
             min_event_magnitude: Minimum absolute base-variable change per dts episode (physical
-                units). Episodes below this threshold are excluded from clustering. Defaults to None.
-            min_event_magnitude_window: Window size (time steps) for pre/post level means when
-                ``min_event_magnitude`` is set. Defaults to 3.
+                units), measured as a peak-anchored plateau difference with outer half-width
+                ``min_event_magnitude_L`` and guard ``min_event_magnitude_G``. Episodes below
+                this threshold are excluded from clustering. Defaults to None.
+            min_event_magnitude_L: Outer half-width (time steps) for plateau means. Defaults to 25.
+            min_event_magnitude_G: Guard half-width (time steps) excluded around the peak.
+                Requires ``L > G >= 0``. Defaults to 10.
             time_weight: Controls the relative influence of time in clustering. By default, time values are automatically scaled to match the standard deviation of the spatial coordinates. Increasing time_weight gives more emphasis to the temporal dimension, resulting in clusters that are tighter in time (shorter delays between abrupt events). Decreasing it emphasizes the spatial dimensions, allowing clusters to span a wider range of shift times. Defaults to 1.
             regridder: The regridding method to use from toad.clustering.regridding.
                 Defaults to None. If None and coordinates are lat/lon, a HealPixRegridder will
@@ -482,7 +486,8 @@ class TOAD:
             shift_threshold=shift_threshold,
             shift_selection=shift_selection,
             min_event_magnitude=min_event_magnitude,
-            min_event_magnitude_window=min_event_magnitude_window,
+            min_event_magnitude_L=min_event_magnitude_L,
+            min_event_magnitude_G=min_event_magnitude_G,
             shift_direction=shift_direction,
             time_weight=time_weight,
             regridder=regridder,
