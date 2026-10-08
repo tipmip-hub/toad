@@ -23,12 +23,13 @@ from toad.utils import _attrs, get_unique_variable_name
 
 from .methods.asdetect import ASDETECT, leading_trailing_nan_processable
 from .methods.base import ShiftsMethod
+from .methods.edge import EDGE
 
 # Currently implemented methods:
 # - ASDETECT: Implementation of the [Boulton+Lenton2019]_ algorithm for detecting abrupt shifts
 
 # Expose all methods here
-__all__ = ["ASDETECT", "compute_shifts", "ShiftsMethod"]
+__all__ = ["ASDETECT", "EDGE", "compute_shifts", "ShiftsMethod"]
 
 logger = logging.getLogger("TOAD")
 

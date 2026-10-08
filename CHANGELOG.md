@@ -15,6 +15,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - **astropy** and **astropy-healpix** dependencies.
 
+## [1.0.9] - 2026-10-08
+
+### Added
+- **`EDGE`** shift detection method (`toad.shifts.EDGE`) — alternative abrupt-shift detector based on Bathiany et al. (2020) and Terpstra et al. (2025); TOAD implementation by Sjoerd Terpstra. Scores are signed abruptness (not normalised to [-1, 1]); apply the usual 4-sigma cut via `shift_threshold=4` in `compute_clusters`. See `tutorials/edge_detection.ipynb`.
+- E3SM NH March sea-ice test data for the EDGE tutorial, with attribution in `DATA_ATTRIBUTION.md`.
+- `cbar_kwargs` on `max_shift_map` for colourbar customisation.
+- `overwrite=True` on `TOAD.save` to replace the source path in place.
+
+### Changed
+- Plots and time stats support **non-normalised shift scores** (e.g. EDGE abruptness): shift maps/histograms auto-scale when scores fall outside [-1, 1]; transition-time stats use shift variables before clustering.
+- Documented that built-in clusterers (HDBSCAN, DBSCAN, SpaceTimeDBSCAN) ignore shift magnitudes passed as `y` — magnitudes only affect point selection via `shift_threshold` / `shift_selection`.
+- Opening netCDF paths defaults to **cftime** decoding (`CFDatetimeCoder(use_cftime=True)`); override via `decode_times`.
+- ASDETECT trims leading/trailing NaN padding, maps scores back with zeros outside the finite core, and only skips cells with internal NaN gaps.
+- `clean_for_toad` drops static (time-less) grid geometry variables before spatial-dim inference (helps irregular grids such as CESM POP).
+- Overview / map+timeseries plots return a placeholder panel (`"No clusters identified"`) when no clusters are present, instead of `(None, None)`.
+
+### Fixed
+- Optuna clustering optimisation: fixed parameters (e.g. `min_cluster_size`) were dropped from the final fit because `best_params` only contains suggested ranges.
+- Cartopy cluster contour crash on PlateCarree maps with 2D gridded coordinates.
+- `TOAD.save` writes via temp file + atomic replace; on POSIX this can replace a destination open for read, and on Windows TOAD closes its own handle when overwriting ``self.path`` (another process holding the file open is still unsupported on Windows).
+- `repr_html` cluster counts handle scalar `cluster_ids` attrs from netCDF round-trips (e.g. noise-only `-1`).
+- README links; fallback font when Verdana is unavailable.
+
 ## [1.0.8] - 2026-06-22
 
 ### Changed
@@ -126,7 +149,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - First public release of the TOAD package
 
-[Unreleased]: https://github.com/tipmip-methods/toad/compare/v1.0.8...HEAD
+[Unreleased]: https://github.com/tipmip-methods/toad/compare/v1.0.9...HEAD
+[1.0.9]: https://github.com/tipmip-methods/toad/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/tipmip-methods/toad/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/tipmip-methods/toad/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/tipmip-methods/toad/compare/v1.0.5...v1.0.6

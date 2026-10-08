@@ -225,16 +225,20 @@ def _optimize_clusters(**kwargs) -> xr.Dataset:
         # restore toad log level in finally block, in case of error.
         td.logger.setLevel(toad_log_level)  # this sets int
 
+    # Optuna only tracks suggested (ranged) params; re-attach fixed ones from
+    # optimize_params so the final clustering matches what was used in trials.
+    best_params = {**_fixed_opt_params(opt_params), **study.best_params}
+
     # print final score and best params
     logger.info(
         f"Ran {n_trials} trials in {t1 - t0:.2f} seconds. "
         f"Best (#{study.best_trial.number}): score {study.best_value:.4f}, "
-        f"params {study.best_params}. "
+        f"params {best_params}. "
         # f"Score computation time: {score_computation_time:.2f} seconds." # score computation is slow...
     )
 
-    # copy best params and pop shift_threshold and time_weight if present, if not use the one from the kwargs
-    best_params = study.best_params.copy()
+    # pop shift_threshold and time_weight if present, if not use the one from the kwargs
+    best_params_for_attrs = best_params.copy()
     best_shift_threshold = best_params.pop("shift_threshold", shift_threshold)
     best_time_weight = best_params.pop("time_weight", time_weight)
     new_data = clustering.compute_clusters(
@@ -256,12 +260,21 @@ def _optimize_clusters(**kwargs) -> xr.Dataset:
             _attrs.OPT_BEST_SCORE: study.best_value,
             _attrs.OPT_DIRECTION: direction,
             _attrs.OPT_PARAMS: opt_params,
-            _attrs.OPT_BEST_PARAMS: study.best_params,
+            _attrs.OPT_BEST_PARAMS: best_params_for_attrs,
             _attrs.OPT_N_TRIALS: n_trials,
         }
     )
 
     return new_data
+
+
+def _fixed_opt_params(param_ranges: dict) -> dict:
+    """Return parameters that are fixed (not ranges) in optimize_params.
+
+    Optuna's ``study.best_params`` only includes values registered via
+    ``trial.suggest_*``. Fixed scalars must be merged back in separately.
+    """
+    return {k: v for k, v in param_ranges.items() if not isinstance(v, (list, tuple))}
 
 
 def _sample_params(trial, param_ranges):

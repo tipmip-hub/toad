@@ -7,6 +7,7 @@ import xarray as xr
 from sklearn.cluster import HDBSCAN  # type: ignore
 
 from toad import TOAD
+from toad.shifts import ASDETECT
 
 
 @pytest.fixture(scope="module")
@@ -72,6 +73,19 @@ class TestTimeStats:
             assert result.name == "transition_time"
             # Should have same spatial shape as data
             assert result.dims == td.data[shifts_var].dims[1:]
+
+    def test_compute_transition_time_without_clusters(self):
+        """Shift-only stats work before compute_clusters (no cluster labels required)."""
+        td = TOAD("tutorials/test_data/synth_data.nc")
+        td.data = td.data.coarsen(lat=3, lon=3, boundary="trim").reduce(np.mean)
+        td.drop_clusters()
+        td.compute_shifts(method=ASDETECT(ignore_nan_warnings=True))
+        shifts_var = td.shift_vars[0]
+
+        result = td.stats(shifts_var).time.compute_transition_time()
+        assert isinstance(result, xr.DataArray)
+        assert result.name == "transition_time"
+        assert result.dims == td.data[shifts_var].dims[1:]
 
     def test_activity_vs_pooled_transition_time(self, td_with_clusters):
         """Both time summaries exist; pooled uses per-cell peak-shift times."""

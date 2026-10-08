@@ -52,8 +52,6 @@ class _StatsAccessor:
             if var
             else str(self._td.get_clusters(self._td._get_base_var_if_none(None)).name)
         )
-        if self._td._is_shift_variable(var):
-            var = str(self._td.get_clusters(var).name)
         return postprocessing.Stats(self._td, var)
 
     @property
@@ -566,18 +564,37 @@ class TOAD:
     # # ======================================================================
 
     def _write_netcdf_atomic(self, save_path: str) -> None:
-        """Write via a temp file and atomic replace (safe if target is open for read)."""
+        """Write via a temp file and atomic replace.
+
+        On POSIX, this can replace a destination that is still open for reading.
+        On Windows, open files cannot be replaced: if ``save_path`` is this object's
+        source path, data are loaded into memory and our file handle is closed
+        first. Replacing a path held open by *another* process is not supported
+        on Windows.
+        """
         save_dir = os.path.dirname(os.path.abspath(save_path)) or "."
         fd, tmp_path = tempfile.mkstemp(
             suffix=".nc", prefix=".toad-save-", dir=save_dir
         )
         os.close(fd)
         try:
+            # Materialise before we may close the underlying file handle
+            self.data.load()
             self.data.to_netcdf(tmp_path)
+
+            abs_save = os.path.abspath(save_path)
+            abs_src = os.path.abspath(self.path) if self.path else None
+            if abs_src is not None and abs_save == abs_src:
+                # Release our own lock on the source file (required on Windows)
+                self.data.close()
+
             os.replace(tmp_path, save_path)
         except Exception:
             if os.path.exists(tmp_path):
-                os.unlink(tmp_path)
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
             raise
 
     def save(
@@ -592,8 +609,10 @@ class TOAD:
             suffix: Optional string to append to filename before extension
             path: Optional path to save file to. If not provided, uses self.path
             overwrite: If True, allow saving back to the original path without a
-                suffix. All saves use a temporary file and atomic replace so an
-                existing destination can stay open for reading (e.g. lazy load).
+                suffix. Saves write via a temporary file and atomic replace. On
+                POSIX this can replace a destination still open for reading; on
+                Windows the destination must not be held open by another process
+                (TOAD closes its own handle when overwriting ``self.path``).
 
         Raises:
             ValueError: If neither path nor self.path is set

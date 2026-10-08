@@ -47,7 +47,44 @@ Grid Federation, https://doi.org/10.22033/ESGF/CMIP6.4524.
 
 ---
 
-## 3. Synthetic Spatio-Temporal Shifts
+## 3. E3SM-1-0 Northern Hemisphere March Sea Ice (CMIP6)
+
+**Citation**:
+Bader, D. C., Leung, R., Taylor, M., and McCoy, R. B.: E3SM-Project E3SM1.0 
+model output prepared for CMIP6 CMIP 1pctCO2, Version 20190718. Earth System 
+Grid Federation, https://doi.org/10.22033/ESGF/CMIP6.4490, 2019.
+
+**Model reference**:
+Golaz, J.-C., Caldwell, P. M., Van Roekel, L. P., and co-authors: The DOE E3SM 
+coupled model version 1: Overview and evaluation at standard resolution, JAMES, 
+https://doi.org/10.1029/2018MS001603, 2019.
+
+**Usage**: EDGE shift-detection tutorial (`tutorials/edge_detection.ipynb`). The 
+same CMIP6 case is used in the Arctic sea-ice demonstration in the TOAD 
+methodology paper (March Northern Hemisphere `siconc`, E3SM-1-0 1pctCO2, 
+member r1i1p1f1), including qualitative comparison with Terpstra et al. (2025).
+
+**License**: Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+**Dataset details**:
+- Model: E3SM-1-0 (E3SM-Project)
+- Experiment: 1pctCO2 (1% per year CO₂ increase)
+- Variable: siconc (Sea Ice Area Percentage)
+- Table: SImon (monthly sea ice)
+- Grid: gr (native atmospheric grid)
+- Ensemble member: r1i1p1f1
+- Version: v20190718
+- Subset: March monthly values only; Northern Hemisphere (25.5–89.5°N); model 
+  years 1–150 along the 1pctCO2 trajectory
+- File: `tutorials/test_data/CMIP.E3SM-Project.E3SM-1-0.1pctCO2.SImon.gr_NH_march.nc`
+- Processing: Derived from the CMIP6 archive (intake-esm download, March 
+  selection, NH spatial subset). This is the raw tutorial subset; the TOAD paper 
+  figure applies additional Gaussian smoothing and masking before ASDETECT 
+  analysis.
+
+---
+
+## 4. Synthetic Spatio-Temporal Shifts
 
 **Description**:
 Synthetic dataset with known abrupt shifts generated programmatically to provide 
@@ -74,7 +111,7 @@ benchmark test cases with controllable spatio-temporal transitions.
 ### CMIP6 Data
 We acknowledge the World Climate Research Programme, which, through its Working 
 Group on Coupled Modelling, coordinated and promoted CMIP6. We thank the 
-EC-Earth-Consortium and other modeling groups for producing and making available 
+EC-Earth-Consortium, E3SM-Project, and other modeling groups for producing and making available 
 their model output, the Earth System Grid Federation (ESGF) for archiving the 
 data and providing access, and the multiple funding agencies who support CMIP6 
 and ESGF.

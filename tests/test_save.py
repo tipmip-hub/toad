@@ -1,13 +1,44 @@
 """Tests for TOAD.save atomic netCDF writes."""
 
+import os
+
 import numpy as np
+import pytest
 import xarray as xr
 
 from toad import TOAD
 
 
+def test_save_suffix_overwrites_existing(tmp_path):
+    """save(suffix=...) replaces an existing *_toad.nc when the destination is closed."""
+    src = tmp_path / "mlotst_annualmax.nc"
+    out = tmp_path / "mlotst_annualmax_toad.nc"
+
+    ds = xr.Dataset(
+        {"mlotst": (("time", "lat", "lon"), np.ones((3, 4, 5), dtype=np.float32))},
+        coords={
+            "time": np.arange(3),
+            "lat": np.arange(4),
+            "lon": np.arange(5),
+        },
+    )
+    ds.to_netcdf(src)
+
+    td = TOAD(str(src))
+    td.save("toad")
+    td.data["mlotst"].values[0, 0, 0] = 42.0
+    td.save("toad")
+
+    with xr.open_dataset(out, engine="netcdf4") as saved:
+        assert float(saved["mlotst"].values[0, 0, 0]) == 42.0
+
+
+@pytest.mark.skipif(
+    os.name == "nt",
+    reason="Windows cannot replace a file that is open for reading",
+)
 def test_save_suffix_overwrites_while_destination_open(tmp_path):
-    """save(suffix=...) must replace an existing *_toad.nc open for read."""
+    """save(suffix=...) must replace an existing *_toad.nc open for read (POSIX)."""
     src = tmp_path / "mlotst_annualmax.nc"
     out = tmp_path / "mlotst_annualmax_toad.nc"
 
@@ -35,6 +66,27 @@ def test_save_suffix_overwrites_while_destination_open(tmp_path):
         assert float(saved["mlotst"].values[0, 0, 0]) == 42.0
 
 
+def test_save_overwrite_inplace(tmp_path):
+    """overwrite=True replaces the source path after releasing TOAD's own handle."""
+    src = tmp_path / "data.nc"
+    ds = xr.Dataset(
+        {"mlotst": (("time", "lat", "lon"), np.ones((2, 3, 4), dtype=np.float32))},
+        coords={"time": np.arange(2), "lat": np.arange(3), "lon": np.arange(4)},
+    )
+    ds.to_netcdf(src)
+
+    td = TOAD(str(src))
+    td.data["mlotst"].values[:] = 7.0
+    td.save(overwrite=True)
+
+    with xr.open_dataset(src, engine="netcdf4") as saved:
+        assert float(saved["mlotst"].values[0, 0, 0]) == 7.0
+
+
+@pytest.mark.skipif(
+    os.name == "nt",
+    reason="Windows cannot replace a file that is open for reading",
+)
 def test_save_overwrite_inplace_while_open(tmp_path):
     src = tmp_path / "data.nc"
     ds = xr.Dataset(

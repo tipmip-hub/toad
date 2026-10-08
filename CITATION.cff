@@ -1,9 +1,9 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "TOAD: Tipping and Other Abrupt events Detector"
-version: "1.0.8"
+version: "1.0.9"
 doi: "10.5281/zenodo.18316437"
-date-released: "2026-06-22"
+date-released: "2026-10-08"
 authors:
   - given-names: Jakob
     family-names: Harteg

@@ -38,6 +38,8 @@ class SpaceTimeDBSCAN(ClusterMixin, BaseEstimator):
         self.min_samples = min_samples
 
     def fit_predict(self, X: np.ndarray, y=None, **kwargs):
+        # TODO(clustering-weights): ``y`` (shift magnitudes from TOAD) is required here but
+        # not used. See TODO in toad.clustering.compute_clusters.
         assert y is not None, "y must be provided"
 
         X_scaled = X.copy()

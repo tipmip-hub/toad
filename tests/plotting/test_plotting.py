@@ -298,20 +298,23 @@ class TestOverview:
 
         td = td_with_clusters
         cluster_var = td.cluster_vars[0]
+        original_ids = td.data[cluster_var].attrs[_attrs.CLUSTER_IDS]
         td.data[cluster_var].attrs[_attrs.CLUSTER_IDS] = np.array([-1], dtype=np.int64)
-
-        fig, axes_dict = td.plot.overview(
-            cluster_ids=range(6),
-            mode="aggregated",
-            figsize=(8, 6),
-        )
-        assert fig is not None
-        assert isinstance(axes_dict, dict)
-        assert axes_dict["map"] is not None
-        assert axes_dict["timeseries"] is not None
-        texts = [t.get_text() for t in axes_dict["timeseries"][0].texts]
-        assert "No clusters identified" in texts
-        plt.close(fig)
+        try:
+            fig, axes_dict = td.plot.overview(
+                cluster_ids=range(6),
+                mode="aggregated",
+                figsize=(8, 6),
+            )
+            assert fig is not None
+            assert isinstance(axes_dict, dict)
+            assert axes_dict["map"] is not None
+            assert axes_dict["timeseries"] is not None
+            texts = [t.get_text() for t in axes_dict["timeseries"][0].texts]
+            assert "No clusters identified" in texts
+            plt.close(fig)
+        finally:
+            td.data[cluster_var].attrs[_attrs.CLUSTER_IDS] = original_ids
 
 
 class TestPlottingWithExplicitVar:
@@ -426,15 +429,18 @@ def test_plotting_with_scalar_cluster_ids_attr(td_with_clusters):
 
     td = td_with_clusters
     cluster_var = td.cluster_vars[0]
+    original_ids = td.data[cluster_var].attrs[_attrs.CLUSTER_IDS]
     td.data[cluster_var].attrs[_attrs.CLUSTER_IDS] = np.int64(0)
+    try:
+        ids = td.get_cluster_ids(cluster_var, exclude_noise=False)
+        assert ids.shape == (1,)
+        assert int(ids[0]) == 0
 
-    ids = td.get_cluster_ids(cluster_var, exclude_noise=False)
-    assert ids.shape == (1,)
-    assert int(ids[0]) == 0
-
-    fig, _ = td.plot.overview(cluster_ids=range(3), mode="aggregated")
-    assert fig is not None
-    plt.close(fig)
+        fig, _ = td.plot.overview(cluster_ids=range(3), mode="aggregated")
+        assert fig is not None
+        plt.close(fig)
+    finally:
+        td.data[cluster_var].attrs[_attrs.CLUSTER_IDS] = original_ids
 
 
 def test_repr_html_with_scalar_noise_only_cluster_ids(td_with_clusters):
@@ -443,8 +449,11 @@ def test_repr_html_with_scalar_noise_only_cluster_ids(td_with_clusters):
 
     td = td_with_clusters
     cluster_var = td.cluster_vars[0]
+    original_ids = td.data[cluster_var].attrs[_attrs.CLUSTER_IDS]
     td.data[cluster_var].attrs[_attrs.CLUSTER_IDS] = np.int64(-1)
-
-    html = td._repr_html_()
-    assert isinstance(html, str)
-    assert "TOAD" in html or "toad" in html.lower() or cluster_var in html
+    try:
+        html = td._repr_html_()
+        assert isinstance(html, str)
+        assert "TOAD" in html or "toad" in html.lower() or cluster_var in html
+    finally:
+        td.data[cluster_var].attrs[_attrs.CLUSTER_IDS] = original_ids

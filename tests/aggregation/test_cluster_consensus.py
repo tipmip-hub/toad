@@ -639,7 +639,10 @@ def test_consensus_rate_map_runs():
         show_progress=False,
     )
 
-    fig, ax = td.plot.consensus_rate_map(time_reduce="max")
+    # Disable borders to avoid a second Natural Earth download (flaky in CI).
+    map_style = {"borders": False}
+
+    fig, ax = td.plot.consensus_rate_map(time_reduce="max", map_style=map_style)
     assert fig is not None
     assert ax is not None
     import matplotlib.pyplot as plt
@@ -648,6 +651,7 @@ def test_consensus_rate_map_runs():
 
     fig_h, ax_h = td.plot.consensus_rate_map(
         time_reduce="max",
+        map_style=map_style,
         colorbar_orientation="horizontal",
         colorbar_location="left",
         colorbar_shrink=0.38,
