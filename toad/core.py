@@ -1,5 +1,6 @@
 import logging
 import os
+import tempfile
 from collections.abc import Callable
 from typing import List, Literal, Optional, Union
 
@@ -527,12 +528,35 @@ class TOAD:
     # #               netCDF functions
     # # ======================================================================
 
-    def save(self, suffix: Optional[str] = None, path: Optional[str] = None):
+    def _write_netcdf_atomic(self, save_path: str) -> None:
+        """Write via a temp file and atomic replace (safe if target is open for read)."""
+        save_dir = os.path.dirname(os.path.abspath(save_path)) or "."
+        fd, tmp_path = tempfile.mkstemp(
+            suffix=".nc", prefix=".toad-save-", dir=save_dir
+        )
+        os.close(fd)
+        try:
+            self.data.to_netcdf(tmp_path)
+            os.replace(tmp_path, save_path)
+        except Exception:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+            raise
+
+    def save(
+        self,
+        suffix: Optional[str] = None,
+        path: Optional[str] = None,
+        overwrite: bool = False,
+    ):
         """Save the TOAD object to a netCDF file.
 
         Args:
             suffix: Optional string to append to filename before extension
             path: Optional path to save file to. If not provided, uses self.path
+            overwrite: If True, allow saving back to the original path without a
+                suffix. All saves use a temporary file and atomic replace so an
+                existing destination can stay open for reading (e.g. lazy load).
 
         Raises:
             ValueError: If neither path nor self.path is set
@@ -542,9 +566,10 @@ class TOAD:
             raise ValueError("Path to save TOAD dataset not set. Please provide path.")
 
         # Prevent overwriting when using self.path
-        if path is None and self.path is not None and suffix is None:
+        if path is None and self.path is not None and suffix is None and not overwrite:
             raise ValueError(
-                "Please provide either a suffix to append to the original path or specify a new path."
+                "Please provide either a suffix to append to the original path, "
+                "specify a new path, or set overwrite=True."
             )
 
         # Use user-provided path if specified, otherwise use self.path
@@ -594,7 +619,7 @@ class TOAD:
                 f"Could not apply compression settings: {str(e)}. Proceeding with save without compression."
             )
 
-        self.data.to_netcdf(save_path)
+        self._write_netcdf_atomic(save_path)
         self.logger.info(f"Saved TOAD dataset to {save_path}")
 
     # # ======================================================================

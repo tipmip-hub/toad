@@ -2632,6 +2632,7 @@ class Plotter:
         ax: Optional[Axes] = None,
         map_style: Optional[Union[MapStyle, dict]] = None,
         cmap: Optional[Union[str, Colormap]] = "RdBu_r",
+        cbar_kwargs: Optional[dict] = None,
         **kwargs: Any,
     ):
         """Plot a map showing the value in the time dimension where the absolute value of the shift is maximal, keeping sign.
@@ -2648,6 +2649,8 @@ class Plotter:
                 Can be a MapStyle instance or a dictionary containing style settings. Defaults to None.
             cmap: Colormap to use for the plot. Can be a string name of a colormap
                 recognized by matplotlib, or an actual Colormap object. Defaults to 'RdBu_r'.
+            cbar_kwargs: Optional dictionary of keyword arguments to pass to the colorbar.
+                If not provided, defaults to {'label': 'Maximum shift magnitude'}.
 
         Returns:
             Tuple[FigureBase | None, matplotlib.axes.Axes]:
@@ -2679,6 +2682,13 @@ class Plotter:
             vmax = None
             vmin = None
 
+        # Handle cbar_kwargs and allow user override
+        default_cbar_kwargs = {"label": "Maximum shift magnitude"}
+        if cbar_kwargs is not None:
+            merged_cbar_kwargs = {**default_cbar_kwargs, **cbar_kwargs}
+        else:
+            merged_cbar_kwargs = default_cbar_kwargs
+
         # Prepare plot parameters for different grid types
         plot_params = {
             "ax": ax,
@@ -2686,9 +2696,7 @@ class Plotter:
             "vmax": vmax,
             "vmin": vmin,
             "cmap": cmap,
-            "cbar_kwargs": {
-                "label": "Maximum shift magnitude",
-            },
+            "cbar_kwargs": merged_cbar_kwargs,
             **kwargs,
         }
 
@@ -3022,7 +3030,18 @@ class Plotter:
         # Check if we have any valid clusters to plot
         if not plot_all_data and len(cluster_ids_list) == 0:
             logger.warning(f"No valid clusters found in clusters for variable {var}")
-            return None, None
+            if not plot_map:
+                return None, None
+            return self._empty_cluster_map_timeseries(
+                figsize=figsize,
+                vertical=vertical,
+                width_ratios=width_ratios,
+                height_ratios=height_ratios,
+                hspace=hspace,
+                wspace=wspace,
+                ncols=ncols,
+                map_style=map_style,
+            )
 
         if plot_map and plot_all_data:
             raise ValueError(
@@ -3293,6 +3312,10 @@ class Plotter:
         both the spatial distribution of clusters on a map and their corresponding
         timeseries. It automatically enables subplots and map display.
 
+        If no clusters exist (or none of ``cluster_ids`` are present), still returns a
+        figure of the usual layout: the map basemap plus a timeseries panel reading
+        ``"No clusters identified"``.
+
         Args:
             var: Base variable or cluster variable. If None, TOAD will attempt
                 to infer which variable to use. A ValueError is raised if the variable cannot be
@@ -3322,6 +3345,59 @@ class Plotter:
             **kwargs,
         )
         return cast(Tuple[FigureBase | None, dict], result)
+
+    def _empty_cluster_map_timeseries(
+        self,
+        *,
+        figsize: Optional[Tuple[float, float]],
+        vertical: bool,
+        width_ratios: Tuple[float, float],
+        height_ratios: Optional[Tuple[float, float]],
+        hspace: float,
+        wspace: float,
+        ncols: int,
+        map_style: Optional[Union[MapStyle, dict]],
+    ) -> Tuple[FigureBase | None, dict]:
+        """Build map + placeholder panel when no clusters are available."""
+        # One dummy entry so layout matches a single timeseries panel.
+        fig, ts_axes_list, map_ax = self._setup_timeseries_axes(
+            map=True,
+            use_subplots=True,
+            cluster_ids_list=[None],
+            n_subplots_col=max(1, ncols),
+            figsize=figsize,
+            vertical=vertical,
+            width_ratios=width_ratios,
+            height_ratios=height_ratios,
+            hspace=hspace,
+            wspace=wspace,
+            ax=None,
+            map_style=map_style,
+        )
+        ts_ax = ts_axes_list[0]
+        ts_ax.set_xticks([])
+        ts_ax.set_yticks([])
+        for spine in ts_ax.spines.values():
+            spine.set_visible(False)
+        ts_ax.text(
+            0.5,
+            0.5,
+            "No clusters identified",
+            ha="center",
+            va="center",
+            transform=ts_ax.transAxes,
+            fontsize=12,
+        )
+        return cast(
+            Tuple[FigureBase | None, dict],
+            self._package_timeseries_result(
+                fig=fig,
+                map=True,
+                use_subplots=True,
+                map_ax=map_ax,
+                ts_axes_list=ts_axes_list,
+            ),
+        )
 
     def shift_dist(self, figsize: Optional[tuple] = None, yscale: str = "log", bins=20):
         """Plot histograms showing the distribution of shifts for each shift variable.
