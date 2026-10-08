@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Optuna clustering optimisation: fixed parameters (e.g. `min_cluster_size`) were dropped from the final fit because `best_params` only contains suggested ranges.
 - Cartopy cluster contour crash on PlateCarree maps with 2D gridded coordinates.
-- `TOAD.save` no longer crashes when the destination netCDF is open for read (always writes via temp file + atomic replace).
+- `TOAD.save` writes via temp file + atomic replace; on POSIX this can replace a destination open for read, and on Windows TOAD closes its own handle when overwriting ``self.path`` (another process holding the file open is still unsupported on Windows).
 - `repr_html` cluster counts handle scalar `cluster_ids` attrs from netCDF round-trips (e.g. noise-only `-1`).
 - README links; fallback font when Verdana is unavailable.
 
