@@ -63,9 +63,18 @@ def build_variable_hierarchy(
 
 
 def _cluster_count_for_var(data: "xr.Dataset", cluster_var: str) -> int:
-    """Get number of clusters for a cluster variable (excluding noise)."""
-    n_clusters = data[cluster_var].attrs.get(_attrs.CLUSTER_IDS)
-    return len(n_clusters) - 1 if n_clusters is not None else 0
+    """Get number of clusters for a cluster variable (excluding noise).
+
+    NetCDF round-trips can store a single id (e.g. only noise ``-1``) as a
+    scalar attr; coerce to 1-d like ``TOAD.get_cluster_ids``.
+    """
+    import numpy as np
+
+    raw = data[cluster_var].attrs.get(_attrs.CLUSTER_IDS)
+    if raw is None:
+        return 0
+    ids = np.atleast_1d(np.asarray(raw, dtype=np.int64))
+    return int(np.sum(ids != -1))
 
 
 def render_hierarchy_html(
