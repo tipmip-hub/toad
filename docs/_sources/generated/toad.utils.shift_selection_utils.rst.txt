@@ -1,0 +1,6 @@
+toad.utils.shift\_selection\_utils
+==================================
+
+.. automodule:: toad.utils.shift_selection_utils
+
+   

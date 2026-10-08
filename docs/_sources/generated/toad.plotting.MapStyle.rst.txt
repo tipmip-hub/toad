@@ -1,0 +1,52 @@
+﻿toad.plotting.MapStyle
+======================
+
+.. currentmodule:: toad.plotting
+
+.. autoclass:: MapStyle
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~MapStyle.__init__
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~MapStyle.add_labels
+      ~MapStyle.border_linewidth
+      ~MapStyle.borders
+      ~MapStyle.cluster_alpha
+      ~MapStyle.coastline_linewidth
+      ~MapStyle.continent_shading
+      ~MapStyle.continent_shading_color
+      ~MapStyle.contour_linewidth
+      ~MapStyle.extent
+      ~MapStyle.grid_alpha
+      ~MapStyle.grid_color
+      ~MapStyle.grid_labels
+      ~MapStyle.grid_lines
+      ~MapStyle.grid_style
+      ~MapStyle.grid_width
+      ~MapStyle.map_frame
+      ~MapStyle.ocean_shading
+      ~MapStyle.ocean_shading_color
+      ~MapStyle.other_cluster_alpha
+      ~MapStyle.other_legend
+      ~MapStyle.other_legend_pos
+      ~MapStyle.plot_contour
+      ~MapStyle.plot_fill
+      ~MapStyle.projection
+      ~MapStyle.resolution
+   
+   

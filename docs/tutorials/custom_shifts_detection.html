@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+
+<html :class="{ 'dark' : darkMode === true }" data-content_root="../" lang="en" x-data="{ darkMode: $persist(window.matchMedia('(prefers-color-scheme: dark)').matches), activeSection: ''}">
+<head>
+<script>
+    (function () {
+      // Set initial color scheme
+      if ((localStorage.getItem("_x_darkMode") === "true") || (window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.documentElement.classList.add("dark");
+      }
+
+      // Watch for media preference changes
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+        localStorage.setItem("_x_darkMode", event.matches);
+        document.documentElement.classList.toggle("dark", event.matches);
+      });
+    })();
+  </script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8"/>
+<meta content="#ffffff" media="(prefers-color-scheme: light)" name="theme-color"/>
+<meta content="#030711" media="(prefers-color-scheme: dark)" name="theme-color"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Implement your own shifts detection method | toad  documentation</title>
+<meta content="Implement your own shifts detection method | toad  documentation" property="og:title"/>
+<meta content="Implement your own shifts detection method | toad  documentation" name="twitter:title"/>
+<link href="../_static/pygments.css?v=8d216cef" rel="stylesheet" type="text/css"/>
+<link href="../_static/theme.css?v=d6d7c91b" rel="stylesheet" type="text/css"/>
+<link href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" rel="stylesheet" type="text/css"/>
+<link href="../_static/custom.css?v=a187b300" rel="stylesheet" type="text/css"/>
+<link href="../_static/awesome-myst-nb.css?v=7c7ea10c" rel="stylesheet" type="text/css"/>
+<link href="../_static/favicon.png" rel="icon"/>
+<link href="../search.html" rel="search" title="Search"/>
+<link href="../genindex.html" rel="index" title="Index"/>
+<link href="consensus.html" rel="next" title="Consensus clustering"/>
+<link href="custom_clustering.html" rel="prev" title="Implement your own clustering method"/>
+</head>
+<body :class="{ 'overflow-hidden': showSidebar }" class="min-h-screen font-sans antialiased bg-background text-foreground" x-data="{ showSidebar: false, showScrollTop: false }">
+<div @click.self="showSidebar = false" class="fixed inset-0 z-50 overflow-hidden bg-background/80 backdrop-blur-sm md:hidden" x-cloak="" x-show="showSidebar"></div><div class="relative flex flex-col min-h-screen" id="page"><a class="absolute top-0 left-0 z-[100] block bg-background p-4 text-xl transition -translate-x-full opacity-0 focus:translate-x-0 focus:opacity-100" href="#content">
+      Skip to content
+    </a><header class="sticky top-0 z-40 w-full border-b shadow-xs border-border bg-background/90 backdrop-blur"><div class="container flex items-center h-14">
+<div class="hidden mr-4 md:flex">
+<a class="flex items-center mr-6" href="../sidebar_main_nav_links.html">
+<img alt="Logo" class="mr-2 dark:invert" height="24" src="../_static/toad.png" width="24"/><span class="hidden font-bold sm:inline-block text-clip whitespace-nowrap">toad  documentation</span>
+</a></div><button @click="showSidebar = true" class="inline-flex items-center justify-center h-10 px-0 py-2 mr-2 text-base font-medium transition-colors rounded-md hover:text-accent-foreground hover:bg-transparent md:hidden" type="button">
+<svg aria-hidden="true" fill="currentColor" height="24" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M152.587 825.087q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440Zm0-203.587q-19.152 0-32.326-13.174T107.087 576q0-19.152 13.174-32.326t32.326-13.174h320q19.152 0 32.326 13.174T518.087 576q0 19.152-13.174 32.326T472.587 621.5h-320Zm0-203.587q-19.152 0-32.326-13.174t-13.174-32.326q0-19.152 13.174-32.326t32.326-13.174h440q19.152 0 32.326 13.174t13.174 32.326q0 19.152-13.174 32.326t-32.326 13.174h-440ZM708.913 576l112.174 112.174q12.674 12.674 12.674 31.826t-12.674 31.826Q808.413 764.5 789.261 764.5t-31.826-12.674l-144-144Q600 594.391 600 576t13.435-31.826l144-144q12.674-12.674 31.826-12.674t31.826 12.674q12.674 12.674 12.674 31.826t-12.674 31.826L708.913 576Z"></path>
+</svg>
+<span class="sr-only">Toggle navigation menu</span>
+</button>
+<div class="flex items-center justify-between flex-1 gap-2 sm:gap-4 md:justify-end">
+<div class="flex-1 w-full md:w-auto md:flex-none"><form @keydown.k.window.meta="$refs.search.focus()" action="../search.html" class="relative flex items-center group" id="searchbox" method="get">
+<input aria-label="Search the docs" class="inline-flex items-center font-medium transition-colors bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background border border-input hover:bg-accent focus:bg-accent hover:text-accent-foreground focus:text-accent-foreground hover:placeholder-accent-foreground py-2 px-4 relative h-9 w-full justify-start rounded-[0.5rem] text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64" id="search-input" name="q" placeholder="Search ..." type="search" x-ref="search"/>
+<kbd class="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none text-muted-foreground items-center gap-1 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex group-hover:bg-accent group-hover:text-accent-foreground">
+<span class="text-xs">⌘</span>
+    K
+  </kbd>
+</form>
+</div>
+<nav class="flex items-center gap-1">
+<a href="https://github.com/tipmip-methods/toad" rel="noopener nofollow" title="Visit GitHub">
+<div class="inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9">
+<svg fill="currentColor" height="16" viewbox="0 0 16 16" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+</svg>
+</div>
+</a>
+<button @click="darkMode = !darkMode" class="relative inline-flex items-center justify-center px-0 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9" title="Toggle color scheme" type="button">
+<svg class="absolute transition-all scale-100 rotate-0 dark:-rotate-90 dark:scale-0" fill="currentColor" height="16" viewbox="0 96 960 960" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 685q45.456 0 77.228-31.772Q589 621.456 589 576q0-45.456-31.772-77.228Q525.456 467 480 467q-45.456 0-77.228 31.772Q371 530.544 371 576q0 45.456 31.772 77.228Q434.544 685 480 685Zm0 91q-83 0-141.5-58.5T280 576q0-83 58.5-141.5T480 376q83 0 141.5 58.5T680 576q0 83-58.5 141.5T480 776ZM80 621.5q-19.152 0-32.326-13.174T34.5 576q0-19.152 13.174-32.326T80 530.5h80q19.152 0 32.326 13.174T205.5 576q0 19.152-13.174 32.326T160 621.5H80Zm720 0q-19.152 0-32.326-13.174T754.5 576q0-19.152 13.174-32.326T800 530.5h80q19.152 0 32.326 13.174T925.5 576q0 19.152-13.174 32.326T880 621.5h-80Zm-320-320q-19.152 0-32.326-13.174T434.5 256v-80q0-19.152 13.174-32.326T480 130.5q19.152 0 32.326 13.174T525.5 176v80q0 19.152-13.174 32.326T480 301.5Zm0 720q-19.152 0-32.326-13.17Q434.5 995.152 434.5 976v-80q0-19.152 13.174-32.326T480 850.5q19.152 0 32.326 13.174T525.5 896v80q0 19.152-13.174 32.33-13.174 13.17-32.326 13.17ZM222.174 382.065l-43-42Q165.5 327.391 166 308.239t13.174-33.065q13.435-13.674 32.587-13.674t32.065 13.674l42.239 43q12.674 13.435 12.555 31.706-.12 18.272-12.555 31.946-12.674 13.674-31.445 13.413-18.772-.261-32.446-13.174Zm494 494.761-42.239-43q-12.674-13.435-12.674-32.087t12.674-31.565Q686.609 756.5 705.38 757q18.772.5 32.446 13.174l43 41.761Q794.5 824.609 794 843.761t-13.174 33.065Q767.391 890.5 748.239 890.5t-32.065-13.674Zm-42-494.761Q660.5 369.391 661 350.62q.5-18.772 13.174-32.446l41.761-43Q728.609 261.5 747.761 262t33.065 13.174q13.674 13.435 13.674 32.587t-13.674 32.065l-43 42.239q-13.435 12.674-31.706 12.555-18.272-.12-31.946-12.555Zm-495 494.761Q165.5 863.391 165.5 844.239t13.674-32.065l43-42.239q13.435-12.674 32.087-12.674t31.565 12.674Q299.5 782.609 299 801.38q-.5 18.772-13.174 32.446l-41.761 43Q231.391 890.5 212.239 890t-33.065-13.174ZM480 576Z"></path>
+</svg>
+<svg class="absolute transition-all scale-0 rotate-90 dark:rotate-0 dark:scale-100" fill="currentColor" height="16" viewbox="0 96 960 960" width="16" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 936q-151 0-255.5-104.5T120 576q0-138 90-239.5T440 218q25-3 39 18t-1 44q-17 26-25.5 55t-8.5 61q0 90 63 153t153 63q31 0 61.5-9t54.5-25q21-14 43-1.5t19 39.5q-14 138-117.5 229T480 936Zm0-80q88 0 158-48.5T740 681q-20 5-40 8t-40 3q-123 0-209.5-86.5T364 396q0-20 3-40t8-40q-78 32-126.5 102T200 576q0 116 82 198t198 82Zm-10-270Z"></path>
+</svg>
+</button>
+</nav>
+</div>
+</div>
+</header>
+<div class="flex-1"><div class="container md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10"><aside :aria-hidden="!showSidebar" :class="{ 'translate-x-0': showSidebar }" class="fixed inset-y-0 left-0 md:top-14 z-50 md:z-30 bg-background md:bg-transparent transition-all duration-100 -translate-x-full md:translate-x-0 ml-0 p-6 md:p-0 md:-ml-2 md:h-[calc(100vh-3.5rem)] w-5/6 md:w-full overflow-y-auto border-r border-border md:sticky" id="left-sidebar">
+<a class="justify-start text-sm md:!hidden bg-background" href="../sidebar_main_nav_links.html">
+<img alt="Logo" class="mr-2 dark:invert" height="16" src="../_static/toad.png" width="16"/><span class="font-bold text-clip whitespace-nowrap">toad  documentation</span>
+</a>
+<div class="relative overflow-hidden md:overflow-auto my-4 md:my-0">
+<div class="overflow-y-auto h-full w-full relative pr-6"><nav class="table w-full min-w-full my-6 lg:my-8">
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start</a></li>
+<li class="toctree-l1 current" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="../tutorials.html">Tutorials<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul class="current" x-show="expanded">
+<li class="toctree-l2"><a class="reference internal" href="basics.html">TOAD Basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="custom_clustering.html">Implement your own clustering method</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Implement your own shifts detection method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="consensus.html">Consensus clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="consensus.html#imports">Imports</a></li>
+<li class="toctree-l2"><a class="reference internal" href="consensus.html#prepare-data">Prepare data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="consensus.html#computes-shifts-and-clusters">Computes shifts and clusters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="consensus.html#compute-consensus">Compute consensus</a></li>
+<li class="toctree-l2"><a class="reference internal" href="consensus.html#visualise-consensus">Visualise consensus</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../consensus_clustering.html">Consensus clustering</a></li>
+<li class="toctree-l1" x-data="{ expanded: $el.classList.contains('current') ? true : false }"><a :class="{ 'expanded' : expanded }" @click="expanded = !expanded" class="reference internal expandable" href="../api_ref.html">API Reference<button @click.prevent.stop="expanded = !expanded" type="button" x-cloak=""><span class="sr-only"></span><svg fill="currentColor" height="18px" stroke="none" viewbox="0 0 24 24" width="18px" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></a><ul x-cloak="" x-show="expanded">
+<li class="toctree-l2"><a class="reference internal" href="../generated/toad.TOAD.html">toad.TOAD</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/toad.shifts.ASDETECT.html">toad.shifts.ASDETECT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/toad.plotting.Plotter.html">toad.plotting.Plotter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/toad.plotting.MapStyle.html">toad.plotting.MapStyle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/toad.regridding.HealPixRegridder.html">toad.regridding.HealPixRegridder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/toad.regridding.base.BaseRegridder.html">toad.regridding.base.BaseRegridder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/toad.shifts.html">toad.shifts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/toad.clustering.html">toad.clustering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/toad.postprocessing.html">toad.postprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/toad.utils.html">toad.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../scientific_ref.html">Scientific References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a></li>
+</ul>
+</nav>
+</div>
+</div>
+<button @click="showSidebar = false" class="absolute md:hidden right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100" type="button">
+<svg class="h-4 w-4" fill="currentColor" height="24" stroke="none" viewbox="0 96 960 960" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M480 632 284 828q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536 576l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480 632Z"></path>
+</svg>
+</button>
+</aside>
+<main class="relative py-6 lg:gap-10 lg:py-8 xl:grid xl:grid-cols-[1fr_300px]">
+<div class="w-full min-w-0 mx-auto">
+<nav aria-label="breadcrumbs" class="flex items-center mb-4 space-x-1 text-sm text-muted-foreground">
+<a class="overflow-hidden text-ellipsis whitespace-nowrap hover:text-foreground" href="../sidebar_main_nav_links.html">
+<span class="hidden md:inline">toad  documentation</span>
+<svg aria-label="Home" class="md:hidden" fill="currentColor" height="18" stroke="none" viewbox="0 96 960 960" width="18" xmlns="http://www.w3.org/2000/svg">
+<path d="M240 856h120V616h240v240h120V496L480 316 240 496v360Zm-80 80V456l320-240 320 240v480H520V696h-80v240H160Zm320-350Z"></path>
+</svg>
+</a>
+<div class="mr-1">/</div><a class="hover:text-foreground overflow-hidden text-ellipsis whitespace-nowrap" href="../tutorials.html">Tutorials</a>
+<div class="mr-1">/</div><span aria-current="page" class="font-medium text-foreground overflow-hidden text-ellipsis whitespace-nowrap">Implement your own shifts detection method</span>
+</nav>
+<div id="content" role="main">
+<section id="implement-your-own-shifts-detection-method">
+<h1>Implement your own shifts detection method<a @click.prevent="window.navigator.clipboard.writeText($el.href); $el.setAttribute('data-tooltip', 'Copied!'); setTimeout(() =&gt; $el.setAttribute('data-tooltip', 'Copy link to this element'), 2000)" aria-label="Copy link to this element" class="headerlink" data-tooltip="Copy link to this element" href="#implement-your-own-shifts-detection-method"><span>¶</span></a></h1>
+<p>So far <code class="docutils literal notranslate"><span class="pre">TOAD</span></code> only comes with ASDETECT [Boulton+Lenton2019]. But you can also implement your own shifts detection algorithm. You basically just need a function which transforms the time series in each grid cell into a time series of “abruptness”, with floating point values between -1 (negative shift) and 1 (positive shift).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="c1"># Prerequisites</span>
+</span><span id="line-2"><span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
+</span><span id="line-3">
+</span><span id="line-4"><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+</span><span id="line-5"><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span><span id="line-6">
+</span><span id="line-7"><span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">"figure.dpi"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">300</span>
+</span><span id="line-8"><span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">"figure.figsize"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="n">data</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="line-2">    <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s2">"test_data/garbe_2020_antarctica.nc"</span><span class="p">)</span>
+</span><span id="line-3">    <span class="o">.</span><span class="n">coarsen</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">GMST</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">"trim"</span><span class="p">)</span>
+</span><span id="line-4">    <span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
+</span><span id="line-5"><span class="p">)</span>
+</span><span id="line-6">
+</span><span id="line-7"><span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">drop_vars</span><span class="p">(</span><span class="s2">"thk_dts"</span><span class="p">)</span>
+</span><span id="line-8"><span class="n">data</span>
+</span></code></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div><svg style="position: absolute; width: 0; height: 0; overflow: hidden">
+<defs>
+<symbol id="icon-database" viewbox="0 0 32 32">
+<path d="M16 0c-8.837 0-16 2.239-16 5v4c0 2.761 7.163 5 16 5s16-2.239 16-5v-4c0-2.761-7.163-5-16-5z"></path>
+<path d="M16 17c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
+<path d="M16 26c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"></path>
+</symbol>
+<symbol id="icon-file-text2" viewbox="0 0 32 32">
+<path d="M28.681 7.159c-0.694-0.947-1.662-2.053-2.724-3.116s-2.169-2.030-3.116-2.724c-1.612-1.182-2.393-1.319-2.841-1.319h-15.5c-1.378 0-2.5 1.121-2.5 2.5v27c0 1.378 1.122 2.5 2.5 2.5h23c1.378 0 2.5-1.122 2.5-2.5v-19.5c0-0.448-0.137-1.23-1.319-2.841zM24.543 5.457c0.959 0.959 1.712 1.825 2.268 2.543h-4.811v-4.811c0.718 0.556 1.584 1.309 2.543 2.268zM28 29.5c0 0.271-0.229 0.5-0.5 0.5h-23c-0.271 0-0.5-0.229-0.5-0.5v-27c0-0.271 0.229-0.5 0.5-0.5 0 0 15.499-0 15.5 0v7c0 0.552 0.448 1 1 1h7v19.5z"></path>
+<path d="M23 26h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+<path d="M23 22h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+<path d="M23 18h-14c-0.552 0-1-0.448-1-1s0.448-1 1-1h14c0.552 0 1 0.448 1 1s-0.448 1-1 1z"></path>
+</symbol>
+</defs>
+</svg>
+<style>/* CSS stylesheet for displaying xarray objects in notebooks */
+
+:root {
+  --xr-font-color0: var(
+    --jp-content-font-color0,
+    var(--pst-color-text-base rgba(0, 0, 0, 1))
+  );
+  --xr-font-color2: var(
+    --jp-content-font-color2,
+    var(--pst-color-text-base, rgba(0, 0, 0, 0.54))
+  );
+  --xr-font-color3: var(
+    --jp-content-font-color3,
+    var(--pst-color-text-base, rgba(0, 0, 0, 0.38))
+  );
+  --xr-border-color: var(
+    --jp-border-color2,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 10))
+  );
+  --xr-disabled-color: var(
+    --jp-layout-color3,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 40))
+  );
+  --xr-background-color: var(
+    --jp-layout-color0,
+    var(--pst-color-on-background, white)
+  );
+  --xr-background-color-row-even: var(
+    --jp-layout-color1,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 5))
+  );
+  --xr-background-color-row-odd: var(
+    --jp-layout-color2,
+    hsl(from var(--pst-color-on-background, white) h s calc(l - 15))
+  );
+}
+
+html[theme="dark"],
+html[data-theme="dark"],
+body[data-theme="dark"],
+body.vscode-dark {
+  --xr-font-color0: var(
+    --jp-content-font-color0,
+    var(--pst-color-text-base, rgba(255, 255, 255, 1))
+  );
+  --xr-font-color2: var(
+    --jp-content-font-color2,
+    var(--pst-color-text-base, rgba(255, 255, 255, 0.54))
+  );
+  --xr-font-color3: var(
+    --jp-content-font-color3,
+    var(--pst-color-text-base, rgba(255, 255, 255, 0.38))
+  );
+  --xr-border-color: var(
+    --jp-border-color2,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 10))
+  );
+  --xr-disabled-color: var(
+    --jp-layout-color3,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 40))
+  );
+  --xr-background-color: var(
+    --jp-layout-color0,
+    var(--pst-color-on-background, #111111)
+  );
+  --xr-background-color-row-even: var(
+    --jp-layout-color1,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 5))
+  );
+  --xr-background-color-row-odd: var(
+    --jp-layout-color2,
+    hsl(from var(--pst-color-on-background, #111111) h s calc(l + 15))
+  );
+}
+
+.xr-wrap {
+  display: block !important;
+  min-width: 300px;
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+.xr-text-repr-fallback {
+  /* fallback to plain text repr when CSS is not injected (untrusted notebook) */
+  display: none;
+}
+
+.xr-header {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+  border-bottom: solid 1px var(--xr-border-color);
+}
+
+.xr-header > div,
+.xr-header > ul {
+  display: inline;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.xr-obj-type,
+.xr-obj-name,
+.xr-group-name {
+  margin-left: 2px;
+  margin-right: 10px;
+}
+
+.xr-group-name::before {
+  content: "📁";
+  padding-right: 0.3em;
+}
+
+.xr-group-name,
+.xr-obj-type {
+  color: var(--xr-font-color2);
+}
+
+.xr-sections {
+  padding-left: 0 !important;
+  display: grid;
+  grid-template-columns: 150px auto auto 1fr 0 20px 0 20px;
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+.xr-section-item {
+  display: contents;
+}
+
+.xr-section-item input {
+  display: inline-block;
+  opacity: 0;
+  height: 0;
+  margin: 0;
+}
+
+.xr-section-item input + label {
+  color: var(--xr-disabled-color);
+  border: 2px solid transparent !important;
+}
+
+.xr-section-item input:enabled + label {
+  cursor: pointer;
+  color: var(--xr-font-color2);
+}
+
+.xr-section-item input:focus + label {
+  border: 2px solid var(--xr-font-color0) !important;
+}
+
+.xr-section-item input:enabled + label:hover {
+  color: var(--xr-font-color0);
+}
+
+.xr-section-summary {
+  grid-column: 1;
+  color: var(--xr-font-color2);
+  font-weight: 500;
+}
+
+.xr-section-summary > span {
+  display: inline-block;
+  padding-left: 0.5em;
+}
+
+.xr-section-summary-in:disabled + label {
+  color: var(--xr-font-color2);
+}
+
+.xr-section-summary-in + label:before {
+  display: inline-block;
+  content: "►";
+  font-size: 11px;
+  width: 15px;
+  text-align: center;
+}
+
+.xr-section-summary-in:disabled + label:before {
+  color: var(--xr-disabled-color);
+}
+
+.xr-section-summary-in:checked + label:before {
+  content: "▼";
+}
+
+.xr-section-summary-in:checked + label > span {
+  display: none;
+}
+
+.xr-section-summary,
+.xr-section-inline-details {
+  padding-top: 4px;
+}
+
+.xr-section-inline-details {
+  grid-column: 2 / -1;
+}
+
+.xr-section-details {
+  display: none;
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  margin-bottom: 5px;
+}
+
+.xr-section-summary-in:checked ~ .xr-section-details {
+  display: contents;
+}
+
+.xr-group-box {
+  display: inline-grid;
+  grid-template-columns: 0px 20px auto;
+  width: 100%;
+}
+
+.xr-group-box-vline {
+  grid-column-start: 1;
+  border-right: 0.2em solid;
+  border-color: var(--xr-border-color);
+  width: 0px;
+}
+
+.xr-group-box-hline {
+  grid-column-start: 2;
+  grid-row-start: 1;
+  height: 1em;
+  width: 20px;
+  border-bottom: 0.2em solid;
+  border-color: var(--xr-border-color);
+}
+
+.xr-group-box-contents {
+  grid-column-start: 3;
+}
+
+.xr-array-wrap {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 20px auto;
+}
+
+.xr-array-wrap > label {
+  grid-column: 1;
+  vertical-align: top;
+}
+
+.xr-preview {
+  color: var(--xr-font-color3);
+}
+
+.xr-array-preview,
+.xr-array-data {
+  padding: 0 5px !important;
+  grid-column: 2;
+}
+
+.xr-array-data,
+.xr-array-in:checked ~ .xr-array-preview {
+  display: none;
+}
+
+.xr-array-in:checked ~ .xr-array-data,
+.xr-array-preview {
+  display: inline-block;
+}
+
+.xr-dim-list {
+  display: inline-block !important;
+  list-style: none;
+  padding: 0 !important;
+  margin: 0;
+}
+
+.xr-dim-list li {
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+}
+
+.xr-dim-list:before {
+  content: "(";
+}
+
+.xr-dim-list:after {
+  content: ")";
+}
+
+.xr-dim-list li:not(:last-child):after {
+  content: ",";
+  padding-right: 5px;
+}
+
+.xr-has-index {
+  font-weight: bold;
+}
+
+.xr-var-list,
+.xr-var-item {
+  display: contents;
+}
+
+.xr-var-item > div,
+.xr-var-item label,
+.xr-var-item > .xr-var-name span {
+  background-color: var(--xr-background-color-row-even);
+  border-color: var(--xr-background-color-row-odd);
+  margin-bottom: 0;
+  padding-top: 2px;
+}
+
+.xr-var-item > .xr-var-name:hover span {
+  padding-right: 5px;
+}
+
+.xr-var-list > li:nth-child(odd) > div,
+.xr-var-list > li:nth-child(odd) > label,
+.xr-var-list > li:nth-child(odd) > .xr-var-name span {
+  background-color: var(--xr-background-color-row-odd);
+  border-color: var(--xr-background-color-row-even);
+}
+
+.xr-var-name {
+  grid-column: 1;
+}
+
+.xr-var-dims {
+  grid-column: 2;
+}
+
+.xr-var-dtype {
+  grid-column: 3;
+  text-align: right;
+  color: var(--xr-font-color2);
+}
+
+.xr-var-preview {
+  grid-column: 4;
+}
+
+.xr-index-preview {
+  grid-column: 2 / 5;
+  color: var(--xr-font-color2);
+}
+
+.xr-var-name,
+.xr-var-dims,
+.xr-var-dtype,
+.xr-preview,
+.xr-attrs dt {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 10px;
+}
+
+.xr-var-name:hover,
+.xr-var-dims:hover,
+.xr-var-dtype:hover,
+.xr-attrs dt:hover {
+  overflow: visible;
+  width: auto;
+  z-index: 1;
+}
+
+.xr-var-attrs,
+.xr-var-data,
+.xr-index-data {
+  display: none;
+  border-top: 2px dotted var(--xr-background-color);
+  padding-bottom: 20px !important;
+  padding-top: 10px !important;
+}
+
+.xr-var-attrs-in + label,
+.xr-var-data-in + label,
+.xr-index-data-in + label {
+  padding: 0 1px;
+}
+
+.xr-var-attrs-in:checked ~ .xr-var-attrs,
+.xr-var-data-in:checked ~ .xr-var-data,
+.xr-index-data-in:checked ~ .xr-index-data {
+  display: block;
+}
+
+.xr-var-data > table {
+  float: right;
+}
+
+.xr-var-data > pre,
+.xr-index-data > pre,
+.xr-var-data > table > tbody > tr {
+  background-color: transparent !important;
+}
+
+.xr-var-name span,
+.xr-var-data,
+.xr-index-name div,
+.xr-index-data,
+.xr-attrs {
+  padding-left: 25px !important;
+}
+
+.xr-attrs,
+.xr-var-attrs,
+.xr-var-data,
+.xr-index-data {
+  grid-column: 1 / -1;
+}
+
+dl.xr-attrs {
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 125px auto;
+}
+
+.xr-attrs dt,
+.xr-attrs dd {
+  padding: 0;
+  margin: 0;
+  float: left;
+  padding-right: 10px;
+  width: auto;
+}
+
+.xr-attrs dt {
+  font-weight: normal;
+  grid-column: 1;
+}
+
+.xr-attrs dt:hover span {
+  display: inline-block;
+  background: var(--xr-background-color);
+  padding-right: 10px;
+}
+
+.xr-attrs dd {
+  grid-column: 2;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.xr-icon-database,
+.xr-icon-file-text2,
+.xr-no-icon {
+  display: inline-block;
+  vertical-align: middle;
+  width: 1em;
+  height: 1.5em !important;
+  stroke-width: 0;
+  stroke: currentColor;
+  fill: currentColor;
+}
+
+.xr-var-attrs-in:checked + label > .xr-icon-file-text2,
+.xr-var-data-in:checked + label > .xr-icon-database,
+.xr-index-data-in:checked + label > .xr-icon-database {
+  color: var(--xr-font-color0);
+  filter: drop-shadow(1px 1px 5px var(--xr-font-color2));
+  stroke-width: 0.8px;
+}
+</style><pre class="xr-text-repr-fallback">&lt;xarray.Dataset&gt; Size: 6MB
+Dimensions:  (GMST: 175, y: 95, x: 95)
+Coordinates:
+  * GMST     (GMST) float64 1kB 0.0501 0.1301 0.2101 ... 13.81 13.89 13.97
+  * y        (y) float64 760B -3.016e+06 -2.952e+06 ... 2.936e+06 3e+06
+  * x        (x) float64 760B -3.016e+06 -2.952e+06 ... 2.936e+06 3e+06
+Data variables:
+    thk      (GMST, y, x) float32 6MB 0.0 0.0 0.0 0.0 0.0 ... 0.0 0.0 0.0 0.0
+Attributes: (12/13)
+    CDI:            Climate Data Interface version 1.9.6 (http://mpimet.mpg.d...
+    proj4:          +lon_0=0.0 +ellps=WGS84 +datum=WGS84 +lat_ts=-71.0 +proj=...
+    CDO:            Climate Data Operators version 1.9.6 (http://mpimet.mpg.d...
+    source:         PISM (development v1.0-535-gb3de48787 committed by Julius...
+    institution:    PIK / Potsdam Institute for Climate Impact Research
+    author:         Julius Garbe (julius.garbe@pik-potsdam.de)
+    ...             ...
+    title:          garbe_2020_antarctica
+    Conventions:    CF-1.9
+    projection:     Polar Stereographic South (71S,0E)
+    ice_density:    910. kg m-3
+    NCO:            netCDF Operators version 4.7.8 (Homepage = http://nco.sf....
+    Modifications:  Modified by Jakob Harteg (jakob.harteg@pik-potsdam.de) Se...</pre><div class="xr-wrap" style="display:none"><div class="xr-header"><div class="xr-obj-type">xarray.Dataset</div></div><ul class="xr-sections"><li class="xr-section-item"><input class="xr-section-summary-in" disabled="" id="section-6253562a-c77f-4bb1-81d6-38c429f277b1" type="checkbox"/><label class="xr-section-summary" for="section-6253562a-c77f-4bb1-81d6-38c429f277b1" title="Expand/collapse section">Dimensions:</label><div class="xr-section-inline-details"><ul class="xr-dim-list"><li><span class="xr-has-index">GMST</span>: 175</li><li><span class="xr-has-index">y</span>: 95</li><li><span class="xr-has-index">x</span>: 95</li></ul></div><div class="xr-section-details"></div></li><li class="xr-section-item"><input checked="" class="xr-section-summary-in" id="section-4fc3de30-5e86-4803-b6aa-27fb3b549345" type="checkbox"/><label class="xr-section-summary" for="section-4fc3de30-5e86-4803-b6aa-27fb3b549345">Coordinates: <span>(3)</span></label><div class="xr-section-inline-details"></div><div class="xr-section-details"><ul class="xr-var-list"><li class="xr-var-item"><div class="xr-var-name"><span class="xr-has-index">GMST</span></div><div class="xr-var-dims">(GMST)</div><div class="xr-var-dtype">float64</div><div class="xr-var-preview xr-preview">0.0501 0.1301 ... 13.89 13.97</div><input class="xr-var-attrs-in" id="attrs-3ef2858d-13a3-4eea-853f-2d34bfa25b72" type="checkbox"/><label for="attrs-3ef2858d-13a3-4eea-853f-2d34bfa25b72" title="Show/Hide attributes"><svg class="icon xr-icon-file-text2"><use xlink:href="#icon-file-text2"></use></svg></label><input class="xr-var-data-in" id="data-f4b3f79d-9740-442e-b619-685797049dac" type="checkbox"/><label for="data-f4b3f79d-9740-442e-b619-685797049dac" title="Show/Hide data repr"><svg class="icon xr-icon-database"><use xlink:href="#icon-database"></use></svg></label><div class="xr-var-attrs"><dl class="xr-attrs"><dt><span>units :</span></dt><dd>C</dd></dl></div><div class="xr-var-data"><pre>array([ 0.0501,  0.1301,  0.2101,  0.2901,  0.3701,  0.4501,  0.5301,  0.6101,
+        0.6901,  0.7701,  0.8501,  0.9301,  1.0101,  1.0901,  1.1701,  1.2501,
+        1.3301,  1.4101,  1.4901,  1.5701,  1.6501,  1.7301,  1.8101,  1.8901,
+        1.9701,  2.0501,  2.1301,  2.2101,  2.2901,  2.3701,  2.4501,  2.5301,
+        2.6101,  2.6901,  2.7701,  2.8501,  2.9301,  3.0101,  3.0901,  3.1701,
+        3.2501,  3.3301,  3.4101,  3.4901,  3.5701,  3.6501,  3.7301,  3.8101,
+        3.8901,  3.9701,  4.0501,  4.1301,  4.2101,  4.2901,  4.3701,  4.4501,
+        4.5301,  4.6101,  4.6901,  4.7701,  4.8501,  4.9301,  5.0101,  5.0901,
+        5.1701,  5.2501,  5.3301,  5.4101,  5.4901,  5.5701,  5.6501,  5.7301,
+        5.8101,  5.8901,  5.9701,  6.0501,  6.1301,  6.2101,  6.2901,  6.3701,
+        6.4501,  6.5301,  6.6101,  6.6901,  6.7701,  6.8501,  6.9301,  7.0101,
+        7.0901,  7.1701,  7.2501,  7.3301,  7.4101,  7.4901,  7.5701,  7.6501,
+        7.7301,  7.8101,  7.8901,  7.9701,  8.0501,  8.1301,  8.2101,  8.2901,
+        8.3701,  8.4501,  8.5301,  8.6101,  8.6901,  8.7701,  8.8501,  8.9301,
+        9.0101,  9.0901,  9.1701,  9.2501,  9.3301,  9.4101,  9.4901,  9.5701,
+        9.6501,  9.7301,  9.8101,  9.8901,  9.9701, 10.0501, 10.1301, 10.2101,
+       10.2901, 10.3701, 10.4501, 10.5301, 10.6101, 10.6901, 10.7701, 10.8501,
+       10.9301, 11.0101, 11.0901, 11.1701, 11.2501, 11.3301, 11.4101, 11.4901,
+       11.5701, 11.6501, 11.7301, 11.8101, 11.8901, 11.9701, 12.0501, 12.1301,
+       12.2101, 12.2901, 12.3701, 12.4501, 12.5301, 12.6101, 12.6901, 12.7701,
+       12.8501, 12.9301, 13.0101, 13.0901, 13.1701, 13.2501, 13.3301, 13.4101,
+       13.4901, 13.5701, 13.6501, 13.7301, 13.8101, 13.8901, 13.9701])</pre></div></li><li class="xr-var-item"><div class="xr-var-name"><span class="xr-has-index">y</span></div><div class="xr-var-dims">(y)</div><div class="xr-var-dtype">float64</div><div class="xr-var-preview xr-preview">-3.016e+06 -2.952e+06 ... 3e+06</div><input class="xr-var-attrs-in" id="attrs-a0100385-ba49-4e81-a90b-d952b5c111cf" type="checkbox"/><label for="attrs-a0100385-ba49-4e81-a90b-d952b5c111cf" title="Show/Hide attributes"><svg class="icon xr-icon-file-text2"><use xlink:href="#icon-file-text2"></use></svg></label><input class="xr-var-data-in" id="data-1d26c45c-21fc-4306-9a44-0842545f8be7" type="checkbox"/><label for="data-1d26c45c-21fc-4306-9a44-0842545f8be7" title="Show/Hide data repr"><svg class="icon xr-icon-database"><use xlink:href="#icon-database"></use></svg></label><div class="xr-var-attrs"><dl class="xr-attrs"><dt><span>long_name :</span></dt><dd>Y-coordinate in Cartesian system</dd><dt><span>units :</span></dt><dd>m</dd><dt><span>axis :</span></dt><dd>Y</dd><dt><span>standard_name :</span></dt><dd>projection_y_coordinate</dd><dt><span>spacing_meters :</span></dt><dd>16000.0</dd></dl></div><div class="xr-var-data"><pre>array([-3016000., -2952000., -2888000., -2824000., -2760000., -2696000.,
+       -2632000., -2568000., -2504000., -2440000., -2376000., -2312000.,
+       -2248000., -2184000., -2120000., -2056000., -1992000., -1928000.,
+       -1864000., -1800000., -1736000., -1672000., -1608000., -1544000.,
+       -1480000., -1416000., -1352000., -1288000., -1224000., -1160000.,
+       -1096000., -1032000.,  -968000.,  -904000.,  -840000.,  -776000.,
+        -712000.,  -648000.,  -584000.,  -520000.,  -456000.,  -392000.,
+        -328000.,  -264000.,  -200000.,  -136000.,   -72000.,    -8000.,
+          56000.,   120000.,   184000.,   248000.,   312000.,   376000.,
+         440000.,   504000.,   568000.,   632000.,   696000.,   760000.,
+         824000.,   888000.,   952000.,  1016000.,  1080000.,  1144000.,
+        1208000.,  1272000.,  1336000.,  1400000.,  1464000.,  1528000.,
+        1592000.,  1656000.,  1720000.,  1784000.,  1848000.,  1912000.,
+        1976000.,  2040000.,  2104000.,  2168000.,  2232000.,  2296000.,
+        2360000.,  2424000.,  2488000.,  2552000.,  2616000.,  2680000.,
+        2744000.,  2808000.,  2872000.,  2936000.,  3000000.])</pre></div></li><li class="xr-var-item"><div class="xr-var-name"><span class="xr-has-index">x</span></div><div class="xr-var-dims">(x)</div><div class="xr-var-dtype">float64</div><div class="xr-var-preview xr-preview">-3.016e+06 -2.952e+06 ... 3e+06</div><input class="xr-var-attrs-in" id="attrs-5e5ea138-2230-4d1b-a30a-87f5229b91b9" type="checkbox"/><label for="attrs-5e5ea138-2230-4d1b-a30a-87f5229b91b9" title="Show/Hide attributes"><svg class="icon xr-icon-file-text2"><use xlink:href="#icon-file-text2"></use></svg></label><input class="xr-var-data-in" id="data-e8312a74-a43f-4b29-8418-86647161405f" type="checkbox"/><label for="data-e8312a74-a43f-4b29-8418-86647161405f" title="Show/Hide data repr"><svg class="icon xr-icon-database"><use xlink:href="#icon-database"></use></svg></label><div class="xr-var-attrs"><dl class="xr-attrs"><dt><span>long_name :</span></dt><dd>X-coordinate in Cartesian system</dd><dt><span>units :</span></dt><dd>m</dd><dt><span>axis :</span></dt><dd>X</dd><dt><span>standard_name :</span></dt><dd>projection_x_coordinate</dd><dt><span>spacing_meters :</span></dt><dd>16000.0</dd></dl></div><div class="xr-var-data"><pre>array([-3016000., -2952000., -2888000., -2824000., -2760000., -2696000.,
+       -2632000., -2568000., -2504000., -2440000., -2376000., -2312000.,
+       -2248000., -2184000., -2120000., -2056000., -1992000., -1928000.,
+       -1864000., -1800000., -1736000., -1672000., -1608000., -1544000.,
+       -1480000., -1416000., -1352000., -1288000., -1224000., -1160000.,
+       -1096000., -1032000.,  -968000.,  -904000.,  -840000.,  -776000.,
+        -712000.,  -648000.,  -584000.,  -520000.,  -456000.,  -392000.,
+        -328000.,  -264000.,  -200000.,  -136000.,   -72000.,    -8000.,
+          56000.,   120000.,   184000.,   248000.,   312000.,   376000.,
+         440000.,   504000.,   568000.,   632000.,   696000.,   760000.,
+         824000.,   888000.,   952000.,  1016000.,  1080000.,  1144000.,
+        1208000.,  1272000.,  1336000.,  1400000.,  1464000.,  1528000.,
+        1592000.,  1656000.,  1720000.,  1784000.,  1848000.,  1912000.,
+        1976000.,  2040000.,  2104000.,  2168000.,  2232000.,  2296000.,
+        2360000.,  2424000.,  2488000.,  2552000.,  2616000.,  2680000.,
+        2744000.,  2808000.,  2872000.,  2936000.,  3000000.])</pre></div></li></ul></div></li><li class="xr-section-item"><input checked="" class="xr-section-summary-in" id="section-d17f7e70-c267-4701-ac84-273f6d3b7631" type="checkbox"/><label class="xr-section-summary" for="section-d17f7e70-c267-4701-ac84-273f6d3b7631">Data variables: <span>(1)</span></label><div class="xr-section-inline-details"></div><div class="xr-section-details"><ul class="xr-var-list"><li class="xr-var-item"><div class="xr-var-name"><span>thk</span></div><div class="xr-var-dims">(GMST, y, x)</div><div class="xr-var-dtype">float32</div><div class="xr-var-preview xr-preview">0.0 0.0 0.0 0.0 ... 0.0 0.0 0.0 0.0</div><input class="xr-var-attrs-in" id="attrs-fb6f91d8-0416-4167-be24-19fffe529a42" type="checkbox"/><label for="attrs-fb6f91d8-0416-4167-be24-19fffe529a42" title="Show/Hide attributes"><svg class="icon xr-icon-file-text2"><use xlink:href="#icon-file-text2"></use></svg></label><input class="xr-var-data-in" id="data-e33ed37b-c5fe-4131-87b3-f1c2624a0411" type="checkbox"/><label for="data-e33ed37b-c5fe-4131-87b3-f1c2624a0411" title="Show/Hide data repr"><svg class="icon xr-icon-database"><use xlink:href="#icon-database"></use></svg></label><div class="xr-var-attrs"><dl class="xr-attrs"><dt><span>standard_name :</span></dt><dd>land_ice_thickness</dd><dt><span>long_name :</span></dt><dd>land ice thickness</dd><dt><span>units :</span></dt><dd>m</dd><dt><span>pism_intent :</span></dt><dd>model_state</dd></dl></div><div class="xr-var-data"><pre>array([[[0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.]],
+
+       [[0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.]],
+
+       [[0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        ...,
+...
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.]],
+
+       [[0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.]],
+
+       [[0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        ...,
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.],
+        [0., 0., 0., ..., 0., 0., 0.]]],
+      shape=(175, 95, 95), dtype=float32)</pre></div></li></ul></div></li><li class="xr-section-item"><input class="xr-section-summary-in" id="section-97a6a65a-a741-4b20-9e44-4899db107e15" type="checkbox"/><label class="xr-section-summary" for="section-97a6a65a-a741-4b20-9e44-4899db107e15">Attributes: <span>(13)</span></label><div class="xr-section-inline-details"></div><div class="xr-section-details"><dl class="xr-attrs"><dt><span>CDI :</span></dt><dd>Climate Data Interface version 1.9.6 (http://mpimet.mpg.de/cdi)</dd><dt><span>proj4 :</span></dt><dd>+lon_0=0.0 +ellps=WGS84 +datum=WGS84 +lat_ts=-71.0 +proj=stere +x_0=0.0 +units=m +y_0=0.0 +lat_0=-90.0 </dd><dt><span>CDO :</span></dt><dd>Climate Data Operators version 1.9.6 (http://mpimet.mpg.de/cdo)</dd><dt><span>source :</span></dt><dd>PISM (development v1.0-535-gb3de48787 committed by Julius Garbe on 2018-07-25 16:38:05 +0200)</dd><dt><span>institution :</span></dt><dd>PIK / Potsdam Institute for Climate Impact Research</dd><dt><span>author :</span></dt><dd>Julius Garbe (julius.garbe@pik-potsdam.de)</dd><dt><span>references :</span></dt><dd>Garbe, J., Albrecht, T., Levermann, A. et al. The hysteresis of the Antarctic Ice Sheet. Nature 585, 538–544 (2020). https://doi.org/10.1038/s41586-020-2727-5</dd><dt><span>title :</span></dt><dd>garbe_2020_antarctica</dd><dt><span>Conventions :</span></dt><dd>CF-1.9</dd><dt><span>projection :</span></dt><dd>Polar Stereographic South (71S,0E)</dd><dt><span>ice_density :</span></dt><dd>910. kg m-3</dd><dt><span>NCO :</span></dt><dd>netCDF Operators version 4.7.8 (Homepage = http://nco.sf.net, Code = http://github.com/nco/nco)</dd><dt><span>Modifications :</span></dt><dd>Modified by Jakob Harteg (jakob.harteg@pik-potsdam.de) Sep, 2025: Computed toad shifts and clusters, removed time_bnds, added zlib compression and shuffle.</dd></dl></div></li></ul></div></div></div></div>
+</div>
+<p>Let’s build a simple shifts detection algorithm</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="k">def</span> <span class="nf">compute_shift_intensity</span><span class="p">(</span><span class="n">values_1d</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">window_size</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+</span><span id="line-2"><span class="w">    </span><span class="sd">"""</span>
+</span><span id="line-3"><span class="sd">    Simple function to compute shift intensity for each timestep [-1, 1]</span>
+</span><span id="line-4"><span class="sd">    where -1 is strong negative shift, +1 is strong positive shift</span>
+</span><span id="line-5"><span class="sd">    """</span>
+</span><span id="line-6">
+</span><span id="line-7">    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values_1d</span><span class="p">)</span>
+</span><span id="line-8">    <span class="n">window_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">//</span> <span class="mi">15</span><span class="p">)</span>  <span class="c1"># Ensure reasonable window size</span>
+</span><span id="line-9">
+</span><span id="line-10">    <span class="c1"># Initialize results array</span>
+</span><span id="line-11">    <span class="n">intensity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+</span><span id="line-12">
+</span><span id="line-13">    <span class="c1"># Calculate max possible difference for normalization</span>
+</span><span id="line-14">    <span class="n">max_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span id="line-15">    <span class="k">if</span> <span class="n">max_diff</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="line-16">        <span class="k">return</span> <span class="n">intensity</span>
+</span><span id="line-17">
+</span><span id="line-18">    <span class="c1"># For each point (except edges), compare before/after windows</span>
+</span><span id="line-19">    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">window_size</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">-</span> <span class="n">window_size</span><span class="p">):</span>
+</span><span id="line-20">        <span class="n">window1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">window_size</span> <span class="p">:</span> <span class="n">i</span><span class="p">]</span>
+</span><span id="line-21">        <span class="n">window2</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">window_size</span><span class="p">]</span>
+</span><span id="line-22">
+</span><span id="line-23">        <span class="n">mean1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">window1</span><span class="p">)</span>
+</span><span id="line-24">        <span class="n">mean2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">window2</span><span class="p">)</span>
+</span><span id="line-25">
+</span><span id="line-26">        <span class="c1"># Normalize difference to [-1, 1]</span>
+</span><span id="line-27">        <span class="c1"># Positive means increasing, negative means decreasing</span>
+</span><span id="line-28">        <span class="n">intensity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">mean2</span> <span class="o">-</span> <span class="n">mean1</span><span class="p">)</span> <span class="o">/</span> <span class="n">max_diff</span>
+</span><span id="line-29">        <span class="n">intensity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">intensity</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+</span><span id="line-30">        <span class="n">intensity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">intensity</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="line-31">
+</span><span id="line-32">    <span class="k">return</span> <span class="n">intensity</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>So this function takes a single timeseries with values and timesteps</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="c1"># get sample timeseries from dataset</span>
+</span><span id="line-2"><span class="n">ts</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">x</span><span class="o">=-</span><span class="mi">1032000</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="mi">1032000</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"nearest"</span><span class="p">)</span><span class="o">.</span><span class="n">thk</span>
+</span><span id="line-3">
+</span><span id="line-4"><span class="c1"># Calculate shift intensity</span>
+</span><span id="line-5"><span class="n">intensity</span> <span class="o">=</span> <span class="n">compute_shift_intensity</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</span><span id="line-6">
+</span><span id="line-7"><span class="c1"># Plot original data and shift intensity</span>
+</span><span id="line-8"><span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="line-9"><span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">GMST</span><span class="p">,</span> <span class="n">ts</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</span><span id="line-10"><span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"Original Time Series"</span><span class="p">)</span>
+</span><span id="line-11"><span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">GMST</span><span class="p">,</span> <span class="n">intensity</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"red"</span><span class="p">)</span>
+</span><span id="line-12"><span class="n">ax2</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"k"</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">"--"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+</span><span id="line-13"><span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Ice thickness"</span><span class="p">)</span>
+</span><span id="line-14"><span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Shift Intensity"</span><span class="p">)</span>
+</span><span id="line-15"><span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"GMST"</span><span class="p">)</span>
+</span><span id="line-16"><span class="n">ax2</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span></code></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><code><span id="line-1">(-1.0, 1.0)
+</span></code></pre></div>
+</div>
+<img alt="../_images/7785730c1047f96db8f11f865e6acc2d7d72de68543bf9d22ab91cf3414aa200.png" src="../_images/7785730c1047f96db8f11f865e6acc2d7d72de68543bf9d22ab91cf3414aa200.png"/>
+</div>
+</div>
+<p>Now we can define a new shifts method by abstracting the <code class="docutils literal notranslate"><span class="pre">ShiftsMethod</span></code> class in <code class="docutils literal notranslate"><span class="pre">toad.shifts</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span> <span class="nn">toad.shifts</span> <span class="kn">import</span> <span class="n">ShiftsMethod</span>
+</span><span id="line-2">
+</span><span id="line-3">
+</span><span id="line-4"><span class="k">class</span> <span class="nc">MY_SHFITS_METHOD</span><span class="p">(</span><span class="n">ShiftsMethod</span><span class="p">):</span>
+</span><span id="line-5">    <span class="c1"># You can pass parameters to the method like this</span>
+</span><span id="line-6">    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window_size</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+</span><span id="line-7">        <span class="bp">self</span><span class="o">.</span><span class="n">window_size</span> <span class="o">=</span> <span class="n">window_size</span>
+</span><span id="line-8">
+</span><span id="line-9">    <span class="c1"># This function is called by TOAD on each gridcell independently.</span>
+</span><span id="line-10">    <span class="k">def</span> <span class="nf">fit_predict</span><span class="p">(</span>
+</span><span id="line-11">        <span class="bp">self</span><span class="p">,</span>
+</span><span id="line-12">        <span class="n">values_1d</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="line-13">        <span class="n">times_1d</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="line-14">    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="line-15">        <span class="n">shifts</span> <span class="o">=</span> <span class="n">compute_shift_intensity</span><span class="p">(</span><span class="n">values_1d</span><span class="p">,</span> <span class="n">window_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">window_size</span><span class="p">)</span>
+</span><span id="line-16">        <span class="k">return</span> <span class="n">shifts</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>And then we can pass this method into <code class="docutils literal notranslate"><span class="pre">compute_shifts</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span> <span class="nn">toad</span> <span class="kn">import</span> <span class="n">TOAD</span>
+</span><span id="line-2">
+</span><span id="line-3"><span class="n">td</span> <span class="o">=</span> <span class="n">TOAD</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">time_dim</span><span class="o">=</span><span class="s2">"GMST"</span><span class="p">)</span>
+</span><span id="line-4"><span class="n">td</span><span class="o">.</span><span class="n">compute_shifts</span><span class="p">(</span><span class="s2">"thk"</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">MY_SHFITS_METHOD</span><span class="p">(</span><span class="n">window_size</span><span class="o">=</span><span class="mi">10</span><span class="p">))</span>
+</span></code></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"model_id": "8d228f8f826f4ad1b396e523d31d2a3c", "version_major": 2, "version_minor": 0}</script><div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><code><span id="line-1">INFO: New shifts variable <span class="-Color -Color-Bold">thk_dts</span>: min/mean/max=-0.981/-0.057/0.937 using 3589 grid cells. Skipped 60.2% grid cells: 0 NaN, 5436 constant.
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>Let’s inspect the detection time series distribution. He were see we detect mostly negative shifts.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="n">td</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">shift_dist</span><span class="p">()</span>
+</span></code></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><code><span id="line-1">(&lt;Figure size 3600x600 with 1 Axes&gt;,
+</span><span id="line-2"> array([&lt;Axes: ylabel='#thk_dts'&gt;], dtype=object))
+</span></code></pre></div>
+</div>
+<img alt="../_images/5d658468c2d04746b29a272d1ffb74c55c2eb007b804785165e6605e6c4b4898.png" src="../_images/5d658468c2d04746b29a272d1ffb74c55c2eb007b804785165e6605e6c4b4898.png"/>
+</div>
+</div>
+<p>Let’s compute clusters now and plot the results</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><code><span id="line-1"><span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">HDBSCAN</span>
+</span><span id="line-2">
+</span><span id="line-3"><span class="n">td</span><span class="o">.</span><span class="n">compute_clusters</span><span class="p">(</span>
+</span><span id="line-4">    <span class="s2">"thk"</span><span class="p">,</span>
+</span><span id="line-5">    <span class="n">method</span><span class="o">=</span><span class="n">HDBSCAN</span><span class="p">(</span><span class="n">min_cluster_size</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+</span><span id="line-6">    <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="line-7"><span class="p">)</span>
+</span><span id="line-8">
+</span><span id="line-9"><span class="c1"># plot 5 largest clusters</span>
+</span><span id="line-10"><span class="n">td</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">overview</span><span class="p">(</span>
+</span><span id="line-11">    <span class="n">var</span><span class="o">=</span><span class="s2">"thk"</span><span class="p">,</span>
+</span><span id="line-12">    <span class="n">cluster_ids</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span>
+</span><span id="line-13">    <span class="n">map_style</span><span class="o">=</span><span class="p">{</span><span class="s2">"projection"</span><span class="p">:</span> <span class="s2">"south_pole"</span><span class="p">},</span>
+</span><span id="line-14"><span class="p">);</span>
+</span></code></pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><code><span id="line-1">INFO: New cluster variable <span class="-Color -Color-Bold">thk_dts_cluster</span>: Identified <span class="-Color -Color-Bold">12 clusters</span> in 2,414 pts; Left 6.8% as noise (164 pts).
+</span></code></pre></div>
+</div>
+<img alt="../_images/8d6a43cdad6f6e7d13a7bb680e7d2615ec6fe6f1bf236eec3d9f90d2288cfa2e.png" src="../_images/8d6a43cdad6f6e7d13a7bb680e7d2615ec6fe6f1bf236eec3d9f90d2288cfa2e.png"/>
+</div>
+</div>
+</section>
+</div><div class="flex justify-between items-center pt-6 mt-12 border-t border-border gap-4">
+<div class="mr-auto">
+<a class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input hover:bg-accent hover:text-accent-foreground py-2 px-4" href="custom_clustering.html">
+<svg class="mr-2 h-4 w-4" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<polyline points="15 18 9 12 15 6"></polyline>
+</svg>
+        Implement your own clustering method
+      </a>
+</div>
+<div class="ml-auto">
+<a class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-input hover:bg-accent hover:text-accent-foreground py-2 px-4" href="consensus.html">
+        Consensus clustering
+        <svg class="ml-2 h-4 w-4" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<polyline points="9 18 15 12 9 6"></polyline>
+</svg>
+</a>
+</div>
+</div></div>
+</main>
+</div>
+</div><footer class="py-6 border-t border-border md:py-0">
+<div class="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+<div class="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
+<p class="text-sm leading-loose text-center text-muted-foreground md:text-left">© 2026, TOAD Developers Built with <a class="font-medium underline underline-offset-4" href="https://www.sphinx-doc.org" rel="noreferrer">Sphinx 9.1.0</a></p>
+</div>
+</div>
+</footer>
+</div>
+<script src="../_static/documentation_options.js?v=5929fcd5"></script>
+<script src="../_static/doctools.js?v=fd6eb6e6"></script>
+<script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+<script defer="defer" src="../_static/theme.js?v=5db23cf8"></script>
+</body>
+</html>
