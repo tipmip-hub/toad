@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`NONLINEAR`** shift method (optional `pyunicorn`;
+  `pip install 'tipmip-toad[recurrence]'`). Use via
+  ``td.compute_shifts(var, NONLINEAR(...))``. Grid recurrence diagnostics for
+  plotting via ``toad.shifts.add_recurrence_diagnostic`` (or
+  ``NONLINEAR.recurrence_1d`` for a single series).
+
 ## [1.0.9] - 2026-10-08
 
 ### Added

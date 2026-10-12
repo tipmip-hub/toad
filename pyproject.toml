@@ -63,6 +63,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+recurrence = [
+    "pyunicorn",
+]
 dev = [
     "pre-commit",
     "ruff",

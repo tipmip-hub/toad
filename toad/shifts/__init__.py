@@ -7,6 +7,8 @@ shifts as an xarray object.
 
 Currently implemented methods:
 - ASDETECT: Implementation of the [Boulton+Lenton2019]_
+- EDGE: Edge-detection based shift detector
+- NONLINEAR: Recurrence-measure + ASDETECT (optional pyunicorn dependency)
 """
 
 import logging
@@ -24,12 +26,17 @@ from toad.utils import _attrs, get_unique_variable_name
 from .methods.asdetect import ASDETECT, leading_trailing_nan_processable
 from .methods.base import ShiftsMethod
 from .methods.edge import EDGE
-
-# Currently implemented methods:
-# - ASDETECT: Implementation of the [Boulton+Lenton2019]_ algorithm for detecting abrupt shifts
+from .methods.nonlinear import NONLINEAR, add_recurrence_diagnostic
 
 # Expose all methods here
-__all__ = ["ASDETECT", "EDGE", "compute_shifts", "ShiftsMethod"]
+__all__ = [
+    "ASDETECT",
+    "EDGE",
+    "NONLINEAR",
+    "add_recurrence_diagnostic",
+    "compute_shifts",
+    "ShiftsMethod",
+]
 
 logger = logging.getLogger("TOAD")
 
