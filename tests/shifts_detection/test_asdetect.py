@@ -141,3 +141,30 @@ class TestASDetect:
             data, np.arange(len(data), dtype=np.float64)
         )
         np.testing.assert_allclose(shifts, 0.0)
+
+    def test_compute_shifts_persists_resolved_lmax(self, coarsened_toad):
+        """Resolved lmax (default n//3) is written to attrs, including under joblib."""
+        td = coarsened_toad
+        n_time = td.data.sizes[td.time_dim]
+
+        td.compute_shifts(
+            "ts",
+            ASDETECT(segmentation="two_sided"),
+            overwrite=True,
+            run_parallel=False,
+        )
+        shifts = td.get_shifts("ts")
+        assert int(shifts.attrs["shifts_lmax"]) == n_time // 3
+        assert int(shifts.attrs["shifts_lmin"]) == 5
+
+        # Parallel path clones the method; attrs must still record resolved values.
+        td.compute_shifts(
+            "ts",
+            ASDETECT(lmin=5, lmax=8, segmentation="two_sided"),
+            overwrite=True,
+            run_parallel=True,
+            n_jobs=2,
+        )
+        shifts = td.get_shifts("ts")
+        assert int(shifts.attrs["shifts_lmax"]) == 8
+        assert int(shifts.attrs["shifts_lmin"]) == 5

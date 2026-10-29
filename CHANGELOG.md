@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HEALPix consensus spatial dilation now uses true ring-1 neighbours instead of KNN on pixel centres; results may differ slightly.
 - HEALPix consensus maps render filled cell **polygons** instead of centre scatter points.
 
+### Fixed
+- ``compute_shifts`` persists resolved ``shifts_lmax`` (and EDGE length defaults) in attrs; ``None`` defaults were previously dropped.
+
 ### Removed
 - **astropy** and **astropy-healpix** dependencies.
 

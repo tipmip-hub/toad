@@ -179,9 +179,9 @@ class ASDETECT(ShiftsMethod):
                 - Values between -1 and 1 indicate the proportion of segment lengths detecting a significant gradient at that time point.
         """
 
-        # Convert timescale to lmin/lmax if needed (recomputed each call for correct behaviour when dt varies)
-        if self.timescale is not None:
-            self.lmin, self.lmax = self._get_segment_lengths(times_1d)
+        # Resolve lmin/lmax from timescale and/or series length (incl. n/3 default).
+        # Recomputed each call so behaviour stays correct when dt/n varies.
+        self.lmin, self.lmax = self._get_segment_lengths(times_1d)
 
         return construct_detection_ts(
             values_1d=values_1d,

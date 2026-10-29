@@ -196,6 +196,19 @@ def compute_shifts(
     # Rename the output variable
     shifts = shifts.rename(output_label)
 
+    # Fill length-dependent defaults still None on this instance (joblib clones do
+    # not mutate it) so shifts_* attrs record what was actually used.
+    times_1d = td.numeric_time_values
+    if hasattr(method, "_get_segment_lengths"):
+        method.lmin, method.lmax = method._get_segment_lengths(times_1d)
+    elif isinstance(method, EDGE):
+        n = len(times_1d)
+        if method.lmin is None or method.lmax is None:
+            method.lmin = int(0.1 * n)
+            method.lmax = int(0.2 * n)
+        if method.lcutoff is None:
+            method.lcutoff = int(0.02 * n)
+
     # Save method params
     method_params = {
         f"shifts_{param}": str(value)
