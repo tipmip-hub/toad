@@ -1,11 +1,7 @@
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [Unreleased]
+
+### Added
+- Vectorised ``cluster_summary()`` via batch helpers ``activity_table``, ``footprint_table``, and ``size_table`` (same stats, one pass over cluster labels).
 
 ### Changed
 - HEALPix backend switched from **astropy-healpix** to **healpix-geo** (ring scheme unchanged; saved `hp_pixel` indices compatible).

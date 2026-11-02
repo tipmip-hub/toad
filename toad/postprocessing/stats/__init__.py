@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+from toad.postprocessing.stats.cluster_events import load_cluster_label_events
 from toad.postprocessing.stats.general import GeneralStats
 from toad.postprocessing.stats.space import SpaceStats
 from toad.postprocessing.stats.time import TimeStats
@@ -106,6 +107,11 @@ class Stats:
         CSV export, or downstream filtering — analogous to
         :meth:`toad.postprocessing.Aggregation.consensus_summary` for consensus labels.
 
+        Minimal columns are assembled from the batch helpers
+        :meth:`TimeStats.activity_table`, :meth:`SpaceStats.footprint_table`, and
+        :meth:`GeneralStats.size_table` (same definitions as the single-cluster
+        methods, one shared scan of the label field).
+
         Args:
             cluster_ids: Subset of clusters to include. Defaults to all non-noise clusters.
             extended: If True, add IQR timing bounds, shift amplitudes, pooled transition
@@ -128,45 +134,64 @@ class Stats:
         center_y, center_x = self._center_column_names()
 
         if cluster_ids is None:
-            cluster_ids = list(
-                self.td.get_cluster_ids(self.var, exclude_noise=exclude_noise)
-            )
+            cluster_ids = [
+                int(c)
+                for c in self.td.get_cluster_ids(self.var, exclude_noise=exclude_noise)
+            ]
         else:
-            cluster_ids = list(cluster_ids)
+            cluster_ids = [int(c) for c in cluster_ids]
 
         if len(cluster_ids) == 0:
             return self._empty_cluster_summary(extended, center_y, center_x)
 
-        cluster_var = str(self.td.get_clusters(self.var).name)
-        attrs = self.td.data[cluster_var].attrs
-        time_stats = self.time
-        space_stats = self.space
-
-        rows: list[dict] = []
-        for cluster_id in cluster_ids:
-            center_lat, center_lon = space_stats.footprint_mean(cluster_id)
-            row: dict = {
-                "cluster_id": int(cluster_id),
-                "start_time": time_stats.start(cluster_id),
-                "end_time": time_stats.end(cluster_id),
-                "duration_timesteps": time_stats.duration_timesteps(cluster_id),
-                "size": int(
-                    self.td.get_cluster_mask(self.var, cluster_id).sum().values
+        events = load_cluster_label_events(self.td, self.var, cluster_ids)
+        df = (
+            self.time.activity_table(cluster_ids, events=events)
+            .merge(
+                self.general.size_table(cluster_ids, events=events),
+                on="cluster_id",
+            )
+            .merge(
+                self.space.footprint_table(
+                    cluster_ids,
+                    events=events,
+                    center_y=center_y,
+                    center_x=center_x,
                 ),
-                "footprint_area": space_stats.footprint_cumulative_area(cluster_id),
-                "median_time": time_stats.median_activity_time(cluster_id),
-                center_y: center_lat,
-                center_x: center_lon,
-            }
+                on="cluster_id",
+            )
+        )
+        df = df[
+            [
+                "cluster_id",
+                "start_time",
+                "end_time",
+                "duration_timesteps",
+                "size",
+                "footprint_area",
+                "median_time",
+                center_y,
+                center_x,
+            ]
+        ]
 
-            if extended:
-                iqr_start, iqr_end = time_stats.iqr_68(cluster_id)
-                avg_amp, max_amp = self._shift_amplitudes(cluster_id)
+        if extended:
+            cluster_var = str(self.td.get_clusters(self.var).name)
+            attrs = self.td.data[cluster_var].attrs
+            time_stats = self.time
+            method = attrs.get(_attrs.METHOD_NAME)
+            thr = attrs.get(_attrs.SHIFT_THRESHOLD, shift_threshold)
+            base_var = self.td.get_base_var(self.var)
+            ext_rows: list[dict] = []
+            for cid in cluster_ids:
+                iqr_start, iqr_end = time_stats.iqr_68(cid)
+                avg_amp, max_amp = self._shift_amplitudes(cid)
                 time_row = time_stats.summary(
-                    [cluster_id], shift_threshold=shift_threshold
+                    [cid], shift_threshold=shift_threshold
                 ).iloc[0]
-                row.update(
+                ext_rows.append(
                     {
+                        "cluster_id": int(cid),
                         "iqr_68_start": iqr_start,
                         "iqr_68_end": iqr_end,
                         "avg_amplitude": avg_amp,
@@ -178,14 +203,11 @@ class Stats:
                             "pooled_std_transition_time"
                         ],
                         "n_transition_cells": int(time_row["n_transition_cells"]),
-                        "variable": self.td.get_base_var(self.var),
-                        "method": attrs.get(_attrs.METHOD_NAME),
-                        "shift_threshold": attrs.get(
-                            _attrs.SHIFT_THRESHOLD, shift_threshold
-                        ),
+                        "variable": base_var,
+                        "method": method,
+                        "shift_threshold": thr,
                     }
                 )
+            df = df.merge(pd.DataFrame(ext_rows), on="cluster_id")
 
-            rows.append(row)
-
-        return pd.DataFrame(rows)
+        return df.reset_index(drop=True)

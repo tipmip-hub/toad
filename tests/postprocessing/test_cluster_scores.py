@@ -317,6 +317,30 @@ class TestClusterSummary:
         assert row["footprint_area"] > 0
         assert row["duration_timesteps"] >= 0
 
+        # Match legacy per-cluster TimeStats / SpaceStats calls
+        stats = td.stats(cluster_var)
+        center_y, center_x = stats._center_column_names()
+        legacy_rows = []
+        for cid in cluster_ids:
+            cy, cx = stats.space.footprint_mean(cid)
+            legacy_rows.append(
+                {
+                    "cluster_id": int(cid),
+                    "start_time": stats.time.start(cid),
+                    "end_time": stats.time.end(cid),
+                    "duration_timesteps": stats.time.duration_timesteps(cid),
+                    "size": int(td.get_cluster_mask(cluster_var, cid).sum().values),
+                    "footprint_area": stats.space.footprint_cumulative_area(cid),
+                    "median_time": stats.time.median_activity_time(cid),
+                    center_y: cy,
+                    center_x: cx,
+                }
+            )
+        legacy_cols = list(pd.DataFrame(legacy_rows).columns)
+        pd.testing.assert_frame_equal(
+            df_stats[legacy_cols], pd.DataFrame(legacy_rows), check_dtype=False
+        )
+
     def test_cluster_summary_extended(self, td_with_clusters):
         td = td_with_clusters
         cluster_var = td.cluster_vars[0]

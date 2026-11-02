@@ -558,3 +558,45 @@ class GeneralStats:
             return float(np.average(scores, weights=weights))
         else:
             return 0
+
+    def size_table(
+        self,
+        cluster_ids: list[int] | range | None = None,
+        *,
+        events=None,
+        exclude_noise: bool = True,
+    ) -> pd.DataFrame:
+        """Batch spacetime cell counts per cluster (same as ``mask.sum()``).
+
+        Args:
+            cluster_ids: Cluster ids to include. Defaults to all non-noise ids.
+            events: Optional precomputed :class:`ClusterLabelEvents`.
+            exclude_noise: Used only when ``cluster_ids`` is None.
+        """
+        from toad.postprocessing.stats.cluster_events import (
+            _group_slices,
+            load_cluster_label_events,
+        )
+
+        if cluster_ids is None:
+            cluster_ids = [
+                int(c)
+                for c in self.td.get_cluster_ids(self.var, exclude_noise=exclude_noise)
+            ]
+        else:
+            cluster_ids = [int(c) for c in cluster_ids]
+
+        if events is None:
+            events = load_cluster_label_events(self.td, self.var, cluster_ids)
+
+        counts: dict[int, int] = {int(cid): 0 for cid in cluster_ids}
+        if events.labels.size:
+            order = np.argsort(events.labels, kind="mergesort")
+            lab_s = events.labels[order]
+            for cid, s, e in _group_slices(lab_s):
+                if cid in counts:
+                    counts[cid] = int(e - s)
+
+        return pd.DataFrame(
+            [{"cluster_id": int(cid), "size": counts[int(cid)]} for cid in cluster_ids]
+        )

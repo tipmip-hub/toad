@@ -81,20 +81,27 @@ class TimeStats:
         return int(idx_end)
 
     def duration(self, cluster_id) -> float:
-        """Return duration of the cluster in time.
+        """Return the cluster *detection* duration in time.
+
+        Span between the first and last timestep where any grid cell in the
+        cluster has a detection (peak ``t*``).
 
         Args:
             cluster_id: ID of the cluster to calculate duration for.
 
         Returns:
-            float: Duration of the cluster. If the original dataset uses cftime format,
-                the duration is returned in seconds.
+            float: Detection span of the cluster. If the original dataset uses
+                cftime format, the duration is returned in seconds.
         """
         numeric_times = self._get_cluster_numeric_times(cluster_id)
         return float(np.max(numeric_times) - np.min(numeric_times))
 
     def duration_timesteps(self, cluster_id) -> int:
-        """Return duration of the cluster in timesteps."""
+        """Return the cluster *detection* duration in timesteps.
+
+        ``end_timestep - start_timestep`` over the detection mask (first→last
+        peak activity).
+        """
         return int(self.end_timestep(cluster_id) - self.start_timestep(cluster_id))
 
     def value_at_start(self, cluster_id, aggregation: str = "median") -> float:
@@ -346,6 +353,77 @@ class TimeStats:
         mask = self.td.get_cluster_mask(self.var, cluster_id)
         mask = mask.any(dim=self.td.space_dims)
         return self.td.numeric_time_values[mask]
+
+    def activity_table(
+        self,
+        cluster_ids: list[int] | range | None = None,
+        *,
+        events=None,
+        exclude_noise: bool = True,
+    ) -> pd.DataFrame:
+        """Batch start / end / duration / median activity time for many clusters.
+
+        Same definitions as :meth:`start`, :meth:`end`, :meth:`duration_timesteps`,
+        and :meth:`median_activity_time`, computed in one pass over labeled cells.
+
+        Args:
+            cluster_ids: Cluster ids to include. Defaults to all non-noise ids.
+            events: Optional precomputed :class:`ClusterLabelEvents` (avoids a
+                second scan when building a fuller summary table).
+            exclude_noise: Used only when ``cluster_ids`` is None.
+        """
+        from toad.postprocessing.stats.cluster_events import (
+            _group_slices,
+            load_cluster_label_events,
+        )
+
+        if cluster_ids is None:
+            cluster_ids = [
+                int(c)
+                for c in self.td.get_cluster_ids(self.var, exclude_noise=exclude_noise)
+            ]
+        else:
+            cluster_ids = [int(c) for c in cluster_ids]
+
+        if events is None:
+            events = load_cluster_label_events(self.td, self.var, cluster_ids)
+
+        numeric_times = events.numeric_times
+        by_id: dict[int, np.ndarray] = {}
+        if events.labels.size:
+            lt = np.unique(np.stack((events.labels, events.t_idx), axis=1), axis=0)
+            order = np.argsort(lt[:, 0], kind="mergesort")
+            lt = lt[order]
+            for cid, s, e in _group_slices(lt[:, 0]):
+                by_id[cid] = lt[s:e, 1]
+
+        rows: list[dict] = []
+        for cid in cluster_ids:
+            ts = by_id.get(int(cid))
+            if ts is None or ts.size == 0:
+                rows.append(
+                    {
+                        "cluster_id": int(cid),
+                        "start_time": np.nan,
+                        "end_time": np.nan,
+                        "duration_timesteps": 0,
+                        "median_time": np.nan,
+                    }
+                )
+                continue
+            t_min = int(ts.min())
+            t_max = int(ts.max())
+            med_numeric = float(np.median(numeric_times[ts]))
+            rows.append(
+                {
+                    "cluster_id": int(cid),
+                    "start_time": self._return_time(float(numeric_times[t_min])),
+                    "end_time": self._return_time(float(numeric_times[t_max])),
+                    "duration_timesteps": int(t_max - t_min),
+                    "median_time": self._return_time(med_numeric),
+                }
+            )
+        return pd.DataFrame(rows)
 
     def mean(self, cluster_id) -> Union[float, cftime.datetime, np.datetime64]:
         """Return mean time value of the cluster."""
