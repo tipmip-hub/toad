@@ -46,10 +46,7 @@ from toad.utils import (
     get_latlon_info,
     get_unique_variable_name,
 )
-from toad.utils.shift_selection_utils import (
-    _compute_dts_peak_sign_mask,
-    _compute_episode_pass_mask,
-)
+from toad.utils.shift_selection_utils import _compute_dts_peak_sign_mask
 
 logger = logging.getLogger("TOAD")
 
@@ -73,9 +70,6 @@ def compute_clusters(
     shift_threshold: float = DEFAULT_SHIFT_THRESHOLD,
     shift_direction: Literal["both", "positive", "negative"] | str = "both",
     shift_selection: Literal["local", "global", "all"] | str = "local",
-    min_event_magnitude: float | None = None,
-    min_event_magnitude_L: int = 25,
-    min_event_magnitude_G: int = 10,
     time_weight: float = 1,
     regridder: BaseRegridder | None = None,
     disable_regridder: bool = False,
@@ -118,15 +112,6 @@ def compute_clusters(
             - "global": Finds the overall strongest shift per grid cell. Cluster only the single maximum shift value per grid cell where abs(shift) > shift_threshold.
             - "all": Cluster all shift values that meet the threshold and direction criteria. Includes all data points above threshold, not just peaks.
             Defaults to "local".
-        min_event_magnitude: Minimum absolute change in the base variable per detected dts
-            episode (physical units). Magnitude is the peak-anchored plateau difference
-            with outer half-width ``min_event_magnitude_L`` and guard
-            ``min_event_magnitude_G``. When set, only episodes meeting this threshold are
-            clustered. Defaults to None (no magnitude filter).
-        min_event_magnitude_L: Outer half-width (time steps) around the dts peak for
-            plateau means when ``min_event_magnitude`` is set. Defaults to 25.
-        min_event_magnitude_G: Guard half-width (time steps) excluded around the peak.
-            Requires ``L > G >= 0``. Defaults to 10.
         time_weight: Controls the relative influence of time in clustering. By default, time values are automatically scaled to match the standard deviation of the spatial coordinates. Increasing time_weight gives more emphasis to the temporal dimension, resulting in clusters that are tighter in time (shorter delays between abrupt events). Decreasing it emphasizes the spatial dimensions, allowing clusters to span a wider range of shift times. Defaults to 1.
         regridder: The regridding method to use from `toad.clustering.regridding`. Defaults to None. If None and coordinates are lat/lon, a HealPixRegridder will be created automatically.
         disable_regridder: Whether to disable the regridder. Defaults to False.
@@ -245,9 +230,6 @@ def compute_clusters(
             shift_threshold=shift_threshold,
             shift_direction=shift_direction,
             shift_selection=shift_selection,
-            min_event_magnitude=min_event_magnitude,
-            min_event_magnitude_L=min_event_magnitude_L,
-            min_event_magnitude_G=min_event_magnitude_G,
             time_weight=time_weight,
             regridder=regridder,
             output_label=new_output_label,
@@ -264,16 +246,7 @@ def compute_clusters(
 
     # ==================== SHIFT SELECTION ====================
     sh = td.data[shifts_variable]
-
     base_variable_name = sh.attrs.get(_attrs.BASE_VARIABLE)
-    if min_event_magnitude is not None:
-        if not base_variable_name or base_variable_name not in td.data:
-            raise ValueError(
-                f"min_event_magnitude requires base variable {base_variable_name!r} in dataset"
-            )
-        base_da = td.data[base_variable_name]
-    else:
-        base_da = None
 
     # Create mask to exclude grid cells with all NaN values
     # Grid cells that are all NaN across time should not be included in clustering
@@ -285,10 +258,6 @@ def compute_clusters(
             td.time_dim,
             shift_threshold,
             shift_selection=shift_selection,
-            base=base_da,
-            min_event_magnitude=min_event_magnitude,
-            min_event_magnitude_L=min_event_magnitude_L,
-            min_event_magnitude_G=min_event_magnitude_G,
         )
         if shift_direction == "both":
             cond = (mask_da != 0) & has_valid_data
@@ -304,17 +273,6 @@ def compute_clusters(
             cond = (sh > shift_threshold) & has_valid_data
         else:
             cond = (sh < -shift_threshold) & has_valid_data
-        if min_event_magnitude is not None:
-            episode_mask = _compute_episode_pass_mask(
-                sh,
-                base_da,
-                td.time_dim,
-                shift_threshold,
-                min_event_magnitude,
-                min_event_magnitude_L=min_event_magnitude_L,
-                min_event_magnitude_G=min_event_magnitude_G,
-            )
-            cond = cond & episode_mask
 
     # boolean → indices per axis (axis order matches sh.dims, not necessarily time-first)
     cond_vals = np.asarray(cond.data)
@@ -520,10 +478,6 @@ def compute_clusters(
         **method_params,
         **regridder_params,
     }
-    if min_event_magnitude is not None:
-        cluster_attrs[_attrs.MIN_EVENT_MAGNITUDE] = min_event_magnitude
-        cluster_attrs[_attrs.MIN_EVENT_MAGNITUDE_L] = min_event_magnitude_L
-        cluster_attrs[_attrs.MIN_EVENT_MAGNITUDE_G] = min_event_magnitude_G
     clusters.attrs.update(cluster_attrs)
     if cluster_sign is not None:
         cluster_sign.attrs.update(
@@ -640,39 +594,43 @@ def _export_mma_cluster_labels(
     time_dim = td.time_dim
 
     if mma_grid == "healpix":
-        if not (
-            isinstance(regridder, HealPixRegridder)
-            and regridder.df_healpix is not None
-            and len(regridder.df_healpix) > 0
-            and "cluster" in regridder.df_healpix.columns
-        ):
+        if not isinstance(regridder, HealPixRegridder):
             raise ValueError(
                 "mma_grid='healpix' requires HealPix regridding. Pass regridder=HealPixRegridder(nside=...) "
                 "to compute_clusters and ensure the grid has lat/lon coordinates."
             )
+        # Empty event sets never call regrid(), so df_healpix stays empty / without
+        # a cluster column. Still write an all-NaN product so MMA can include the model.
         df = regridder.df_healpix
+        has_healpix_data = df is not None and len(df) > 0 and "cluster" in df.columns
         nside = regridder.nside if regridder.nside is not None else 32
         npix = 12 * nside**2
         time_vals = td.data[time_dim].values
         n_time = len(time_vals)
-        time_to_idx = {t: i for i, t in enumerate(time_vals)}
         cluster_healpix = np.full((n_time, npix), np.nan, dtype=np.float32)
         cluster_sign_healpix = np.full((n_time, npix), np.nan, dtype=np.float32)
-        for _, row in df.iterrows():
-            t_idx = time_to_idx.get(row["time"])
-            if t_idx is None:
-                continue
-            hp_idx = int(row["hp_pix"])
-            if 0 <= hp_idx < npix:
-                cluster_healpix[t_idx, hp_idx] = np.float32(row["cluster"])
-                if (
-                    "sign" in row
-                    and np.isfinite(row["cluster"])
-                    and row["cluster"] >= 0
-                ):
-                    cluster_sign_healpix[t_idx, hp_idx] = np.float32(
-                        np.sign(row["sign"])
-                    )
+        if has_healpix_data:
+            time_to_idx = {t: i for i, t in enumerate(time_vals)}
+            for _, row in df.iterrows():
+                t_idx = time_to_idx.get(row["time"])
+                if t_idx is None:
+                    continue
+                hp_idx = int(row["hp_pix"])
+                if 0 <= hp_idx < npix:
+                    cluster_healpix[t_idx, hp_idx] = np.float32(row["cluster"])
+                    if (
+                        "sign" in row
+                        and np.isfinite(row["cluster"])
+                        and row["cluster"] >= 0
+                    ):
+                        cluster_sign_healpix[t_idx, hp_idx] = np.float32(
+                            np.sign(row["sign"])
+                        )
+        else:
+            logger.info(
+                "No HealPix cluster points to export; writing all-NaN labels to %s",
+                path,
+            )
 
         cluster_attrs = {
             "description": "Cluster variable (time, hp_pixel). For consensus and shift time extraction.",
