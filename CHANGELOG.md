@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Vectorised ``cluster_summary()`` via batch helpers ``activity_table``, ``footprint_table``, and ``size_table`` (same stats, one pass over cluster labels).
+
 ## [1.0.9] - 2026-10-08
 
 ### Added

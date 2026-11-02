@@ -1,9 +1,10 @@
 import inspect
 
 import numpy as np
+import pandas as pd
 from scipy.ndimage import distance_transform_edt
 
-from toad.utils import _all_functions
+from toad.utils import _all_functions, detect_latlon_names
 
 
 class SpaceStats:
@@ -163,6 +164,75 @@ class SpaceStats:
     def footprint_cumulative_area(self, cluster_id) -> int:
         """Returns the total number of spatial cells that were ever touched by the cluster."""
         return int(self.td.get_cluster_mask_spatial(self.var, cluster_id).sum().sum())
+
+    def footprint_table(
+        self,
+        cluster_ids: list[int] | range | None = None,
+        *,
+        events=None,
+        exclude_noise: bool = True,
+        center_y: str | None = None,
+        center_x: str | None = None,
+    ) -> pd.DataFrame:
+        """Batch footprint area and footprint mean centre for many clusters.
+
+        Same definitions as :meth:`footprint_cumulative_area` and
+        :meth:`footprint_mean`, computed in one pass over labeled cells.
+        """
+        from toad.postprocessing.stats.cluster_events import (
+            _group_slices,
+            load_cluster_label_events,
+        )
+
+        if cluster_ids is None:
+            cluster_ids = [
+                int(c)
+                for c in self.td.get_cluster_ids(self.var, exclude_noise=exclude_noise)
+            ]
+        else:
+            cluster_ids = [int(c) for c in cluster_ids]
+
+        if center_y is None or center_x is None:
+            lat_name, lon_name = detect_latlon_names(self.td.data)
+            if lat_name is not None and lon_name is not None:
+                center_y, center_x = "center_lat", "center_lon"
+            else:
+                sd0, sd1 = self.td.space_dims
+                center_y, center_x = f"center_{sd0}", f"center_{sd1}"
+
+        if events is None:
+            events = load_cluster_label_events(self.td, self.var, cluster_ids)
+
+        by_id: dict[int, np.ndarray] = {}
+        if events.labels.size:
+            lp = np.unique(np.stack((events.labels, events.p_idx), axis=1), axis=0)
+            order = np.argsort(lp[:, 0], kind="mergesort")
+            lp = lp[order]
+            for cid, s, e in _group_slices(lp[:, 0]):
+                by_id[cid] = lp[s:e, 1]
+
+        rows: list[dict] = []
+        for cid in cluster_ids:
+            ps = by_id.get(int(cid))
+            if ps is None or ps.size == 0:
+                rows.append(
+                    {
+                        "cluster_id": int(cid),
+                        "footprint_area": 0,
+                        center_y: np.nan,
+                        center_x: np.nan,
+                    }
+                )
+                continue
+            rows.append(
+                {
+                    "cluster_id": int(cid),
+                    "footprint_area": int(ps.size),
+                    center_y: float(np.mean(events.y_flat[ps])),
+                    center_x: float(np.mean(events.x_flat[ps])),
+                }
+            )
+        return pd.DataFrame(rows)
 
     def all_stats(self, cluster_id) -> dict:
         """Return all cluster stats"""
