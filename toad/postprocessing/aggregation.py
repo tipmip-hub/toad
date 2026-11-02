@@ -7,6 +7,7 @@ import xarray as xr
 
 from toad._version import __version__
 from toad.postprocessing.member_support_consensus import (
+    SpatialTolerance,
     _accumulate_member_support,
     _build_grid_context,
     _build_member_support_dataset,
@@ -16,6 +17,8 @@ from toad.postprocessing.member_support_consensus import (
     consensus_sign_var_name,
     min_consensus_members,
     relabel_by_id_mapping,
+    spatial_tolerance_attr_value,
+    validate_spatial_tolerance,
 )
 from toad.utils import _attrs, get_unique_variable_name
 from toad.utils.cluster_consensus_utils import (
@@ -142,7 +145,7 @@ def _finalize_consensus_variables(
     cluster_vars: List[str],
     min_consensus: float,
     temporal_tolerance: int,
-    spatial_tolerance: int,
+    spatial_tolerance: SpatialTolerance,
     stitch_meridian: StitchMeridianSetting,
     stitch_meridian_resolved: bool,
     min_cluster_area: int | None,
@@ -196,7 +199,7 @@ def _finalize_consensus_variables(
         "min_consensus": min_consensus,
         "min_consensus_members": min_votes,
         "temporal_tolerance": temporal_tolerance,
-        "spatial_tolerance": spatial_tolerance,
+        "spatial_tolerance": spatial_tolerance_attr_value(spatial_tolerance),
         "stitch_meridian": (
             int(stitch_meridian)
             if isinstance(stitch_meridian, bool)
@@ -303,7 +306,7 @@ class Aggregation:
         *,
         min_consensus: float,
         temporal_tolerance: int,
-        spatial_tolerance: int,
+        spatial_tolerance: SpatialTolerance,
         stitch_meridian: StitchMeridianSetting = "auto",
         show_progress: bool = True,
         output_label_suffix: str = "",
@@ -369,7 +372,8 @@ class Aggregation:
             temporal_tolerance: Time-step radius for support dilation and cluster connectivity.
                 Required; ``0`` means exact-time support only.
             spatial_tolerance: Grid-cell radius in ``y/x`` for support dilation and cluster
-                connectivity. Required; ``0`` means exact spatial support only.
+                connectivity. Required; ``0`` means exact spatial support only;
+                ``np.inf`` means unlimited spatial reach (temporal agreement only).
             stitch_meridian: ``False``, ``True``, or ``\"auto\"`` (default). ``\"auto\"`` enables
                 seam stitching when the grid spans nearly all longitudes.
             show_progress: Show a progress bar while processing inputs. Default: True.
@@ -412,10 +416,7 @@ class Aggregation:
             raise ValueError(
                 f"`temporal_tolerance` must be >= 0, got {temporal_tolerance}."
             )
-        if spatial_tolerance < 0:
-            raise ValueError(
-                f"`spatial_tolerance` must be >= 0, got {spatial_tolerance}."
-            )
+        spatial_tolerance = validate_spatial_tolerance(spatial_tolerance)
         if not (0.0 <= min_consensus <= 1.0):
             raise ValueError(f"`min_consensus` must be in [0, 1], got {min_consensus}.")
         if min_cluster_area is not None and min_cluster_area < 0:

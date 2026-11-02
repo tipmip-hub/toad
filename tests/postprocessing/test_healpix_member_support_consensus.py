@@ -245,3 +245,64 @@ def test_healpix_member_support_basic():
     assert labels.shape == (T, npix)
     assert rate.shape == (T, npix)
     assert np.any(labels >= 0)
+
+
+def test_healpix_infinite_spatial_tolerance_temporal_only():
+    """Distant same-time HEALPix detections agree under ``spatial_tolerance=np.inf``."""
+    T, nside, npix = 3, 4, 12 * 4**2
+    coords = {"time": np.arange(T), "hp_pixel": np.arange(npix)}
+    a = np.full((T, npix), np.nan, dtype=np.float32)
+    b = np.full((T, npix), np.nan, dtype=np.float32)
+    pix_a, pix_b = 0, npix - 1
+    a[1, pix_a] = 0
+    b[1, pix_b] = 0
+    ds = xr.Dataset(
+        {
+            "model_a_cluster": (("time", "hp_pixel"), a),
+            "model_b_cluster": (("time", "hp_pixel"), b),
+        },
+        coords=coords,
+    )
+    store = _Store(ds, "time")
+
+    out_exact = run_healpix_member_support_consensus(
+        store,
+        cluster_vars=["model_a_cluster", "model_b_cluster"],
+        min_consensus=1.0,
+        temporal_tolerance=0,
+        spatial_tolerance=0,
+        nside=nside,
+        min_cluster_area=None,
+        show_progress=False,
+    )
+    assert not np.any(out_exact["clusters"].values >= 0)
+
+    out_inf = run_healpix_member_support_consensus(
+        store,
+        cluster_vars=["model_a_cluster", "model_b_cluster"],
+        min_consensus=1.0,
+        temporal_tolerance=0,
+        spatial_tolerance=np.inf,
+        nside=nside,
+        min_cluster_area=None,
+        show_progress=False,
+    )
+    labels = out_inf["clusters"].values
+    assert labels[1, pix_a] >= 0
+    assert labels[1, pix_b] >= 0
+    assert labels[1, pix_a] == labels[1, pix_b]
+
+    # Dilation: any detection at t fills the whole time slice after temporal window
+    rows, cols = build_ring1_spatial_edges(nside)
+    mask = np.zeros((T, npix), dtype=bool)
+    mask[1, pix_a] = True
+    dilated = _dilate_healpix_support_mask(
+        mask,
+        temporal_tolerance=0,
+        spatial_tolerance=np.inf,
+        spatial_rows=rows,
+        spatial_cols=cols,
+    )
+    assert dilated[1].all()
+    assert not dilated[0].any()
+    assert not dilated[2].any()

@@ -87,6 +87,34 @@ def test_export_for_mma_healpix():
             ds.close()
 
 
+def test_export_for_mma_healpix_no_events():
+    """HealPix MMA export must succeed when no points pass the shift threshold."""
+    import xarray as xr
+
+    with tempfile.TemporaryDirectory() as tmp:
+        td = TOAD("tutorials/test_data/synth_data.nc", time_dim="time")
+        td.data = td.data.coarsen(lat=4, lon=4, time=3, boundary="trim").reduce(np.mean)
+        td.data = td.data.drop_vars(td.cluster_vars, errors="ignore")
+        if len(td.shift_vars) == 0:
+            td.compute_shifts(
+                td.base_vars[0], method=ASDETECT(ignore_nan_warnings=True)
+            )
+
+        path = Path(tmp) / "empty_healpix.nc"
+        td.compute_clusters(
+            method=HDBSCAN(min_cluster_size=5),
+            shift_threshold=1e9,
+            regridder=HealPixRegridder(nside=8),
+            export_for_mma=str(path),
+            mma_grid="healpix",
+        )
+        assert path.exists()
+        with xr.open_dataset(path) as ds:
+            assert "cluster" in ds
+            assert ds.attrs.get("nside") == 8
+            assert np.all(np.isnan(ds["cluster"].values))
+
+
 def test_mma_native_files():
     """Test MMA with native-format cluster label files."""
     with tempfile.TemporaryDirectory() as tmp:
@@ -193,6 +221,33 @@ def test_mma_healpix_union_time_alignment():
             xr.open_dataset(short_path).sizes["time"],
             xr.open_dataset(paths[1]).sizes["time"],
         )
+
+
+def test_mma_infinite_spatial_tolerance_roundtrip():
+    """``spatial_tolerance=np.inf`` survives NetCDF round-trip and dilation."""
+    with tempfile.TemporaryDirectory() as tmp:
+        paths = setup_and_export_healpix(Path(tmp), n_runs=2, nside=8)
+        mma = MMA(paths, nside=8)
+        mma.run_consensus(
+            min_consensus=0.5,
+            temporal_tolerance=1,
+            spatial_tolerance=np.inf,
+            min_cluster_area=1,
+        )
+        consensus_path = Path(tmp) / "consensus_inf.nc"
+        mma.data.to_netcdf(consensus_path)
+
+        reloaded = MMA.from_consensus(str(consensus_path), load_exports=False)
+        temporal, spatial = reloaded._consensus_tolerances()
+        assert temporal == 1
+        assert np.isinf(spatial)
+
+        T = reloaded.data.sizes[reloaded._time_dim]
+        npix = 12 * 8**2
+        mask = np.zeros((T, npix), dtype=bool)
+        mask[0, 0] = True
+        dilated = reloaded._dilate_healpix_model_support(mask)
+        assert dilated[0].all()
 
 
 def test_mma_from_consensus():

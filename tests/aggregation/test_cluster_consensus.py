@@ -510,6 +510,40 @@ def test_spatial_tolerance_merges_clusters_separated_by_two_cell_gap():
     )
 
 
+def test_infinite_spatial_tolerance_is_temporal_only():
+    """``np.inf`` lets same-time detections support each other at any distance."""
+    # 1×5 grid: detections at opposite ends, same timestep
+    labels_a = np.array([[[0, -1, -1, -1, -1]]], dtype=np.float32)
+    labels_b = np.array([[[-1, -1, -1, -1, 0]]], dtype=np.float32)
+    td = setup_synthetic_consensus_toad({"c1": labels_a, "c2": labels_b})
+
+    td.compute_consensus(
+        min_consensus=1.0,
+        temporal_tolerance=0,
+        spatial_tolerance=0,
+        min_cluster_area=None,
+        show_progress=False,
+        output_label="cons_exact",
+    )
+    # Exact-cell: each voxel has only 1/2 support → noise
+    assert not np.any(td.data["cons_exact"].values >= 0)
+
+    td.compute_consensus(
+        min_consensus=1.0,
+        temporal_tolerance=0,
+        spatial_tolerance=np.inf,
+        min_cluster_area=None,
+        show_progress=False,
+        output_label="cons_inf",
+    )
+    cons = td.data["cons_inf"].values
+    assert cons[0, 0, 0] >= 0
+    assert cons[0, 0, 4] >= 0
+    # Same consensus component (temporal-only connectivity)
+    assert cons[0, 0, 0] == cons[0, 0, 4]
+    assert np.isinf(td.data["cons_inf"].attrs["spatial_tolerance"])
+
+
 def test_temporal_tolerance_merges_clusters_separated_by_two_step_gap():
     """Raised temporal tolerance bridges native events two timesteps apart."""
     labels_a = np.array([[[0]], [[-1]], [[-1]], [[-1]]], dtype=np.float32)
@@ -607,6 +641,16 @@ def test_compute_consensus_rejects_invalid_parameters():
             spatial_tolerance=-1,
             show_progress=False,
         )
+    # ``np.inf`` is allowed (unlimited spatial reach)
+    td.compute_consensus(
+        min_consensus=0.5,
+        temporal_tolerance=0,
+        spatial_tolerance=np.inf,
+        show_progress=False,
+        output_label="cons_inf_ok",
+        min_cluster_area=None,
+    )
+    assert np.isinf(td.data["cons_inf_ok"].attrs["spatial_tolerance"])
     with pytest.raises(ValueError, match="stitch_meridian"):
         td.compute_consensus(
             min_consensus=0.5,

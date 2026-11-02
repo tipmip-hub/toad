@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vectorised ``cluster_summary()`` via batch helpers ``activity_table``, ``footprint_table``, and ``size_table`` (same stats, one pass over cluster labels).
 - ``TOAD.compute_shift_magnitudes()``: per-event ordered-extreme magnitude and duration fields (``{shifts}_magnitude``, ``{shifts}_duration``).
 - ``cluster_summary()`` event-level columns: ``median_event_magnitude``, ``median_event_duration``, IQRs, and ``n_events`` (requires ``compute_shift_magnitudes()``).
+- ``spatial_tolerance=np.inf`` for member-support consensus: temporal-only support and connectivity (no hop dilation).
 
 ### Changed
 - HEALPix backend switched from **astropy-healpix** to **healpix-geo** (ring scheme unchanged; saved `hp_pixel` indices compatible).
@@ -20,9 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - ``compute_shifts`` persists resolved ``shifts_lmax`` (and EDGE length defaults) in attrs; ``None`` defaults were previously dropped.
 - Shift-magnitude ``resolve_lmin_lmax`` also reads ``shifts_lmin``/``shifts_lmax``.
+- ``MMA._consensus_tolerances()`` no longer casts ``spatial_tolerance`` with ``int()`` (``OverflowError`` on ``inf`` when reloading plots).
 
 ### Removed
 - **astropy** and **astropy-healpix** dependencies.
+- ``min_event_magnitude`` / ``min_event_magnitude_L`` / ``min_event_magnitude_G`` from ``compute_clusters`` (and the plateau episode filter path). Prefer post-cluster magnitude filtering via ``compute_shift_magnitudes`` / ``cluster_summary``.
 
 ## [1.0.9] - 2026-10-08
 

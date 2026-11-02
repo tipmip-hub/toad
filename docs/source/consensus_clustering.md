@@ -98,7 +98,7 @@ Both label and rate arrays store `consensus_method` (`"member_support"`), `clust
 | Parameter | What it does |
 | --- | --- |
 | `min_consensus` | Fraction of inputs that must support a cell for it to be kept |
-| `temporal_tolerance` / `spatial_tolerance` | How far support and cluster connectivity can reach in time steps and grid cells (not km). `0` = exact-time or exact-cell support only. |
+| `temporal_tolerance` / `spatial_tolerance` | How far support and cluster connectivity can reach in time steps and grid cells (not km). `0` = exact-time or exact-cell support only. `spatial_tolerance=np.inf` = unlimited spatial reach (temporal agreement only). |
 | `stitch_meridian` | `"auto"` (default): stitch seam on near-global grids; `False` for regional domains; `True` to force |
 | `min_cluster_area` | Drop clusters smaller than this spatial footprint; default `2`, `None` disables |
 | `show_progress` | Progress bar while processing inputs; default `True` |

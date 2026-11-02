@@ -33,6 +33,108 @@ from tqdm import tqdm
 from toad.clustering import sorted_cluster_labels
 from toad.utils import _attrs
 
+# ``spatial_tolerance=np.inf``: unlimited spatial reach (temporal-only support /
+# connectivity). Finite values are hop / grid-cell radii; ``0`` = exact cell.
+SpatialTolerance = int | float
+
+
+def is_infinite_spatial_tolerance(spatial_tolerance: SpatialTolerance | str) -> bool:
+    """True when ``spatial_tolerance`` requests unlimited spatial reach."""
+    if isinstance(spatial_tolerance, str):
+        return spatial_tolerance.strip().lower() in {"inf", "+inf", "infinity"}
+    try:
+        return bool(np.isinf(spatial_tolerance)) and float(spatial_tolerance) > 0
+    except (TypeError, ValueError):
+        return False
+
+
+def validate_spatial_tolerance(
+    spatial_tolerance: SpatialTolerance | str,
+) -> SpatialTolerance:
+    """Normalise ``spatial_tolerance``; allow non-negative ints or ``+inf``.
+
+    Returns:
+        ``np.inf`` for unlimited spatial reach, otherwise a non-negative ``int``.
+
+    Raises:
+        ValueError: If the value is negative or not a number.
+    """
+    if is_infinite_spatial_tolerance(spatial_tolerance):
+        return np.inf
+    try:
+        # Reject plain bools (subclass of int) and non-numeric input.
+        if isinstance(spatial_tolerance, bool):
+            raise TypeError
+        value = int(spatial_tolerance)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            f"`spatial_tolerance` must be a non-negative int or np.inf, "
+            f"got {spatial_tolerance!r}."
+        ) from exc
+    if value < 0:
+        raise ValueError(
+            f"`spatial_tolerance` must be >= 0 or np.inf, got {spatial_tolerance}."
+        )
+    return value
+
+
+def spatial_tolerance_attr_value(spatial_tolerance: SpatialTolerance) -> float | int:
+    """Value stored on consensus variable attrs (NetCDF-friendly)."""
+    if is_infinite_spatial_tolerance(spatial_tolerance):
+        return float("inf")
+    return int(spatial_tolerance)
+
+
+def _temporal_only_component_edges(
+    *,
+    keep: np.ndarray,
+    T: int,
+    n_space: int,
+    temporal_tolerance: int,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Connect kept voxels by time only (unlimited spatial reach).
+
+    Within each timestep all kept voxels form one component (star edges). Timesteps
+    within ``max(1, temporal_tolerance)`` of each other are bridged via their
+    representatives — enough for undirected connected components.
+    """
+    del T  # layout size unused; kept_t already bounds-checked by construction
+    kept_nodes = np.flatnonzero(keep).astype(np.int64, copy=False)
+    empty = np.array([], dtype=np.int64)
+    if kept_nodes.size == 0:
+        return empty, empty, empty
+
+    connect_t = max(1, int(temporal_tolerance))
+    kept_t = kept_nodes // n_space
+    first_pos: dict[int, int] = {}
+    rows: list[int] = []
+    cols: list[int] = []
+    for i, t in enumerate(kept_t.tolist()):
+        t_i = int(t)
+        if t_i not in first_pos:
+            first_pos[t_i] = i
+        else:
+            rows.append(first_pos[t_i])
+            cols.append(i)
+
+    times_present = sorted(first_pos)
+    for i, t in enumerate(times_present):
+        for t2 in times_present[i + 1 :]:
+            if t2 - t > connect_t:
+                break
+            a = first_pos[t]
+            b = first_pos[t2]
+            rows.append(min(a, b))
+            cols.append(max(a, b))
+
+    if not rows:
+        return kept_nodes, empty, empty
+    return (
+        kept_nodes,
+        np.asarray(rows, dtype=np.int64),
+        np.asarray(cols, dtype=np.int64),
+    )
+
 
 def sign_var_for_cluster_var(cluster_var: str) -> str:
     """Companion per-voxel sign field for a cluster labels variable."""
@@ -474,13 +576,28 @@ def _dilate_boolean_support_mask(
     mask_tyx: np.ndarray,
     *,
     temporal_tolerance: int,
-    spatial_tolerance: int,
+    spatial_tolerance: SpatialTolerance,
     stitch_meridian: bool,
 ) -> np.ndarray:
-    """Box-dilate a native-event mask for *support counting* (does not create output voxels)."""
+    """Box-dilate a native-event mask for *support counting* (does not create output voxels).
+
+    ``spatial_tolerance=np.inf`` collapses space first: a timestep with any detection
+    supports every cell at that time (then a temporal OR window is applied).
+    """
     k_t = max(0, int(temporal_tolerance))
-    k_s = max(0, int(spatial_tolerance))
     mask = np.asarray(mask_tyx, dtype=bool)
+    if is_infinite_spatial_tolerance(spatial_tolerance):
+        any_t = mask.any(axis=(1, 2))
+        if k_t > 0:
+            any_t = ndimage.maximum_filter1d(
+                any_t.astype(np.uint8),
+                size=2 * k_t + 1,
+                mode="constant",
+                cval=0,
+            ).astype(bool, copy=False)
+        return np.broadcast_to(any_t[:, None, None], mask.shape).copy()
+
+    k_s = max(0, int(spatial_tolerance))
     if k_t == 0 and k_s == 0:
         return mask.copy()
     # maximum_filter = logical OR over a (2*k_t+1) × (2*k_s+1) × (2*k_s+1) box
@@ -500,7 +617,7 @@ def _accumulate_member_support(
     *,
     cluster_vars: list[str],
     temporal_tolerance: int,
-    spatial_tolerance: int,
+    spatial_tolerance: SpatialTolerance,
     show_progress: bool,
     context: SpacetimeGridContext,
 ) -> MemberSupport:
@@ -627,9 +744,17 @@ def _component_graph_edges_for_kept_voxels(
     keep: np.ndarray,
     context: SpacetimeGridContext,
     temporal_tolerance: int,
-    spatial_tolerance: int,
+    spatial_tolerance: SpatialTolerance,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Build sparse-graph edges for tolerance-aware spacetime connectivity."""
+    if is_infinite_spatial_tolerance(spatial_tolerance):
+        return _temporal_only_component_edges(
+            keep=keep,
+            T=context.T,
+            n_space=context.n_space,
+            temporal_tolerance=temporal_tolerance,
+        )
+
     kept_nodes = np.flatnonzero(keep).astype(np.int64, copy=False)
     if kept_nodes.size == 0:
         empty = np.array([], dtype=np.int64)
@@ -705,12 +830,30 @@ def _label_retained_voxels(
     *,
     context: SpacetimeGridContext,
     temporal_tolerance: int,
-    spatial_tolerance: int,
+    spatial_tolerance: SpatialTolerance,
 ) -> np.ndarray:
     """Assign consensus cluster ids to voxels that passed the vote threshold."""
+    n_st = keep.size
+    if is_infinite_spatial_tolerance(spatial_tolerance):
+        kept_nodes, rows, cols = _component_graph_edges_for_kept_voxels(
+            keep=keep,
+            context=context,
+            temporal_tolerance=temporal_tolerance,
+            spatial_tolerance=spatial_tolerance,
+        )
+        if kept_nodes.size == 0:
+            return np.full(n_st, -1, dtype=np.int64)
+        graph = coo_matrix(
+            (np.ones(rows.shape[0], dtype=np.float32), (rows, cols)),
+            shape=(kept_nodes.size, kept_nodes.size),
+        )
+        _, labels_kept = connected_components(graph, directed=False, return_labels=True)
+        labels_flat = np.full(n_st, -1, dtype=np.int64)
+        labels_flat[kept_nodes] = labels_kept.astype(np.int64, copy=False)
+        return labels_flat
+
     connect_t = max(1, int(temporal_tolerance))
     connect_s = max(1, int(spatial_tolerance))
-    n_st = keep.size
 
     # --- fast path: unit tolerances, no meridian seam → 3D scipy.label ---
     if connect_t == 1 and connect_s == 1 and not context.stitch_meridian:
@@ -918,7 +1061,7 @@ def _build_member_support_dataset(
     cluster_vars: list[str],
     min_consensus: float,
     temporal_tolerance: int,
-    spatial_tolerance: int,
+    spatial_tolerance: SpatialTolerance,
     context: SpacetimeGridContext,
     support: MemberSupport,
 ) -> xr.Dataset:
@@ -1062,7 +1205,7 @@ def consensus_clusters_from_votes(
     *,
     min_consensus: float,
     temporal_tolerance: int,
-    spatial_tolerance: int,
+    spatial_tolerance: SpatialTolerance,
     context: SpacetimeGridContext,
     cluster_vars: list[str],
 ) -> xr.DataArray:
