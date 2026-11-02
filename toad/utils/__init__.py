@@ -74,6 +74,8 @@ class _Attrs:
     TYPE_CONSENSUS_CLUSTER: str = "consensus_cluster"
     TYPE_CONSENSUS_RATE: str = "consensus_rate"
     TYPE_CONSENSUS_SIGN: str = "consensus_sign"
+    TYPE_SHIFT_MAGNITUDE: str = "shift_magnitude"
+    TYPE_SHIFT_MAGNITUDE_DURATION: str = "shift_magnitude_duration"
 
     # Consensus metadata
     CONSENSUS_LABELS_VAR: str = "consensus_labels_var"

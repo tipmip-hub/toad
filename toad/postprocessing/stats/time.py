@@ -84,7 +84,10 @@ class TimeStats:
         """Return the cluster *detection* duration in time.
 
         Span between the first and last timestep where any grid cell in the
-        cluster has a detection (peak ``t*``).
+        cluster has a detection (peak ``t*``). This is **not** the per-event
+        ordered-extreme duration from
+        :meth:`toad.TOAD.compute_shift_magnitudes` (see
+        ``median_event_duration`` in :meth:`Stats.cluster_summary`).
 
         Args:
             cluster_id: ID of the cluster to calculate duration for.
@@ -100,7 +103,7 @@ class TimeStats:
         """Return the cluster *detection* duration in timesteps.
 
         ``end_timestep - start_timestep`` over the detection mask (first→last
-        peak activity).
+        peak activity). Distinct from per-event ``{shifts}_duration``.
         """
         return int(self.end_timestep(cluster_id) - self.start_timestep(cluster_id))
 

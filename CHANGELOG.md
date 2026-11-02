@@ -1,7 +1,16 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## [Unreleased]
 
 ### Added
 - Vectorised ``cluster_summary()`` via batch helpers ``activity_table``, ``footprint_table``, and ``size_table`` (same stats, one pass over cluster labels).
+- ``TOAD.compute_shift_magnitudes()``: per-event ordered-extreme magnitude and duration fields (``{shifts}_magnitude``, ``{shifts}_duration``).
+- ``cluster_summary()`` event-level columns: ``median_event_magnitude``, ``median_event_duration``, IQRs, and ``n_events`` (requires ``compute_shift_magnitudes()``).
 
 ### Changed
 - HEALPix backend switched from **astropy-healpix** to **healpix-geo** (ring scheme unchanged; saved `hp_pixel` indices compatible).
@@ -10,6 +19,7 @@
 
 ### Fixed
 - ``compute_shifts`` persists resolved ``shifts_lmax`` (and EDGE length defaults) in attrs; ``None`` defaults were previously dropped.
+- Shift-magnitude ``resolve_lmin_lmax`` also reads ``shifts_lmin``/``shifts_lmax``.
 
 ### Removed
 - **astropy** and **astropy-healpix** dependencies.

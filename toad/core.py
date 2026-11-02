@@ -505,6 +505,74 @@ class TOAD:
             optimize_progress_bar=optimize_progress_bar,
         )
 
+    def compute_shift_magnitudes(
+        self,
+        var: str | None = None,
+        shift_threshold: float = DEFAULT_SHIFT_THRESHOLD,
+        lmin: int | None = None,
+        lmax: int | None = None,
+        overwrite: bool = False,
+    ):
+        """Compute per-event ordered-extreme shift magnitudes for detected shifts.
+
+        At each local ``|dts|`` peak above ``shift_threshold``, smooths the base
+        series with a centred running mean of width ``lmin``, then takes ordered
+        extremes on windows ``[t* - lmax, t*]`` / ``[t*, t* + lmax]`` (sign from
+        ``dts``). Windows are truncated at the midpoint to neighbouring peaks in
+        the same cell when present. Writes ``{shifts}_magnitude`` and
+        ``{shifts}_duration`` (time-coordinate gap between the two extreme
+        points).
+
+        Args:
+            var: Base variable, shifts variable, or None to infer when unique.
+            shift_threshold: Minimum ``|dts|`` for a local peak (same semantics as
+                clustering). Defaults to ``DEFAULT_SHIFT_THRESHOLD``.
+            lmin: Smoothing window width and minimum finite points per side.
+                Defaults to the ``lmin`` attribute on the shifts variable
+                (ASDETECT default 5).
+            lmax: Outer half-width of the pre/post windows. Defaults to the
+                ``lmax`` attribute on the shifts variable, or ``n_time // 3``.
+            overwrite: If True, replace existing magnitude fields; if False and
+                they already exist, raise ``ValueError``.
+
+        Raises:
+            ValueError: If shifts/base cannot be resolved, or magnitude fields
+                already exist and ``overwrite`` is False.
+        """
+        from toad.postprocessing.stats.shift_magnitude import (
+            compute_shift_magnitudes as _compute_shift_magnitudes,
+            magnitude_var_names,
+        )
+
+        shifts_da = self.get_shifts(var)
+        base_name = self.get_base_var(str(shifts_da.name))
+        if base_name is None or base_name not in self.data:
+            raise ValueError(
+                f"Could not resolve base variable for shifts {shifts_da.name!r}."
+            )
+        base_da = self.data[base_name]
+
+        mag_name, duration_name = magnitude_var_names(str(shifts_da.name))
+        candidates = [mag_name, duration_name]
+        existing = [n for n in candidates if n in self.data]
+        if existing and not overwrite:
+            raise ValueError(
+                f"Magnitude fields already exist: {existing}. "
+                "Pass overwrite=True to replace them."
+            )
+        if existing and overwrite:
+            self.data = self.data.drop_vars(existing)
+
+        mag_ds = _compute_shift_magnitudes(
+            base_da,
+            shifts_da,
+            self.time_dim,
+            shift_threshold=shift_threshold,
+            lmin=lmin,
+            lmax=lmax,
+        )
+        self.data = xr.merge([self.data, mag_ds], compat="override")
+
     def compute_consensus(
         self,
         cluster_vars: list[str] | None = None,
@@ -705,6 +773,8 @@ class TOAD:
             _attrs.TYPE_CONSENSUS_CLUSTER,
             _attrs.TYPE_CONSENSUS_RATE,
             _attrs.TYPE_CONSENSUS_SIGN,
+            _attrs.TYPE_SHIFT_MAGNITUDE,
+            _attrs.TYPE_SHIFT_MAGNITUDE_DURATION,
         )
         return [
             str(x)
@@ -978,9 +1048,18 @@ class TOAD:
         Remove all shift variables from the dataset.
 
         This method drops all variables identified as shift variables from the
-        underlying data object.
+        underlying data object, including companion shift-magnitude fields.
         """
-        self.data = self.data.drop_vars(self.shift_vars)
+        mag_types = (
+            _attrs.TYPE_SHIFT_MAGNITUDE,
+            _attrs.TYPE_SHIFT_MAGNITUDE_DURATION,
+        )
+        to_drop = list(self.shift_vars)
+        for name in self.data.data_vars:
+            if self.data[name].attrs.get(_attrs.VARIABLE_TYPE) in mag_types:
+                to_drop.append(str(name))
+        if to_drop:
+            self.data = self.data.drop_vars(list(dict.fromkeys(to_drop)))
 
     def drop_consensus_clusters(self):
         """
@@ -1395,6 +1474,8 @@ class TOAD:
             _attrs.TYPE_CONSENSUS_CLUSTER,
             _attrs.TYPE_CONSENSUS_RATE,
             _attrs.TYPE_CONSENSUS_SIGN,
+            _attrs.TYPE_SHIFT_MAGNITUDE,
+            _attrs.TYPE_SHIFT_MAGNITUDE_DURATION,
         ]
 
     def _aggregate_spatial(

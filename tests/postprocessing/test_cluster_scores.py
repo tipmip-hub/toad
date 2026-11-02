@@ -309,6 +309,13 @@ class TestClusterSummary:
             "median_time",
             "center_lat",
             "center_lon",
+            "median_event_magnitude",
+            "event_magnitude_q25",
+            "event_magnitude_q75",
+            "median_event_duration",
+            "event_duration_q25",
+            "event_duration_q75",
+            "n_events",
         }
         assert required_cols.issubset(df_stats.columns)
 

@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import pandas as pd
 
@@ -6,6 +8,8 @@ from toad.postprocessing.stats.general import GeneralStats
 from toad.postprocessing.stats.space import SpaceStats
 from toad.postprocessing.stats.time import TimeStats
 from toad.utils import DEFAULT_SHIFT_THRESHOLD, _attrs, detect_latlon_names
+
+logger = logging.getLogger("TOAD")
 
 __all__ = ["TimeStats", "SpaceStats", "GeneralStats", "Stats"]
 
@@ -62,6 +66,13 @@ class Stats:
             "median_time",
             center_y,
             center_x,
+            "median_event_magnitude",
+            "event_magnitude_q25",
+            "event_magnitude_q75",
+            "median_event_duration",
+            "event_duration_q25",
+            "event_duration_q75",
+            "n_events",
         ]
         if extended:
             cols.extend(
@@ -108,9 +119,19 @@ class Stats:
         :meth:`toad.postprocessing.Aggregation.consensus_summary` for consensus labels.
 
         Minimal columns are assembled from the batch helpers
-        :meth:`TimeStats.activity_table`, :meth:`SpaceStats.footprint_table`, and
-        :meth:`GeneralStats.size_table` (same definitions as the single-cluster
-        methods, one shared scan of the label field).
+        :meth:`TimeStats.activity_table`, :meth:`SpaceStats.footprint_table`,
+        :meth:`GeneralStats.size_table`, and :meth:`GeneralStats.magnitude_table`
+        (same definitions as the single-cluster methods).
+
+        **Cluster-level timing** (``start_time``, ``end_time``,
+        ``duration_timesteps``, ``median_time``) spans first→last *detection*
+        peak (``t*``) in the cluster mask.
+
+        **Event-level columns** (``median_event_magnitude``,
+        ``median_event_duration``, …) aggregate per-grid-cell ordered-extreme
+        estimates from :meth:`toad.TOAD.compute_shift_magnitudes`. These use
+        each event's ``t_pre``→``t_post`` window — not the cluster detection
+        span. They are NaN / 0 until magnitudes have been computed.
 
         Args:
             cluster_ids: Subset of clusters to include. Defaults to all non-noise clusters.
@@ -124,8 +145,11 @@ class Stats:
         Returns:
             DataFrame with one row per cluster. Minimal columns always include
             ``cluster_id``, ``start_time``, ``end_time``, ``duration_timesteps``,
-            ``size``, ``footprint_area``, ``median_time``, and spatial centre columns
-            (``center_lat``/``center_lon`` when geographic coordinates exist).
+            ``size``, ``footprint_area``, ``median_time``, spatial centre columns
+            (``center_lat``/``center_lon`` when geographic coordinates exist), and
+            event-level ``median_event_magnitude``, ``event_magnitude_q25``,
+            ``event_magnitude_q75``, ``median_event_duration``,
+            ``event_duration_q25``, ``event_duration_q75``, ``n_events``.
 
         Example:
             >>> td.cluster_summary("temperature")
@@ -144,6 +168,11 @@ class Stats:
         if len(cluster_ids) == 0:
             return self._empty_cluster_summary(extended, center_y, center_x)
 
+        if self.general._magnitude_array() is None:
+            logger.info(
+                "To get cluster magnitude please run td.compute_shift_magnitudes()"
+            )
+
         events = load_cluster_label_events(self.td, self.var, cluster_ids)
         df = (
             self.time.activity_table(cluster_ids, events=events)
@@ -160,6 +189,10 @@ class Stats:
                 ),
                 on="cluster_id",
             )
+            .merge(
+                self.general.magnitude_table(cluster_ids),
+                on="cluster_id",
+            )
         )
         df = df[
             [
@@ -172,6 +205,13 @@ class Stats:
                 "median_time",
                 center_y,
                 center_x,
+                "median_event_magnitude",
+                "event_magnitude_q25",
+                "event_magnitude_q75",
+                "median_event_duration",
+                "event_duration_q25",
+                "event_duration_q75",
+                "n_events",
             ]
         ]
 

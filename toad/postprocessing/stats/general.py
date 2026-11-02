@@ -600,3 +600,76 @@ class GeneralStats:
         return pd.DataFrame(
             [{"cluster_id": int(cid), "size": counts[int(cid)]} for cid in cluster_ids]
         )
+
+    def _magnitude_arrays(self) -> tuple | None:
+        """Return ``(magnitude, duration)`` DataArrays, or ``None`` if missing."""
+        from toad.postprocessing.stats.shift_magnitude import magnitude_var_names
+
+        try:
+            shifts = self.td.get_shifts(self.var)
+        except Exception:
+            return None
+        mag_name, duration_name = magnitude_var_names(str(shifts.name))
+        if mag_name not in self.td.data or duration_name not in self.td.data:
+            return None
+        return self.td.data[mag_name], self.td.data[duration_name]
+
+    def _magnitude_array(self):
+        """Return the magnitude DataArray, or ``None`` if not computed yet."""
+        arrays = self._magnitude_arrays()
+        return None if arrays is None else arrays[0]
+
+    def magnitude_table(
+        self,
+        cluster_ids: list[int] | range | None = None,
+        *,
+        exclude_noise: bool = True,
+    ) -> pd.DataFrame:
+        """Per-cluster *event-level* magnitude and duration aggregates.
+
+        These summarise per-grid-cell ordered-extreme estimates
+        (``{shifts}_magnitude`` / ``{shifts}_duration``), not the cluster's
+        detection span (``start_time`` / ``end_time`` / ``duration_timesteps``).
+
+        If :meth:`toad.TOAD.compute_shift_magnitudes` has not been run, returns
+        empty / NaN rows for the requested ids.
+
+        Returns:
+            DataFrame with ``cluster_id``, ``median_event_magnitude``,
+            ``event_magnitude_q25``, ``event_magnitude_q75``,
+            ``median_event_duration``, ``event_duration_q25``,
+            ``event_duration_q75``, ``n_events``.
+        """
+        from toad.postprocessing.stats.shift_magnitude import (
+            aggregate_shift_magnitudes_by_cluster,
+            _empty_cluster_magnitude,
+        )
+
+        if cluster_ids is None:
+            cluster_ids = [
+                int(c)
+                for c in self.td.get_cluster_ids(self.var, exclude_noise=exclude_noise)
+            ]
+        else:
+            cluster_ids = [int(c) for c in cluster_ids]
+
+        empty = _empty_cluster_magnitude()
+        if len(cluster_ids) == 0:
+            return pd.DataFrame(columns=["cluster_id", *empty.keys()])
+
+        arrays = self._magnitude_arrays()
+        if arrays is None:
+            return pd.DataFrame([{"cluster_id": cid, **empty} for cid in cluster_ids])
+
+        magnitude, duration = arrays
+        clusters = self.td.get_clusters(self.var).transpose(*magnitude.dims)
+        duration = duration.transpose(*magnitude.dims)
+        stats_rows = aggregate_shift_magnitudes_by_cluster(
+            magnitude, clusters, cluster_ids, duration=duration
+        )
+        return pd.DataFrame(
+            [
+                {"cluster_id": cid, **stats}
+                for cid, stats in zip(cluster_ids, stats_rows)
+            ]
+        )
