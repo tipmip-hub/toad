@@ -370,6 +370,9 @@ def compute_clusters(
         label_offset = 0
         regridders_used: list[BaseRegridder] = []
         clustering_time = 0.0
+        # Sign groups clone the caller's regridder. The MMA export reads the
+        # object the caller passed in, so the filled frame has to be copied back.
+        passed_regridder = regridder
 
         for mask in sign_masks:
             if not np.any(mask):
@@ -398,12 +401,17 @@ def compute_clusters(
             if label_offset > 0 and np.any(valid):
                 sub_labels = sub_labels.copy()
                 sub_labels[valid] += label_offset
+                _offset_healpix_labels(used_regridder, label_offset)
             if np.any(valid):
                 label_offset = int(sub_labels[valid].max()) + 1
             cluster_labels[mask] = sub_labels
             if used_regridder is not None:
                 regridders_used.append(used_regridder)
 
+        pre_sort_labels = cluster_labels
+        cluster_labels = (
+            sorted_cluster_labels(cluster_labels) if sort_by_size else cluster_labels
+        )
         if regridders_used:
             regridder = regridders_used[-1]
             if len(regridders_used) > 1:
@@ -413,10 +421,15 @@ def compute_clusters(
                     [rg.df_healpix for rg in regridders_used],
                     ignore_index=True,
                 )
-
-        cluster_labels = (
-            sorted_cluster_labels(cluster_labels) if sort_by_size else cluster_labels
-        )
+            if sort_by_size:
+                _remap_healpix_labels(regridder, pre_sort_labels, cluster_labels)
+            if (
+                passed_regridder is not None
+                and passed_regridder is not regridder
+                and getattr(regridder, "df_healpix", None) is not None
+            ):
+                passed_regridder.df_healpix = regridder.df_healpix
+                regridder = passed_regridder
 
         # Scatter labels back into xarray without DataFrame
         # Start with NaN (points not included in clustering remain NaN)
@@ -508,6 +521,42 @@ def compute_clusters(
     if cluster_sign is not None:
         merge_vars.append(cluster_sign)
     return xr.merge([td.data, *merge_vars], combine_attrs="override", compat="override")
+
+
+def _offset_healpix_labels(regridder: BaseRegridder | None, offset: int) -> None:
+    """Add ``offset`` to non-noise labels on a sign-group's HealPix frame."""
+    df = getattr(regridder, "df_healpix", None)
+    if (
+        offset == 0
+        or df is None
+        or len(df) == 0
+        or "cluster" not in getattr(df, "columns", ())
+    ):
+        return
+    labels = df["cluster"].to_numpy(dtype=float, copy=True)
+    keep = np.isfinite(labels) & (labels >= 0)
+    labels[keep] += offset
+    df["cluster"] = labels
+
+
+def _remap_healpix_labels(regridder: BaseRegridder, before, after) -> None:
+    """Apply the same size-sort renumbering to HealPix labels as to the native field."""
+    df = getattr(regridder, "df_healpix", None)
+    if df is None or len(df) == 0 or "cluster" not in df.columns:
+        return
+    old = np.asarray(before, dtype=float).ravel()
+    new = np.asarray(after, dtype=float).ravel()
+    mapping: dict[int, float] = {}
+    for old_id, new_id in zip(old, new):
+        if np.isfinite(old_id) and old_id >= 0 and np.isfinite(new_id):
+            mapping[int(old_id)] = float(new_id)
+
+    def _map(value):
+        if not np.isfinite(value) or value < 0:
+            return value
+        return mapping.get(int(value), np.nan)
+
+    df["cluster"] = df["cluster"].map(_map)
 
 
 def _clone_regridder(regridder: BaseRegridder | None) -> BaseRegridder | None:
