@@ -20,14 +20,18 @@ from toad.postprocessing.aggregation import _filter_consensus_labels_min_size
 from toad.postprocessing.member_support_consensus import (
     MemberSupport,
     SpatialTolerance,
+    TemporalTolerance,
+    _spatial_only_component_edges,
     _temporal_only_component_edges,
     build_sign_aware_consensus_labels,
     cluster_signs_flat_for_var,
     has_sign_aware_inputs,
     is_infinite_spatial_tolerance,
+    is_infinite_temporal_tolerance,
     min_consensus_members,
+    reject_both_infinite_tolerances,
     sorted_consensus_labels_by_area,
-    validate_spatial_tolerance,
+    validate_consensus_tolerances,
 )
 from toad.utils import _attrs
 
@@ -147,7 +151,7 @@ def _healpix_spatial_reachability_table(nside: int, connect_s: int) -> np.ndarra
 def _dilate_healpix_support_mask(
     mask_tpix: np.ndarray,
     *,
-    temporal_tolerance: int,
+    temporal_tolerance: TemporalTolerance,
     spatial_tolerance: SpatialTolerance,
     spatial_rows: np.ndarray,
     spatial_cols: np.ndarray,
@@ -160,10 +164,13 @@ def _dilate_healpix_support_mask(
 
     ``spatial_tolerance=np.inf`` collapses space first (any detection at a
     timestep supports every pixel), then applies the temporal window.
+    ``temporal_tolerance=np.inf`` collapses time first (any detection in a pixel
+    supports that pixel at every time), then applies the spatial hop window.
     """
-    k_t = max(0, int(temporal_tolerance))
+    reject_both_infinite_tolerances(temporal_tolerance, spatial_tolerance)
     mask = np.asarray(mask_tpix, dtype=bool)
     if is_infinite_spatial_tolerance(spatial_tolerance):
+        k_t = max(0, int(temporal_tolerance))
         any_t = mask.any(axis=1)
         if k_t > 0:
             any_t = ndimage.maximum_filter1d(
@@ -174,6 +181,20 @@ def _dilate_healpix_support_mask(
             ).astype(bool, copy=False)
         return np.broadcast_to(any_t[:, None], mask.shape).copy()
 
+    if is_infinite_temporal_tolerance(temporal_tolerance):
+        any_pix = mask.any(axis=0)
+        k_s = max(0, int(spatial_tolerance))
+        if k_s > 0:
+            adj = _healpix_adjacency_csr(spatial_rows, spatial_cols, mask.shape[1])
+            current = any_pix.astype(np.float32)
+            spatial = any_pix.copy()
+            for _ in range(k_s):
+                current = adj @ current
+                spatial |= current > 0
+            any_pix = spatial
+        return np.broadcast_to(any_pix[None, :], mask.shape).copy()
+
+    k_t = max(0, int(temporal_tolerance))
     k_s = max(0, int(spatial_tolerance))
     if k_t == 0 and k_s == 0:
         return mask.copy()
@@ -292,15 +313,35 @@ def _component_graph_edges_for_kept_voxels(
     *,
     keep: np.ndarray,
     context: HealpixSpacetimeContext,
-    temporal_tolerance: int,
+    temporal_tolerance: TemporalTolerance,
     spatial_tolerance: SpatialTolerance,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    reject_both_infinite_tolerances(temporal_tolerance, spatial_tolerance)
     if is_infinite_spatial_tolerance(spatial_tolerance):
         return _temporal_only_component_edges(
             keep=keep,
             T=context.T,
             n_space=context.npix,
-            temporal_tolerance=temporal_tolerance,
+            temporal_tolerance=int(temporal_tolerance),
+        )
+    if is_infinite_temporal_tolerance(temporal_tolerance):
+        kept_nodes = np.flatnonzero(keep).astype(np.int64, copy=False)
+        if kept_nodes.size == 0:
+            empty = np.array([], dtype=np.int64)
+            return empty, empty, empty
+        connect_s = max(1, int(spatial_tolerance))
+        kept_s = kept_nodes % context.npix
+        neighbourhoods = _spatial_neighbourhoods_for_tolerance(
+            spatial_indices=kept_s,
+            npix=context.npix,
+            spatial_rows=context.spatial_rows,
+            spatial_cols=context.spatial_cols,
+            spatial_tolerance=connect_s,
+        )
+        return _spatial_only_component_edges(
+            keep=keep,
+            n_space=context.npix,
+            neighbourhoods=neighbourhoods,
         )
 
     kept_nodes = np.flatnonzero(keep).astype(np.int64, copy=False)
@@ -597,17 +638,15 @@ def _accumulate_healpix_votes_context(
     td: Any,
     *,
     cluster_vars: list[str],
-    temporal_tolerance: int,
+    temporal_tolerance: TemporalTolerance,
     spatial_tolerance: SpatialTolerance,
     nside: int,
     k_neighbors: int = 8,
     show_progress: bool = True,
 ) -> tuple[np.ndarray, np.ndarray, HealpixSpacetimeContext]:
-    if temporal_tolerance < 0:
-        raise ValueError(
-            f"`temporal_tolerance` must be >= 0, got {temporal_tolerance}."
-        )
-    spatial_tolerance = validate_spatial_tolerance(spatial_tolerance)
+    temporal_tolerance, spatial_tolerance = validate_consensus_tolerances(
+        temporal_tolerance, spatial_tolerance
+    )
     if not cluster_vars:
         raise ValueError("cluster_vars must not be empty.")
 
@@ -659,7 +698,7 @@ def run_healpix_member_support_consensus(
     *,
     cluster_vars: list[str],
     min_consensus: float,
-    temporal_tolerance: int,
+    temporal_tolerance: TemporalTolerance,
     spatial_tolerance: SpatialTolerance,
     nside: int,
     k_neighbors: int = 8,
@@ -669,13 +708,13 @@ def run_healpix_member_support_consensus(
     """Run member-support consensus on HEALPix cluster label fields.
 
     ``spatial_tolerance=np.inf`` enables unlimited spatial reach (temporal-only
-    member support and connectivity).
+    member support and connectivity). ``temporal_tolerance=np.inf`` enables
+    unlimited temporal reach (spatial-only member support and connectivity).
+    The two cannot be combined.
     """
-    if temporal_tolerance < 0:
-        raise ValueError(
-            f"`temporal_tolerance` must be >= 0, got {temporal_tolerance}."
-        )
-    spatial_tolerance = validate_spatial_tolerance(spatial_tolerance)
+    temporal_tolerance, spatial_tolerance = validate_consensus_tolerances(
+        temporal_tolerance, spatial_tolerance
+    )
     if not (0.0 <= min_consensus <= 1.0):
         raise ValueError(f"`min_consensus` must be in [0, 1], got {min_consensus}.")
     if not cluster_vars:

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ``TOAD.compute_shift_magnitudes()``: per-event ordered-extreme magnitude and duration fields (``{shifts}_magnitude``, ``{shifts}_duration``).
 - ``cluster_summary()`` event-level columns: ``median_event_magnitude``, ``median_event_duration``, IQRs, and ``n_events`` (requires ``compute_shift_magnitudes()``).
 - ``spatial_tolerance=np.inf`` for member-support consensus: temporal-only support and connectivity (no hop dilation).
+- ``temporal_tolerance=np.inf`` for member-support consensus: spatial-only support and connectivity. Both tolerances cannot be ``np.inf``.
 
 ### Changed
 - HEALPix backend switched from **astropy-healpix** to **healpix-geo** (ring scheme unchanged; saved `hp_pixel` indices compatible).

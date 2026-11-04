@@ -108,7 +108,7 @@ print(mma.data)
 | Parameter | Meaning |
 |-----------|---------|
 | `min_consensus` | Fraction of models required per retained voxel |
-| `temporal_tolerance` | Time-step radius for support dilation and cluster connectivity |
+| `temporal_tolerance` | Time-step radius for support dilation and cluster connectivity; ``np.inf`` = unlimited temporal reach |
 | `spatial_tolerance` | HEALPix-hop or native-grid-cell radius; ``np.inf`` = unlimited spatial reach |
 | `min_cluster_area` | Drop consensus clusters with smaller spatial footprint |
 | `k_neighbors` | K for the HEALPix KNN graph (ignored for native format) |

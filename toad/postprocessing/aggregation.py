@@ -8,6 +8,7 @@ import xarray as xr
 from toad._version import __version__
 from toad.postprocessing.member_support_consensus import (
     SpatialTolerance,
+    TemporalTolerance,
     _accumulate_member_support,
     _build_grid_context,
     _build_member_support_dataset,
@@ -18,7 +19,8 @@ from toad.postprocessing.member_support_consensus import (
     min_consensus_members,
     relabel_by_id_mapping,
     spatial_tolerance_attr_value,
-    validate_spatial_tolerance,
+    temporal_tolerance_attr_value,
+    validate_consensus_tolerances,
 )
 from toad.utils import _attrs, get_unique_variable_name
 from toad.utils.cluster_consensus_utils import (
@@ -144,7 +146,7 @@ def _finalize_consensus_variables(
     new_output_label: str,
     cluster_vars: List[str],
     min_consensus: float,
-    temporal_tolerance: int,
+    temporal_tolerance: TemporalTolerance,
     spatial_tolerance: SpatialTolerance,
     stitch_meridian: StitchMeridianSetting,
     stitch_meridian_resolved: bool,
@@ -198,7 +200,7 @@ def _finalize_consensus_variables(
         "consensus_method": "member_support",
         "min_consensus": min_consensus,
         "min_consensus_members": min_votes,
-        "temporal_tolerance": temporal_tolerance,
+        "temporal_tolerance": temporal_tolerance_attr_value(temporal_tolerance),
         "spatial_tolerance": spatial_tolerance_attr_value(spatial_tolerance),
         "stitch_meridian": (
             int(stitch_meridian)
@@ -305,7 +307,7 @@ class Aggregation:
         cluster_vars: List[str] | None = None,
         *,
         min_consensus: float,
-        temporal_tolerance: int,
+        temporal_tolerance: TemporalTolerance,
         spatial_tolerance: SpatialTolerance,
         stitch_meridian: StitchMeridianSetting = "auto",
         show_progress: bool = True,
@@ -370,7 +372,9 @@ class Aggregation:
             min_consensus: Fraction in ``[0, 1]`` of inputs required per retained voxel after
                 dilation. Required; no default.
             temporal_tolerance: Time-step radius for support dilation and cluster connectivity.
-                Required; ``0`` means exact-time support only.
+                Required; ``0`` means exact-time support only. ``np.inf`` means unlimited
+                temporal reach (spatial agreement only). Cannot be combined with
+                ``spatial_tolerance=np.inf``.
             spatial_tolerance: Grid-cell radius in ``y/x`` for support dilation and cluster
                 connectivity. Required; ``0`` means exact spatial support only;
                 ``np.inf`` means unlimited spatial reach (temporal agreement only).
@@ -403,7 +407,8 @@ class Aggregation:
 
         Raises:
             ValueError: If no cluster variables are found, a tolerance is negative,
-            ``min_consensus`` is outside ``[0, 1]``, or ``min_cluster_area`` is invalid.
+            both tolerances are ``np.inf``, ``min_consensus`` is outside ``[0, 1]``,
+            or ``min_cluster_area`` is invalid.
 
         """
         # --- inputs and parameters ---
@@ -412,11 +417,9 @@ class Aggregation:
         if len(cluster_vars) == 0:
             raise ValueError("No cluster variables provided/found.")
 
-        if temporal_tolerance < 0:
-            raise ValueError(
-                f"`temporal_tolerance` must be >= 0, got {temporal_tolerance}."
-            )
-        spatial_tolerance = validate_spatial_tolerance(spatial_tolerance)
+        temporal_tolerance, spatial_tolerance = validate_consensus_tolerances(
+            temporal_tolerance, spatial_tolerance
+        )
         if not (0.0 <= min_consensus <= 1.0):
             raise ValueError(f"`min_consensus` must be in [0, 1], got {min_consensus}.")
         if min_cluster_area is not None and min_cluster_area < 0:

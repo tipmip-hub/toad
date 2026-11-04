@@ -933,7 +933,7 @@ class MMA:
     def run_consensus(
         self,
         min_consensus: float = 0.5,
-        temporal_tolerance: int = 0,
+        temporal_tolerance: int | float = 0,
         spatial_tolerance: int | float = 1,
         min_cluster_area: int | None = 2,
         k_neighbors: int = 8,
@@ -944,9 +944,10 @@ class MMA:
         Args:
             min_consensus: Minimum fraction of models required per retained voxel.
             temporal_tolerance: Time-step radius for support dilation and connectivity.
+                Use ``np.inf`` for unlimited temporal reach (spatial agreement only).
             spatial_tolerance: HEALPix-hop or native-grid-cell radius for dilation
                 and connectivity. Use ``np.inf`` for unlimited spatial reach
-                (temporal agreement only).
+                (temporal agreement only). The two infinite settings cannot be combined.
             min_cluster_area: Minimum distinct spatial footprint for a consensus cluster.
                 Use ``None`` to disable.
             k_neighbors: Deprecated; ignored. HEALPix consensus uses ring-1 neighbours.
@@ -963,15 +964,18 @@ class MMA:
 
         from toad.postprocessing.member_support_consensus import (
             spatial_tolerance_attr_value,
-            validate_spatial_tolerance,
+            temporal_tolerance_attr_value,
+            validate_consensus_tolerances,
         )
 
-        spatial_tolerance = validate_spatial_tolerance(spatial_tolerance)
+        temporal_tolerance, spatial_tolerance = validate_consensus_tolerances(
+            temporal_tolerance, spatial_tolerance
+        )
         inputs = self._build_consensus_inputs()
         shared_attrs = {
             "consensus_method": "member_support",
             "min_consensus": min_consensus,
-            "temporal_tolerance": temporal_tolerance,
+            "temporal_tolerance": temporal_tolerance_attr_value(temporal_tolerance),
             "spatial_tolerance": spatial_tolerance_attr_value(spatial_tolerance),
             "min_cluster_area": min_cluster_area,
             "k_neighbors": k_neighbors,
@@ -1196,14 +1200,14 @@ class MMA:
             attrs={"description": "Consensus cluster ID per grid cell"},
         )
 
-    def _consensus_tolerances(self) -> tuple[int, int | float]:
+    def _consensus_tolerances(self) -> tuple[int | float, int | float]:
         """Return ``(temporal_tolerance, spatial_tolerance)`` stored with consensus.
 
-        ``spatial_tolerance`` may be ``np.inf`` when consensus used unlimited
-        spatial reach.
+        Either tolerance may be ``np.inf`` when consensus used unlimited reach
+        on that axis.
         """
         from toad.postprocessing.member_support_consensus import (
-            validate_spatial_tolerance,
+            validate_consensus_tolerances,
         )
 
         for source in (
@@ -1214,7 +1218,7 @@ class MMA:
             temporal = source.get("temporal_tolerance")
             spatial = source.get("spatial_tolerance")
             if temporal is not None and spatial is not None:
-                return int(temporal), validate_spatial_tolerance(spatial)
+                return validate_consensus_tolerances(temporal, spatial)
         return 0, 1
 
     def _dilate_healpix_model_support(self, event_mask: np.ndarray) -> np.ndarray:

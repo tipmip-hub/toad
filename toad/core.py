@@ -565,8 +565,8 @@ class TOAD:
         cluster_vars: list[str] | None = None,
         *,
         min_consensus: float,
-        temporal_tolerance: int,
-        spatial_tolerance: int,
+        temporal_tolerance: int | float,
+        spatial_tolerance: int | float,
         stitch_meridian: bool | Literal["auto"] = "auto",
         show_progress: bool = True,
         output_label_suffix: str = "",
@@ -584,9 +584,9 @@ class TOAD:
             min_consensus: Minimum fraction of input clusterings that must support each retained
                 native event voxel after tolerance dilation (required).
             temporal_tolerance: Time tolerance used for support dilation and component labelling
-                (required).
+                (required). ``np.inf`` ignores time and keeps spatial agreement only.
             spatial_tolerance: Spatial tolerance used for support dilation and component labelling
-                (required).
+                (required). ``np.inf`` ignores space and keeps temporal agreement only.
             stitch_meridian: Whether to connect the first and last longitude column on native
                 grids. ``\"auto\"`` (default) stitches when the grid spans nearly all
                 longitudes; ``False`` disables stitching; ``True`` forces it.

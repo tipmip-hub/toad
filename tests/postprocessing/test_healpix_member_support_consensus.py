@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 import xarray as xr
 
 from toad.clustering import sorted_cluster_labels
@@ -306,3 +307,126 @@ def test_healpix_infinite_spatial_tolerance_temporal_only():
     assert dilated[1].all()
     assert not dilated[0].any()
     assert not dilated[2].any()
+
+
+def test_healpix_infinite_temporal_tolerance_spatial_only():
+    """Distant-time HEALPix detections agree under ``temporal_tolerance=np.inf``."""
+    T, nside, npix = 4, 4, 12 * 4**2
+    rows, cols = build_ring1_spatial_edges(nside)
+    nbrs0 = set(cols[rows == 0].tolist()) | set(rows[cols == 0].tolist())
+    far = next(i for i in range(npix) if i != 0 and i not in nbrs0)
+    near = next(iter(nbrs0))
+    coords = {"time": np.arange(T), "hp_pixel": np.arange(npix)}
+    a = np.full((T, npix), np.nan, dtype=np.float32)
+    b = np.full((T, npix), np.nan, dtype=np.float32)
+    a[0, 0] = 0
+    a[0, far] = 0
+    b[3, 0] = 0
+    b[3, far] = 0
+    ds = xr.Dataset(
+        {
+            "model_a_cluster": (("time", "hp_pixel"), a),
+            "model_b_cluster": (("time", "hp_pixel"), b),
+        },
+        coords=coords,
+    )
+    store = _Store(ds, "time")
+
+    out_exact = run_healpix_member_support_consensus(
+        store,
+        cluster_vars=["model_a_cluster", "model_b_cluster"],
+        min_consensus=1.0,
+        temporal_tolerance=0,
+        spatial_tolerance=0,
+        nside=nside,
+        min_cluster_area=None,
+        show_progress=False,
+    )
+    assert not np.any(out_exact["clusters"].values >= 0)
+
+    out_inf = run_healpix_member_support_consensus(
+        store,
+        cluster_vars=["model_a_cluster", "model_b_cluster"],
+        min_consensus=1.0,
+        temporal_tolerance=np.inf,
+        spatial_tolerance=0,
+        nside=nside,
+        min_cluster_area=None,
+        show_progress=False,
+    )
+    labels = out_inf["clusters"].values
+    assert labels[0, 0] >= 0
+    assert labels[3, 0] == labels[0, 0]
+    assert labels[0, far] == labels[3, far]
+    assert labels[0, 0] != labels[0, far]
+
+    a_near = np.full((T, npix), np.nan, dtype=np.float32)
+    b_near = np.full((T, npix), np.nan, dtype=np.float32)
+    a_near[0, 0] = 0
+    b_near[3, near] = 0
+    near_ds = xr.Dataset(
+        {
+            "model_a_cluster": (("time", "hp_pixel"), a_near),
+            "model_b_cluster": (("time", "hp_pixel"), b_near),
+        },
+        coords=coords,
+    )
+    near_store = _Store(near_ds, "time")
+    out_apart = run_healpix_member_support_consensus(
+        near_store,
+        cluster_vars=["model_a_cluster", "model_b_cluster"],
+        min_consensus=1.0,
+        temporal_tolerance=np.inf,
+        spatial_tolerance=0,
+        nside=nside,
+        min_cluster_area=None,
+        show_progress=False,
+    )
+    assert not np.any(out_apart["clusters"].values >= 0)
+    out_near = run_healpix_member_support_consensus(
+        near_store,
+        cluster_vars=["model_a_cluster", "model_b_cluster"],
+        min_consensus=1.0,
+        temporal_tolerance=np.inf,
+        spatial_tolerance=1,
+        nside=nside,
+        min_cluster_area=None,
+        show_progress=False,
+    )
+    near_labels = out_near["clusters"].values
+    assert near_labels[0, 0] >= 0
+    assert near_labels[3, near] == near_labels[0, 0]
+
+    mask = np.zeros((T, npix), dtype=bool)
+    mask[0, 0] = True
+    exact = _dilate_healpix_support_mask(
+        mask,
+        temporal_tolerance=np.inf,
+        spatial_tolerance=0,
+        spatial_rows=rows,
+        spatial_cols=cols,
+    )
+    assert exact[:, 0].all()
+    assert int(exact.sum()) == T
+
+    wide = _dilate_healpix_support_mask(
+        mask,
+        temporal_tolerance=np.inf,
+        spatial_tolerance=1,
+        spatial_rows=rows,
+        spatial_cols=cols,
+    )
+    assert wide[:, 0].all()
+    assert wide[:, near].all()
+    assert not wide[:, far].any()
+
+    with pytest.raises(ValueError, match="cannot both be np.inf"):
+        run_healpix_member_support_consensus(
+            store,
+            cluster_vars=["model_a_cluster", "model_b_cluster"],
+            min_consensus=1.0,
+            temporal_tolerance=np.inf,
+            spatial_tolerance=np.inf,
+            nside=nside,
+            show_progress=False,
+        )

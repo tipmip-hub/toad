@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 
 import numpy as np
+import pytest
 from sklearn.cluster import HDBSCAN
 
 from toad import MMA, TOAD
@@ -248,6 +249,42 @@ def test_mma_infinite_spatial_tolerance_roundtrip():
         mask[0, 0] = True
         dilated = reloaded._dilate_healpix_model_support(mask)
         assert dilated[0].all()
+
+
+def test_mma_infinite_temporal_tolerance_roundtrip():
+    """``temporal_tolerance=np.inf`` survives NetCDF round-trip and dilation."""
+    with tempfile.TemporaryDirectory() as tmp:
+        paths = setup_and_export_healpix(Path(tmp), n_runs=2, nside=8)
+        mma = MMA(paths, nside=8)
+        mma.run_consensus(
+            min_consensus=0.5,
+            temporal_tolerance=np.inf,
+            spatial_tolerance=1,
+            min_cluster_area=1,
+        )
+        consensus_path = Path(tmp) / "consensus_tinf.nc"
+        mma.data.to_netcdf(consensus_path)
+
+        reloaded = MMA.from_consensus(str(consensus_path), load_exports=False)
+        temporal, spatial = reloaded._consensus_tolerances()
+        assert np.isinf(temporal)
+        assert spatial == 1
+
+        T = reloaded.data.sizes[reloaded._time_dim]
+        npix = 12 * 8**2
+        mask = np.zeros((T, npix), dtype=bool)
+        mask[0, 0] = True
+        dilated = reloaded._dilate_healpix_model_support(mask)
+        assert dilated[:, 0].all()
+        assert not dilated[:, npix - 1].any()
+
+        with pytest.raises(ValueError, match="cannot both be np.inf"):
+            mma.run_consensus(
+                min_consensus=0.5,
+                temporal_tolerance=np.inf,
+                spatial_tolerance=np.inf,
+                min_cluster_area=1,
+            )
 
 
 def test_mma_from_consensus():
