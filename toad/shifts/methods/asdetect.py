@@ -147,16 +147,18 @@ class ASDETECT(ShiftsMethod):
                 )
 
         if lmax > lmax_max:
-            if self.timescale is not None and self.timescale[1] is not None:
-                logging.getLogger("TOAD").warning(
-                    f"The time series is not long enough for detecting shifts at timescales of {self.timescale[1]} (units of time). "
-                    f"A maximum upper bound of {(lmax_max * dt)} (units of time) has been imposed. "
-                    f"This corresponds to 1/3 the length of the time series."
-                )
-            else:
-                logging.getLogger("TOAD").warning(
-                    f"lmax cannot be larger than 1/3 the length of the time series. Setting lmax to {lmax_max}."
-                )
+            if not getattr(self, "_lmax_cap_warned", False):
+                if self.timescale is not None and self.timescale[1] is not None:
+                    logging.getLogger("TOAD").warning(
+                        f"The time series is not long enough for detecting shifts at timescales of {self.timescale[1]} (units of time). "
+                        f"A maximum upper bound of {(lmax_max * dt)} (units of time) has been imposed. "
+                        f"This corresponds to 1/3 the length of the time series."
+                    )
+                else:
+                    logging.getLogger("TOAD").warning(
+                        f"lmax cannot be larger than 1/3 the length of the time series. Setting lmax to {lmax_max}."
+                    )
+                self._lmax_cap_warned = True
             lmax = lmax_max
 
         return lmin, lmax
@@ -179,15 +181,15 @@ class ASDETECT(ShiftsMethod):
                 - Values between -1 and 1 indicate the proportion of segment lengths detecting a significant gradient at that time point.
         """
 
-        # Resolve lmin/lmax from timescale and/or series length (incl. n/3 default).
-        # Recomputed each call so behaviour stays correct when dt/n varies.
-        self.lmin, self.lmax = self._get_segment_lengths(times_1d)
+        # Resolve locally. Writing the result back onto self would make an
+        # automatic lmax stick and be reused on a series of a different length.
+        lmin, lmax = self._get_segment_lengths(times_1d)
 
         return construct_detection_ts(
             values_1d=values_1d,
             times_1d=times_1d,
-            lmin=self.lmin,
-            lmax=self.lmax,
+            lmin=lmin,
+            lmax=lmax,
             segmentation=self.segmentation,
             ignore_nan_warnings=self.ignore_nan_warnings,
         )

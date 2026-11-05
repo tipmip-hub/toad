@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+import xarray as xr
 
 from toad import TOAD
 from toad.shifts import ASDETECT
@@ -168,3 +169,23 @@ class TestASDetect:
         shifts = td.get_shifts("ts")
         assert int(shifts.attrs["shifts_lmax"]) == 8
         assert int(shifts.attrs["shifts_lmin"]) == 5
+
+    def test_automatic_lmax_follows_each_series(self):
+        """A reused detector must not keep lmax from the previous series."""
+        method = ASDETECT()
+        for n in (30, 90):
+            data = np.zeros((n, 2, 2), dtype=np.float64)
+            data[:, 0, 0] = np.linspace(0.0, 1.0, n)
+            ds = xr.Dataset(
+                {"ts": (("time", "lat", "lon"), data)},
+                coords={
+                    "time": np.arange(n),
+                    "lat": np.array([0.0, 1.0]),
+                    "lon": np.array([0.0, 1.0]),
+                },
+            )
+            td = TOAD(ds, log_level="ERROR")
+            td.compute_shifts(method=method, run_parallel=False, show_progress=False)
+            shifts = td.get_shifts("ts")
+            assert int(shifts.attrs["shifts_lmax"]) == n // 3
+            assert method.lmax is None
