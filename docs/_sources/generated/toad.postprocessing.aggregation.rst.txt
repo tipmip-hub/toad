@@ -1,0 +1,12 @@
+toad.postprocessing.aggregation
+===============================
+
+.. automodule:: toad.postprocessing.aggregation
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Aggregation
+   

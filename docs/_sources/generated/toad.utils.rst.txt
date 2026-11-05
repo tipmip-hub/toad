@@ -1,0 +1,28 @@
+﻿toad.utils
+==========
+
+.. automodule:: toad.utils
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      convert_numeric_to_original_time
+      convert_time_to_seconds
+      deprecated
+      detect_latlon_names
+      get_latlon_info
+      get_space_dims
+      get_unique_variable_name
+      is_regular_grid
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   cluster_consensus_utils
+   repr_html
+   shift_selection_utils

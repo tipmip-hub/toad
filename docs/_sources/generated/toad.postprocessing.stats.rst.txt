@@ -1,0 +1,22 @@
+toad.postprocessing.stats
+=========================
+
+.. automodule:: toad.postprocessing.stats
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Stats
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   cluster_events
+   general
+   space
+   time
