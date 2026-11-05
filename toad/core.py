@@ -329,7 +329,7 @@ class TOAD:
     def compute_shifts(
         self,
         var: str | None = None,
-        method: shifts.ShiftsMethod = shifts.ASDETECT(),
+        method: shifts.ShiftsMethod | None = None,
         output_label_suffix: str = "",
         overwrite: bool = False,
         run_parallel: bool = True,
@@ -353,6 +353,12 @@ class TOAD:
         Raises:
             ValueError: If data is invalid or required parameters are missing
         """
+
+        # A fresh detector each call. A default created in the signature would be
+        # shared across calls, and a resolved lmax from one series would then be
+        # reused on the next series.
+        if method is None:
+            method = shifts.ASDETECT()
 
         self.data = shifts.compute_shifts(
             td=self,

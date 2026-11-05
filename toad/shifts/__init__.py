@@ -196,12 +196,32 @@ def compute_shifts(
     # Rename the output variable
     shifts = shifts.rename(output_label)
 
+    # Record the lmin/lmax actually used. Do not write them back onto ``method``:
+    # an automatic lmax must be recomputed for the next series.
+    times_1d = td.numeric_time_values
+    resolved_params: dict[str, str] = {}
+    if hasattr(method, "_get_segment_lengths"):
+        resolved_lmin, resolved_lmax = method._get_segment_lengths(times_1d)
+        resolved_params["shifts_lmin"] = str(resolved_lmin)
+        resolved_params["shifts_lmax"] = str(resolved_lmax)
+    elif isinstance(method, EDGE):
+        n = len(times_1d)
+        resolved_lmin = method.lmin if method.lmin is not None else int(0.1 * n)
+        resolved_lmax = method.lmax if method.lmax is not None else int(0.2 * n)
+        resolved_lcutoff = (
+            method.lcutoff if method.lcutoff is not None else int(0.02 * n)
+        )
+        resolved_params["shifts_lmin"] = str(resolved_lmin)
+        resolved_params["shifts_lmax"] = str(resolved_lmax)
+        resolved_params["shifts_lcutoff"] = str(resolved_lcutoff)
+
     # Save method params
     method_params = {
         f"shifts_{param}": str(value)
         for param, value in dict(sorted(vars(method).items())).items()
         if value is not None and not param.startswith("_")
     }
+    method_params.update(resolved_params)
 
     # Save details as attributes
     shifts.attrs.update(
