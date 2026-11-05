@@ -7,8 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.10] - 2026-11-05
+
 ### Added
 - Vectorised ``cluster_summary()`` via batch helpers ``activity_table``, ``footprint_table``, and ``size_table`` (same stats, one pass over cluster labels).
+
+### Fixed
+- Automatic ASDETECT ``lmax`` no longer sticks across series. Each ``compute_shifts()`` call gets a fresh detector, so the default window is ``n // 3`` of the series being analysed. The resolved window is still recorded on the output attributes.
+
+### Changed
+- With ``shift_direction="both"`` (the default), positive and negative shifts are clustered separately and the labels are merged, so a cluster no longer mixes both signs. ``"positive"`` and ``"negative"`` are unchanged. Cluster labels and counts for ``"both"`` can differ from 1.0.9.
 
 ## [1.0.9] - 2026-10-08
 
@@ -144,7 +152,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - First public release of the TOAD package
 
-[Unreleased]: https://github.com/tipmip-methods/toad/compare/v1.0.9...HEAD
+[Unreleased]: https://github.com/tipmip-methods/toad/compare/v1.0.10...HEAD
+[1.0.10]: https://github.com/tipmip-methods/toad/compare/v1.0.9...v1.0.10
 [1.0.9]: https://github.com/tipmip-methods/toad/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/tipmip-methods/toad/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/tipmip-methods/toad/compare/v1.0.6...v1.0.7
