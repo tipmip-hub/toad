@@ -17,10 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HEALPix backend switched from **astropy-healpix** to **healpix-geo** (ring scheme unchanged; saved `hp_pixel` indices compatible).
 - HEALPix consensus spatial dilation now uses true ring-1 neighbours instead of KNN on pixel centres; results may differ slightly.
 - HEALPix consensus maps render filled cell **polygons** instead of centre scatter points.
+- ASDETECT is about 3.5x faster per series, with unchanged results: it no longer allocates temporary arrays per segment or sorts to take medians, and joblib workers receive only their block of cells.
 
 ### Fixed
 - Shift-magnitude ``resolve_lmin_lmax`` also reads ``shifts_lmin``/``shifts_lmax``.
 - ``MMA._consensus_tolerances()`` no longer casts ``spatial_tolerance`` with ``int()`` (``OverflowError`` on ``inf`` when reloading plots).
+- ASDETECT now computes in float64 for float32 input. The least-squares slope summed float32 values in float32, and the resulting rounding flipped segments at the 3 MAD threshold, most for values or times far from zero (e.g. ``tas`` in K, integer calendar years). Shift scores for float32 data change (on CMIP piControl ``tas``, 25–75% of points by more than 1e-4 and up to 4% by more than 0.05; less for variables near zero). Results for float64 input are unchanged, and scores are still returned in the input dtype.
 
 ### Removed
 - **astropy** and **astropy-healpix** dependencies.

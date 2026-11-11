@@ -191,6 +191,54 @@ class TestASDetect:
             assert method.lmax is None
 
 
+class TestASDetectPrecision:
+    """float32 input is detected in float64 and returned as float32."""
+
+    @pytest.mark.parametrize("segmentation", ["two_sided", "original"])
+    @pytest.mark.parametrize(
+        "times",
+        [
+            np.arange(1850, 2000, dtype=np.int64),
+            np.arange(1850, 2000, dtype=np.float64),
+        ],
+        ids=["int_years", "float_years"],
+    )
+    def test_float32_matches_float64(self, segmentation, times):
+        rng = np.random.default_rng(7)
+        # Large mean and small variability, like a temperature in K.
+        values = (288.0 + 0.3 * rng.standard_normal(times.size).cumsum()).astype(
+            np.float32
+        )
+        method = ASDETECT(segmentation=segmentation)
+        got = method.fit_predict(values, times)
+        expected = method.fit_predict(values.astype(np.float64), times)
+        assert got.dtype == np.float32
+        np.testing.assert_array_equal(got, expected.astype(np.float32))
+
+    def test_float32_compute_shifts_matches_float64(self):
+        rng = np.random.default_rng(8)
+        n = 120
+        data = (288.0 + 0.3 * rng.standard_normal((n, 3, 4)).cumsum(axis=0)).astype(
+            np.float32
+        )
+        coords = {
+            "time": np.arange(1850, 1850 + n),
+            "lat": np.arange(3.0),
+            "lon": np.arange(4.0),
+        }
+        out = {}
+        for dtype in (np.float32, np.float64):
+            ds = xr.Dataset(
+                {"ts": (("time", "lat", "lon"), data.astype(dtype))}, coords=coords
+            )
+            td = TOAD(ds, log_level="ERROR")
+            td.compute_shifts("ts", run_parallel=False, show_progress=False)
+            out[dtype] = td.get_shifts("ts").values
+        np.testing.assert_array_equal(
+            out[np.float32], out[np.float64].astype(np.float32)
+        )
+
+
 class TestASDetectHelpers:
     """The allocation-free helpers must match the plain numpy computations."""
 
