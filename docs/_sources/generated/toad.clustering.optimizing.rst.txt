@@ -1,0 +1,18 @@
+toad.clustering.optimizing
+==========================
+
+.. automodule:: toad.clustering.optimizing
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      default_opt_params
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      combined_spatial_nonlinearity
+   

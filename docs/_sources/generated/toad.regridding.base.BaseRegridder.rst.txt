@@ -1,0 +1,25 @@
+﻿toad.regridding.base.BaseRegridder
+==================================
+
+.. currentmodule:: toad.regridding.base
+
+.. autoclass:: BaseRegridder
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~BaseRegridder.__init__
+      ~BaseRegridder.map_orig_to_regrid
+      ~BaseRegridder.regrid
+      ~BaseRegridder.regrid_clusters_back
+   
+   
+
+   
+   
+   
