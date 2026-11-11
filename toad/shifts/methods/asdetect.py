@@ -278,9 +278,22 @@ def _construct_detection_ts_finite(
         detection_ts /= lmax - lmin + 1
     elif segmentation == "two_sided":
         counter = np.zeros_like(values_1d, dtype=np.int32)
+        # Work arrays sized for the shortest segment length (the most segments),
+        # allocated once per series instead of once per segment length.
+        max_segs = 2 * ((n_tot - lmin) // lmin + 1)
+        gradients = np.empty(max_segs, dtype=np.float64)
+        ix0_arr = np.empty(max_segs, dtype=np.int32)
+        work = np.empty(max_segs, dtype=np.float64)
         for length in range(lmin, lmax + 1):
             detection_ts, counter = update_detection_ts_two_sided(
-                detection_ts, counter, values_1d, times_1d, length
+                detection_ts,
+                counter,
+                values_1d,
+                times_1d,
+                length,
+                gradients,
+                ix0_arr,
+                work,
             )
 
         detection_ts /= counter
@@ -401,6 +414,9 @@ def update_detection_ts_two_sided(
     values_1d: NDArray[np.float64],
     times_1d: NDArray[np.float64],
     segment_length: int,
+    gradients: NDArray[np.float64],
+    ix0_arr: NDArray[np.int32],
+    work: NDArray[np.float64],
 ) -> tuple[NDArray[np.float64], NDArray[np.int32]]:
     """Update the detection time series for a given segment length (two_sided mode).
 
@@ -410,20 +426,29 @@ def update_detection_ts_two_sided(
         values_1d: 1D array of values (e.g., temperature, pressure, etc.)
         times_1d: 1D array of time points corresponding to the values
         segment_length: Length of the segments to divide the time series into
+        gradients: Work array for the segment gradients, at least as long as
+            the number of forward plus backward segments
+        ix0_arr: Work array for the segment start indices, same length
+        work: Scratch array for the median and MAD, same length
     Returns:
         Updated detection time series and normalization counter
     """
-    gradients, ix0_arr = get_gradients_double(values_1d, times_1d, segment_length)
+    n_grads = get_gradients_double(
+        values_1d, times_1d, segment_length, gradients, ix0_arr
+    )
 
-    grad_median = median(gradients)
-    deviations = gradients - grad_median
-    mask = np.abs(deviations) > 3 * mad_from_median(gradients, grad_median)
+    work[:n_grads] = gradients[:n_grads]
+    grad_median = _median_inplace(work[:n_grads])
+    for i in range(n_grads):
+        work[i] = np.abs(gradients[i] - grad_median)
+    threshold = 3 * _median_inplace(work[:n_grads])
 
-    for i, shift_detected in enumerate(mask):
+    for i in range(n_grads):
+        deviation = gradients[i] - grad_median
         i1, i2 = ix0_arr[i], ix0_arr[i] + segment_length
         counter[i1:i2] += 1
-        if shift_detected:
-            detection_ts[i1:i2] += np.sign(deviations[i])
+        if np.abs(deviation) > threshold:
+            detection_ts[i1:i2] += np.sign(deviation)
 
     return detection_ts, counter
 
@@ -433,44 +458,40 @@ def get_gradients_double(
     values_1d: NDArray[np.float64],
     times_1d: NDArray[np.float64],
     segment_length: int,
-) -> tuple[NDArray[np.float64], NDArray[np.int32]]:
+    gradients: NDArray[np.float64],
+    ix0_arr: NDArray[np.int32],
+) -> int:
     """
     Compute the gradients by segmenting the time series in both forward and
     backward direction, to reduce bias.
+
+    Writes forward then backward segments into the leading entries of
+    ``gradients`` and ``ix0_arr``.
 
     Args:
         values_1d: 1D array of values (e.g., temperature, pressure, etc.)
         times_1d: 1D array of time points corresponding to the values
         segment_length: Length of the segments to divide the time series into.
+        gradients: Output array for the gradient of each segment
+        ix0_arr: Output array for the starting index of each segment
     Returns:
-        gradients: 1D array of gradients for each segment
-        ix0_arr: 1D array of starting indices for each segment
+        Number of segments written (forward plus backward)
     """
     n_tot = len(values_1d)
     n_segs = (n_tot - segment_length) // segment_length + 1
-    seg_len_arr = np.array([segment_length], dtype=np.int32)
+    offset = n_tot - segment_length * n_segs
 
-    seg_starts_fwd = np.arange(n_segs, dtype=np.int32) * segment_length
-    gradients_fwd = compute_gradients_from_segments(
-        values_1d, times_1d, seg_starts_fwd, seg_len_arr
-    )
+    for k in range(2 * n_segs):
+        if k < n_segs:
+            i1 = k * segment_length
+        else:
+            i1 = (k - n_segs) * segment_length + offset
+        ix0_arr[k] = i1
+        gradients[k] = linear_fit(
+            times_1d[i1 : i1 + segment_length], values_1d[i1 : i1 + segment_length]
+        )
 
-    seg_starts_bwd = seg_starts_fwd + (n_tot - segment_length * n_segs)
-    gradients_bwd = compute_gradients_from_segments(
-        values_1d, times_1d, seg_starts_bwd, seg_len_arr
-    )
-
-    # Pre-allocate arrays instead of concatenating for better performance
-    n_total = len(gradients_fwd) + len(gradients_bwd)
-    gradients = np.empty(n_total, dtype=np.float64)
-    ix0_arr = np.empty(n_total, dtype=np.int32)
-
-    gradients[: len(gradients_fwd)] = gradients_fwd
-    gradients[len(gradients_fwd) :] = gradients_bwd
-    ix0_arr[: len(seg_starts_fwd)] = seg_starts_fwd
-    ix0_arr[len(seg_starts_fwd) :] = seg_starts_bwd
-
-    return gradients, ix0_arr
+    return 2 * n_segs
 
 
 @njit
@@ -480,6 +501,10 @@ def linear_fit(x: NDArray[np.float64], y: NDArray[np.float64]) -> np.float64:
     Optimized for deg=1 case. Returns only the gradient (slope) coefficient.
     Uses efficient formula: slope = (n*sum(xy) - sum(x)*sum(y)) / (n*sum(x²) - sum(x)²)
 
+    The sums are accumulated in one loop without temporary arrays. Each starts
+    from a zero of the dtype ``np.sum`` would use and adds in the same order, so
+    the result matches ``np.sum``-based code exactly.
+
     Args:
         x: 1D array of x-coordinates (independent variable)
         y: 1D array of y-coordinates (dependent variable)
@@ -488,10 +513,20 @@ def linear_fit(x: NDArray[np.float64], y: NDArray[np.float64]) -> np.float64:
         Gradient (slope) coefficient
     """
     n = len(x)
-    sum_x = np.sum(x)
-    sum_y = np.sum(y)
-    sum_xy = np.sum(x * y)
-    sum_x2 = np.sum(x * x)
+    if n == 0:
+        return np.float64(0.0)
+    # np.multiply on scalars takes the dtype numba gives the array product
+    # (e.g. int64 * float32 -> float32), whereas ``*`` on scalars would promote
+    # to float64. ``a - a`` is a zero of a's dtype (inputs are finite here).
+    sum_x = x[0] - x[0]
+    sum_y = y[0] - y[0]
+    sum_xy = np.multiply(x[0], y[0]) - np.multiply(x[0], y[0])
+    sum_x2 = np.multiply(x[0], x[0]) - np.multiply(x[0], x[0])
+    for i in range(n):
+        sum_x += x[i]
+        sum_y += y[i]
+        sum_xy += np.multiply(x[i], y[i])
+        sum_x2 += np.multiply(x[i], x[i])
     denominator = n * sum_x2 - sum_x * sum_x
     return np.float64(
         (n * sum_xy - sum_x * sum_y) / denominator if denominator != 0 else 0.0
@@ -580,10 +615,10 @@ def mad_from_median(
 
 
 @njit
-def median(x: NDArray[np.float64]) -> NDArray[np.float64]:
+def median(x: NDArray[np.float64]) -> float:
     """Numba-compatible median function.
 
-    Computes the median of the input array x.
+    Computes the median of the input array x (x is not modified).
 
     Args:
         x: 1D array of values (e.g., gradients)
@@ -591,10 +626,50 @@ def median(x: NDArray[np.float64]) -> NDArray[np.float64]:
     Returns:
         The median of the input array x
     """
-    # np.sort already returns a copy, so no need for .copy()
-    x_sorted = np.sort(x)
-    n = len(x_sorted)
-    mid = n // 2
-    return np.array(
-        0.5 * (x_sorted[mid - 1] + x_sorted[mid]) if n % 2 == 0 else x_sorted[mid]
-    )
+    return _median_inplace(x.copy())
+
+
+@njit
+def _median_inplace(x: NDArray[np.float64]) -> float:
+    """Median of x, reordering x in place.
+
+    Quickselect for the upper middle element, then (for even length) the largest
+    element below it. These are the elements a full sort would pick, so the
+    result equals the sort-based median exactly, in O(n) instead of O(n log n)
+    and without allocating.
+
+    Args:
+        x: 1D array of values, reordered in place
+
+    Returns:
+        The median of x
+    """
+    n = len(x)
+    k = n // 2
+    lo, hi = 0, n - 1
+    while lo < hi:
+        pivot = x[(lo + hi) // 2]
+        i, j = lo, hi
+        while i <= j:
+            while x[i] < pivot:
+                i += 1
+            while x[j] > pivot:
+                j -= 1
+            if i <= j:
+                x[i], x[j] = x[j], x[i]
+                i += 1
+                j -= 1
+        if k <= j:
+            hi = j
+        elif k >= i:
+            lo = i
+        else:
+            break
+    upper = x[k]
+    if n % 2 == 1:
+        return upper
+    lower = x[0]
+    for q in range(1, k):
+        if x[q] > lower:
+            lower = x[q]
+    return 0.5 * (lower + upper)
