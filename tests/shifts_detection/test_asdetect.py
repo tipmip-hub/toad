@@ -189,3 +189,73 @@ class TestASDetect:
             shifts = td.get_shifts("ts")
             assert int(shifts.attrs["shifts_lmax"]) == n // 3
             assert method.lmax is None
+
+
+class TestASDetectHelpers:
+    """The allocation-free helpers must match the plain numpy computations."""
+
+    def test_median_matches_numpy(self):
+        from toad.shifts.methods.asdetect import median
+
+        rng = np.random.default_rng(0)
+        for _ in range(500):
+            x = rng.standard_normal(int(rng.integers(1, 120)))
+            if rng.random() < 0.5:
+                x = np.round(x, 1)  # ties
+            original = x.copy()
+            assert median(x) == np.median(x)
+            np.testing.assert_array_equal(x, original)  # input left untouched
+
+    def test_linear_fit_matches_numpy_sums(self):
+        from toad.shifts.methods.asdetect import linear_fit
+
+        def reference(x, y):
+            # Sequential sums, as numba's np.sum, with numpy's array dtypes.
+            n = len(x)
+            sum_x, sum_y = x.cumsum()[-1], y.cumsum()[-1]
+            sum_xy, sum_x2 = (x * y).cumsum()[-1], (x * x).cumsum()[-1]
+            den = n * sum_x2 - sum_x * sum_x
+            return (n * sum_xy - sum_x * sum_y) / den if den != 0 else 0.0
+
+        rng = np.random.default_rng(1)
+        for _ in range(200):
+            n = int(rng.integers(3, 80))
+            y = rng.standard_normal(n).cumsum()
+            x = np.round(np.linspace(0.2, 4.0, n), 2)
+            assert linear_fit(x, y) == reference(x, y)
+
+    @pytest.mark.parametrize(
+        "x_dtype,y_dtype",
+        [
+            (np.float64, np.float64),
+            (np.float64, np.float32),
+            (np.int64, np.float64),
+            (np.int64, np.float32),
+        ],
+    )
+    def test_linear_fit_matches_numba_np_sum(self, x_dtype, y_dtype):
+        """Same sums and dtypes as the numba ``np.sum`` formulation.
+
+        Under numba, an int64 array times a float32 array is float32, so the
+        x*y sum must stay in float32 for int times with float32 values.
+        """
+        from numba import njit
+
+        from toad.shifts.methods.asdetect import linear_fit
+
+        @njit
+        def np_sum_fit(x, y):
+            n = len(x)
+            sum_x = np.sum(x)
+            sum_y = np.sum(y)
+            sum_xy = np.sum(x * y)
+            sum_x2 = np.sum(x * x)
+            den = n * sum_x2 - sum_x * sum_x
+            return np.float64((n * sum_xy - sum_x * sum_y) / den if den != 0 else 0.0)
+
+        rng = np.random.default_rng(2)
+        for _ in range(100):
+            n = int(rng.integers(3, 80))
+            y = (rng.standard_normal(n).cumsum() * 100).astype(y_dtype)
+            x = (np.arange(n) + 1850).astype(x_dtype)
+            assert linear_fit(x, y) == np_sum_fit(x, y)

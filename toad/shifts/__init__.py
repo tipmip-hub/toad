@@ -266,6 +266,29 @@ def _clone_method(m: ShiftsMethod) -> ShiftsMethod:
     return m.__class__(**params)
 
 
+def _run_block(
+    method: ShiftsMethod,
+    block: np.ndarray,
+    times_1d: np.ndarray,
+    start: int,
+) -> tuple[int, np.ndarray]:
+    """Run ``fit_predict`` on each row of a ``(cell, time)`` block in a worker."""
+    # Make local copy of the method to avoid state issues in the worker
+    local_method = _clone_method(method)
+
+    n_time = block.shape[1]
+    out = np.empty(block.shape, dtype=np.float32)
+    for i, ts in enumerate(block):
+        res = local_method.fit_predict(ts, times_1d=times_1d)
+        if res.shape != (n_time,):
+            raise ValueError(
+                "fit_predict must return a 1D array with length equal to the time dimension"
+            )
+        out[i] = res
+
+    return start, out
+
+
 def _process_with_joblib(
     method: ShiftsMethod,
     da: xr.DataArray,
@@ -292,21 +315,6 @@ def _process_with_joblib(
     x = da.transpose(*space_dims, time_dim).stack(cell=space_dims)
     data = np.asarray(x.transpose("cell", time_dim).data)
     n_cell, n_time = data.shape
-
-    def _run_block(start: int, stop: int):
-        # Make local copy of the method to avoid state issues in the worker
-        local_method = _clone_method(method)
-
-        out = np.empty((stop - start, n_time), dtype=np.float32)
-        for i, ts in enumerate(data[start:stop]):
-            res = local_method.fit_predict(ts, times_1d=times_1d)
-            if res.shape != (n_time,):
-                raise ValueError(
-                    "fit_predict must return a 1D array with length equal to the time dimension"
-                )
-            out[i] = res
-
-        return start, out
 
     # compute block_cells
     # having more blocks/tasks than cores allows joblib to rebalance tasks if one is stalling. 4 is a good number.
@@ -337,7 +345,12 @@ def _process_with_joblib(
         results = Parallel(
             n_jobs=n_jobs,
             backend="loky",
-        )(delayed(_run_block)(s, e) for s, e in blocks)
+        )(
+            # Pass each block's slice as an argument, so a worker receives only
+            # its own cells rather than the whole array captured in a closure.
+            delayed(_run_block)(method, data[s:e], times_1d, s)
+            for s, e in blocks
+        )
 
     # Reassemble in correct order
     out = np.empty((n_cell, n_time), dtype=np.float32)
