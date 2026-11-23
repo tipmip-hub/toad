@@ -342,6 +342,21 @@ def compute_clusters(
         if regridder is None and is_latlon_dims and not disable_regridder:
             regridder = HealPixRegridder()
 
+        # Let the regridder know every cell of the source grid, so that pixels
+        # without a cell centre can be told apart from pixels without an event.
+        if (
+            has_latlon
+            and not disable_regridder
+            and isinstance(regridder, HealPixRegridder)
+        ):
+            if is_latlon_dims:
+                grid_lon, grid_lat = np.meshgrid(
+                    td.data[lon_name].values, td.data[lat_name].values
+                )
+            else:
+                grid_lat, grid_lon = lat_grid, lon_grid
+            regridder.set_source_grid(grid_lat, grid_lon)
+
         method = method() if isinstance(method, type) else method
         preprocessing_time = time_now() - start_time
         space_dims_size = (
@@ -473,7 +488,10 @@ def _clone_regridder(regridder: BaseRegridder | None) -> BaseRegridder | None:
     if regridder is None:
         return None
     nside = getattr(regridder, "nside", None)
-    return regridder.__class__(nside=nside)
+    clone = regridder.__class__(nside=nside)
+    if hasattr(regridder, "copy_source_grid_from"):
+        clone.copy_source_grid_from(regridder)
+    return clone
 
 
 def _cluster_coords_subset(
