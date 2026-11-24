@@ -74,3 +74,66 @@ def test_consistency_documented_degenerate_values():
     three = GeneralStats(_FakeTD(rng.normal(size=(3, 50))), "x").score_consistency(0)
     assert two == pytest.approx(1.0)
     assert three == pytest.approx(np.sqrt(2.0))
+
+
+# --- 4.3: score_nonlinearity is invariant to offset and scale ---
+
+
+def test_nonlinearity_invariant_to_offset_and_scale():
+    rng = np.random.default_rng(1)
+    t = np.arange(60)
+    base = (t >= 30).astype(float) + 0.1 * rng.normal(size=60)
+    ref = _single_series_td(base).stats("v_dts_cluster").general.score_nonlinearity(0)
+    for off, scale in [(273.15, 1.0), (-0.5, 1.0), (0.0, 1000.0), (-3.0, 0.01)]:
+        td = _single_series_td(scale * base + off)
+        g = td.stats("v_dts_cluster").general
+        assert g.score_nonlinearity(0) == pytest.approx(ref, rel=1e-6)
+    step = _single_series_td((t >= 30).astype(float) + 273.15)
+    assert step.stats("v_dts_cluster").general.score_nonlinearity(0) == pytest.approx(
+        0.25, abs=1e-3
+    )
+
+
+def test_nonlinearity_constant_series_is_zero():
+    td = _single_series_td(np.full(40, 5.0))
+    assert td.stats("v_dts_cluster").general.score_nonlinearity(0) == 0.0
+
+
+# --- 4.4: steepest_gradient returns the time coordinate in its own type ---
+
+
+def _jump_td(time):
+    T = 40
+    t = np.arange(T)
+    v = np.broadcast_to(
+        ((t >= 20).astype(float) + np.linspace(0, 0.01, T))[:, None, None], (T, 4, 4)
+    ).copy()
+    lab = np.full(v.shape, np.nan)
+    lab[15:25, :2, :2] = 0
+    return make_td(v, lab, time=time)
+
+
+def test_steepest_gradient_numeric_time():
+    td = _jump_td(None)
+    out = td.stats("v_dts_cluster").time.steepest_gradient(0)
+    assert isinstance(out, float) and out == 20.0
+
+
+def test_steepest_gradient_datetime64_time():
+    import pandas as pd
+
+    times = pd.date_range("2000-01-01", periods=40, freq="YS").values
+    td = _jump_td(times)
+    out = td.stats("v_dts_cluster").time.steepest_gradient(0)
+    assert np.datetime64(out, "D") == np.datetime64("2020-01-01")
+
+
+def test_steepest_gradient_cftime_time_and_all_stats():
+    import cftime
+
+    times = np.array([cftime.DatetimeNoLeap(2000 + i, 1, 1) for i in range(40)])
+    td = _jump_td(times)
+    ts = td.stats("v_dts_cluster").time
+    assert ts.steepest_gradient(0) == cftime.DatetimeNoLeap(2020, 1, 1)
+    stats = ts.all_stats(0)
+    assert stats["steepest_gradient"] == cftime.DatetimeNoLeap(2020, 1, 1)

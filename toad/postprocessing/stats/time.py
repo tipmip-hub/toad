@@ -191,7 +191,12 @@ class TimeStats:
         self, cluster_id
     ) -> Union[float, cftime.datetime, np.datetime64]:
         """Return the time of the steepest gradient (largest rate of change, up or down)
-        of the median cluster timeseries."""
+        of the median cluster timeseries.
+
+        The time is the later of the two time steps that span the steepest
+        change, in the type of the time coordinate (float for numeric time,
+        ``np.datetime64`` or a cftime datetime otherwise).
+        """
         cluster_var = str(self.td.get_clusters(self.var).name)
         base_var = str(self.td.get_base_var(self.var))
 
@@ -225,10 +230,12 @@ class TimeStats:
             return np.nan
 
         steepest_idx = int(np.nanargmax(np.abs(grad.values)))
-        steepest_time_numeric = float(grad[self.td.time_dim].values[steepest_idx])
-
-        # Convert back to original time format
-        return self._return_time(steepest_time_numeric)
+        # grad's time coordinate holds the original time values (numeric,
+        # datetime64 or cftime), not toad's numeric seconds, so return it as is.
+        steepest_time = grad[self.td.time_dim].values[steepest_idx]
+        if np.issubdtype(np.asarray(steepest_time).dtype, np.number):
+            return float(steepest_time)
+        return steepest_time
 
     def steepest_gradient_timestep(self, cluster_id) -> float:
         """Return the index of the steepest gradient (largest rate of change, up or down)
