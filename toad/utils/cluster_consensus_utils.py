@@ -438,7 +438,8 @@ def label_field_shift_time_samples(
             f"length {t_len!r} along {time_dim!r}."
         )
 
-    lab = np.asarray(da_labels.values, order="C")
+    # Time first, so the time values broadcast along the right axis.
+    lab = np.asarray(da_labels.transpose(time_dim, ...).values, order="C")
     tt_b = np.broadcast_to(
         time_values.reshape((-1, 1, 1)),
         lab.shape,
@@ -541,7 +542,8 @@ def consensus_shift_time_distribution(
             "`consensus_shift_time_distribution` requires a time-resolved consensus field."
         )
 
-    labels = da_clusters
+    # Time first, so the time values broadcast along the right axis.
+    labels = da_clusters.transpose(time_dim, ...)
     lv = np.asarray(labels.values, dtype=np.float64)
     if not np.any(np.isfinite(lv) & (lv >= 0)):
         empty_ds = xr.Dataset(attrs={"note": "no consensus clusters (all noise)"})
@@ -564,7 +566,7 @@ def consensus_shift_time_distribution(
         )
         # Keep consensus label only where input also has a cluster at the same voxel
         support_labels = labels.where(support_mask, other=-1)
-        lab = np.asarray(support_labels.values)
+        lab = np.asarray(support_labels.transpose(time_dim, ...).values)
         tt_b = np.broadcast_to(
             time_values.reshape((-1, 1, 1)),
             lab.shape,
