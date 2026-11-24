@@ -510,6 +510,16 @@ def _cluster_coords_subset(
     if used_regridder and not disable_regridder:
         coords, weights = used_regridder.regrid(coords, weights, space_dims_size)
 
+    # Fewer than two points cannot form a cluster, and most clusterers raise on
+    # them (HDBSCAN: "n_samples=1 ..."). Return them as noise.
+    if len(coords) < 2:
+        labels = np.full(len(coords), -1, dtype=int)
+        if used_regridder and not disable_regridder:
+            labels = used_regridder.regrid_clusters_back(labels)
+        return labels, used_regridder if (
+            used_regridder and not disable_regridder
+        ) else None
+
     if has_latlon:
         coords = geodetic_to_cartesian(
             time=coords[:, 0], lat=coords[:, 1], lon=coords[:, 2]

@@ -78,3 +78,56 @@ def test_both_directions_sign_homogeneous_on_synth_data():
     cluster_var = td.cluster_vars[0]
     shifts_var = td.data[cluster_var].attrs[_attrs.SHIFTS_VARIABLE]
     _assert_clusters_sign_homogeneous(td.data[cluster_var], td.data[shifts_var])
+
+
+def _one_positive_many_negative(n_pos=1):
+    """Global 10-degree grid: a negative block and ``n_pos`` adjacent positive cells."""
+    time = np.arange(10, dtype=float)
+    lat = np.arange(-85.0, 90.0, 10.0)
+    lon = np.arange(5.0, 360.0, 10.0)
+    sh = np.zeros((10, lat.size, lon.size))
+    sh[4, 5:9, 5:9] = -1.0
+    sh[6, 12, 20 : 20 + n_pos] = 1.0
+    ds = xr.Dataset(
+        {"test_dts": (("time", "lat", "lon"), sh)},
+        coords={"time": time, "lat": lat, "lon": lon},
+    )
+    ds["test_dts"].attrs[_attrs.BASE_VARIABLE] = "test"
+    ds["test_dts"].attrs[_attrs.VARIABLE_TYPE] = _attrs.TYPE_SHIFT
+    return ds
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {},
+        {"disable_regridder": True},
+        {"method": DBSCAN(eps=2000.0, min_samples=1), "disable_regridder": True},
+    ],
+)
+def test_sign_with_single_point_is_noise(kwargs):
+    """A sign with one point must come back as noise, not crash (audit 2.3)."""
+    kwargs = {
+        "method": HDBSCAN(min_cluster_size=3, allow_single_cluster=True),
+        **kwargs,
+    }
+    td = TOAD(_one_positive_many_negative(), log_level="ERROR")
+    td.compute_clusters("test_dts", shift_threshold=0.5, **kwargs)
+    c = td.data["test_dts_cluster"].values
+    assert c[6, 12, 20] == -1
+    assert np.nanmax(c) >= 0  # the negative block is still clustered
+
+
+def test_subset_collapsing_to_one_pixel_is_noise():
+    """Two points that regrid into the same pixel and time step leave one sample."""
+    from toad.regridding import HealPixRegridder
+
+    td = TOAD(_one_positive_many_negative(n_pos=2), log_level="ERROR")
+    td.compute_clusters(
+        "test_dts",
+        method=HDBSCAN(min_cluster_size=3, allow_single_cluster=True),
+        shift_threshold=0.5,
+        regridder=HealPixRegridder(nside=1),
+    )
+    c = td.data["test_dts_cluster"].values
+    assert np.all(c[6, 12, 20:22] == -1)
