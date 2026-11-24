@@ -14,6 +14,57 @@ FULL_LONGITUDE_COVERAGE_DEG = 350.0
 # ---------------------------------------------------------------------------
 
 
+def _mean_abs_circular_step(lon_vals: np.ndarray, axis: int) -> float:
+    """Mean absolute longitude step (degrees, wrapped to [0, 180]) along ``axis``."""
+    d = np.abs(np.diff(np.asarray(lon_vals, dtype=np.float64), axis=axis))
+    d = np.minimum(np.mod(d, 360.0), 360.0 - np.mod(d, 360.0))
+    d = d[np.isfinite(d)]
+    return float(d.mean()) if d.size else 0.0
+
+
+def longitude_last_spatial_dims(
+    dataset: xr.Dataset,
+    spatial_dims: Tuple[str, str],
+) -> Tuple[str, str]:
+    """Return ``spatial_dims`` ordered so that the longitude dimension comes last.
+
+    Seam stitching (``stitch_meridian``) wraps the *last* spatial axis. This helper
+    finds the axis along which geographic longitude varies and puts it last:
+
+    * a 1D longitude coordinate on one of ``spatial_dims`` → that dimension;
+    * a 2D longitude coordinate over both ``spatial_dims`` (curvilinear grid) → the
+      first dimension only if longitude changes more than twice as much per step
+      along it as along the second.
+
+    If no longitude coordinate is found (e.g. projected ``x``/``y`` grids), the order
+    is returned unchanged.
+    """
+    sd0, sd1 = spatial_dims
+    _, lon_name = detect_latlon_names(dataset)
+    if lon_name is None:
+        return (sd0, sd1)
+    lon_coord = dataset.coords.get(lon_name)
+    if lon_coord is None:
+        lon_coord = dataset.get(lon_name)
+    if lon_coord is None:
+        return (sd0, sd1)
+
+    if lon_coord.ndim == 1:
+        if lon_coord.dims[0] == sd0:
+            return (sd1, sd0)
+        return (sd0, sd1)
+
+    if lon_coord.ndim == 2 and set(lon_coord.dims) == {sd0, sd1}:
+        lon_vals = np.asarray(lon_coord.transpose(sd0, sd1).values, dtype=np.float64)
+        step_along_0 = _mean_abs_circular_step(lon_vals, axis=0)
+        step_along_1 = _mean_abs_circular_step(lon_vals, axis=1)
+        # Switch only when clearly dominant, so ambiguous (e.g. polar) grids keep
+        # their order.
+        if step_along_0 > 2.0 * step_along_1:
+            return (sd1, sd0)
+    return (sd0, sd1)
+
+
 def _longitude_vector_along_x_dim(
     dataset: xr.Dataset,
     spatial_dims: Tuple[str, str],
@@ -65,10 +116,15 @@ def infer_stitch_meridian(
     dataset: xr.Dataset,
     spatial_dims: Tuple[str, str],
 ) -> bool:
-    """Return True when the native grid spans nearly all longitudes with a wrapped seam."""
+    """Return True when the native grid spans nearly all longitudes with a wrapped seam.
+
+    The longitude dimension may be either of ``spatial_dims``; callers that stitch
+    must order their grid with :func:`longitude_last_spatial_dims` first.
+    """
     _, lon_name = detect_latlon_names(dataset)
     if lon_name is None:
         return False
+    spatial_dims = longitude_last_spatial_dims(dataset, spatial_dims)
 
     lon_vec = _longitude_vector_along_x_dim(dataset, spatial_dims, lon_name)
     if lon_vec is None or lon_vec.size < 2:
