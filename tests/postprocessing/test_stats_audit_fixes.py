@@ -199,3 +199,95 @@ def test_cartesian_x_is_not_wrapped():
     assert s.space.footprint_mean(0)[1] == pytest.approx(180.0)
     assert mean_longitude([350.0, 10.0]) == pytest.approx(0.0)
     assert mean_longitude([-170.0, 170.0]) == pytest.approx(-180.0)
+
+
+# --- 4.6: pooled transition times come from the cluster's own members ---
+
+
+def _two_sign_td():
+    T = 40
+    v = np.zeros((T, 3, 3))
+    sh = np.zeros((T, 3, 3))
+    lab = np.full((T, 3, 3), np.nan)
+    sh[10] = 0.7  # cluster 0: all cells shift up at t=10
+    lab[10] = 0
+    sh[25, 0, 0] = 0.7  # one cell also at t=25, so cluster 0 spans 10..25
+    lab[25, 0, 0] = 0
+    sh[20] = -0.9  # cluster 1: larger negative shifts at t=20 in the same cells
+    lab[20] = 1
+    return make_td(v, lab, shifts=sh)
+
+
+def test_pooled_transition_time_uses_member_points():
+    td = _two_sign_td()
+    s = td.stats("v_dts_cluster")
+    assert s.time.pooled_median_transition_time(0) == 10.0
+    assert s.time.pooled_median_transition_time(1) == 20.0
+    summ = s.time.summary([0])
+    assert summ["pooled_median_transition_time"].iloc[0] == 10.0
+    assert summ["n_transition_cells"].iloc[0] == 9
+    ext = s.cluster_summary(extended=True)
+    assert ext.loc[ext.cluster_id == 0, "pooled_median_transition_time"].iloc[0] == 10.0
+    ov = s.general.score_overview()
+    assert ov.loc[ov.cluster_id == 0, "mean_shift_time"].iloc[0] == pytest.approx(
+        (8 * 10 + 10) / 9
+    )
+    # the per-cell map keeps its documented footprint-and-window definition
+    m = s.time.compute_transition_time(cluster_ids=[0]).values
+    assert np.all(m == 20.0)
+
+
+# --- 4.7: score_overview passes each score only the arguments it accepts ---
+
+
+def _two_cluster_td():
+    rng = np.random.default_rng(4)
+    T, NY, NX = 50, 4, 6
+    t = np.arange(T)
+    v = (t >= 25).astype(float)[:, None, None] + 0.1 * rng.normal(size=(T, NY, NX))
+    v[:, :, 3:] = (t / T)[:, None, None] + 0.1 * rng.normal(size=(T, NY, 3))
+    lab = np.full((T, NY, NX), np.nan)
+    lab[25, :, :3] = 0
+    lab[30, :, 3:] = 1
+    return make_td(v, lab)
+
+
+def test_score_overview_kwargs_reach_only_accepting_scores():
+    g = _two_cluster_td().stats("v_dts_cluster").general
+    cols = ["heaviside", "consistency", "spatial_autocorrelation", "nonlinearity"]
+    ov = g.score_overview(aggregation="median")
+    assert not ov[cols].isna().any().any()
+    np.testing.assert_allclose(ov["aggregate_score"], ov[cols].prod(axis=1))
+    assert ov["heaviside"].iloc[0] == g.score_heaviside(0, aggregation="median")
+    assert ov["consistency"].iloc[0] == g.score_consistency(0)
+    with pytest.raises(TypeError):
+        g.score_overview(not_a_score_argument=1)
+
+
+def test_score_overview_without_kwargs_and_nan_component(monkeypatch):
+    g = _two_cluster_td().stats("v_dts_cluster").general
+    cols = ["heaviside", "consistency", "spatial_autocorrelation", "nonlinearity"]
+    ov = g.score_overview()
+    expected = [
+        float(
+            np.prod(
+                [
+                    g.score_heaviside(c),
+                    g.score_consistency(c),
+                    g.score_spatial_autocorrelation(c),
+                    g.score_nonlinearity(c),
+                ]
+            )
+        )
+        for c in (0, 1)
+    ]
+    assert ov["aggregate_score"].tolist() == expected
+    assert not ov[cols].isna().any().any()
+
+    def boom(self, cluster_id):
+        raise RuntimeError("fail")
+
+    monkeypatch.setattr(GeneralStats, "score_consistency", boom)
+    ov2 = g.score_overview()
+    assert ov2["consistency"].isna().all()
+    assert ov2["aggregate_score"].isna().all()

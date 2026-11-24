@@ -1,3 +1,4 @@
+import inspect
 import logging
 from typing import Callable, Literal, Optional, Tuple, Union, overload
 
@@ -394,8 +395,9 @@ class GeneralStats:
         Args:
             exclude_noise: Whether to exclude noise points (cluster ID -1). Defaults to True.
             shift_threshold: Minimum shift threshold for computing transition times. Defaults to 0.0.
-            **kwargs: Additional keyword arguments passed to scoring methods. These will be
-                applied to all scoring methods that accept them. Common parameters include:
+            **kwargs: Additional keyword arguments for the scoring methods. Each
+                score receives only the arguments its signature accepts; an
+                argument that no score accepts raises TypeError. Common parameters include:
                 - aggregation: Aggregation method for methods that support it (default: "mean")
                 - percentile: Percentile value for percentile aggregation
                 - normalize: Normalization method for score_heaviside
@@ -410,7 +412,8 @@ class GeneralStats:
                 - mean_{spatial_dim1}: Average spatial coordinate for second dimension
                 - mean_shift_time: Mean transition time for the cluster
                 - std_shift_time: Standard deviation of transition times within the cluster
-                - aggregate_score: Product of all score values
+                - aggregate_score: Product of all score values; NaN if any score
+                  is NaN (e.g. because it failed for that cluster)
 
         Example:
             >>> td.stats(var="temperature").score_overview()
@@ -436,6 +439,18 @@ class GeneralStats:
         # Initialize results dictionary
         results = {"cluster_id": cluster_ids.tolist()}
 
+        # Pass each score only the keyword arguments its signature accepts
+        method_kwargs = {}
+        for score_name, method_name in score_dictionary.items():
+            params = inspect.signature(getattr(self, method_name)).parameters
+            method_kwargs[score_name] = {k: v for k, v in kwargs.items() if k in params}
+        unused = set(kwargs) - {k for kw in method_kwargs.values() for k in kw}
+        if unused:
+            raise TypeError(
+                f"score_overview got keyword arguments that no score accepts: "
+                f"{sorted(unused)}"
+            )
+
         # Compute each score for all clusters
         score_columns = []
         for score_name, method_name in score_dictionary.items():
@@ -444,8 +459,7 @@ class GeneralStats:
 
             for cluster_id in cluster_ids:
                 try:
-                    # Call method with cluster_id and any additional kwargs
-                    score = method(cluster_id, **kwargs)
+                    score = method(cluster_id, **method_kwargs[score_name])
                     # Handle tuple returns (e.g., score_heaviside with return_score_fit=True)
                     if isinstance(score, tuple):
                         score = score[0]  # Take the first element (the score)
@@ -553,12 +567,12 @@ class GeneralStats:
         aggregate_scores = []
         for idx in range(len(df)):
             score_values = [df.loc[idx, col] for col in score_columns]
-            # Filter out NaN values before computing product
-            valid_scores = [s for s in score_values if not np.isnan(s)]
-            if len(valid_scores) > 0:
-                aggregate_scores.append(float(np.prod(valid_scores)))
-            else:
+            # NaN if any score is NaN (failed or undefined); never drop a
+            # component silently, which would change what the product means.
+            if any(np.isnan(s) for s in score_values):
                 aggregate_scores.append(np.nan)
+            else:
+                aggregate_scores.append(float(np.prod(score_values)))
 
         df["aggregate_score"] = aggregate_scores
 
