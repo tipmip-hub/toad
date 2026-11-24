@@ -58,9 +58,9 @@ default_opt_params = dict(
 """
 Cluster Scoring Methods
     Heaviside Score (score_heaviside):
-    - Evaluates how closely a cluster's aggregated time series resembles a perfect step function
-    - Uses linear regression residuals compared to theoretical Heaviside function
-    - Score of 1 = perfect step function, 0 = linear trend
+    - Residual of a straight-line fit to the cluster's aggregated time series, relative to its spread
+    - 0 = linear trend, 0.25 = step in the middle of the series, about 1 = noise
+    - A high value does not by itself indicate a step
 
     Consistency Score (score_consistency):
     - Measures internal coherence using hierarchical clustering of time series correlations

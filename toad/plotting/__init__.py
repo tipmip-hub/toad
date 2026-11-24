@@ -667,7 +667,7 @@ class Plotter:
             )
 
         # Plot all clusters (except -1) if no clusters passed
-        all_cluster_ids = clusters_obj.cluster_ids
+        all_cluster_ids = np.atleast_1d(clusters_obj.cluster_ids)
         cluster_ids = (
             cluster_ids
             if cluster_ids is not None
@@ -4215,8 +4215,8 @@ class Plotter:
             # then restrict to the cluster window.
             tdim = self.td.time_dim
             t_idx = np.arange(cells_highlight.sizes[tdim])
-            start_idx = self.td.stats(plot_var).time.start_timestep(cluster_id)
-            end_idx = self.td.stats(plot_var).time.end_timestep(cluster_id)
+            start_idx = self.td.stats(var).time.start_timestep(cluster_id)
+            end_idx = self.td.stats(var).time.end_timestep(cluster_id)
             in_win = xr.DataArray(
                 (t_idx >= start_idx) & (t_idx <= end_idx), dims=tdim, name="time_mask"
             )

@@ -21,7 +21,7 @@ from toad.clustering.optimizing import (
     default_opt_params,
 )
 from toad.postprocessing.stats import GeneralStats, SpaceStats, TimeStats
-from toad.regridding.base import BaseRegridder
+from toad.regridding import HealPixRegridder
 from toad.utils import (
     DEFAULT_SHIFT_THRESHOLD,
     _attrs,
@@ -442,7 +442,7 @@ class TOAD:
         shift_direction: Literal["both", "positive", "negative"] | str = "both",
         shift_selection: Literal["local", "global", "all"] | str = "local",
         time_weight: float = 1,
-        regridder: BaseRegridder | None = None,
+        regridder: HealPixRegridder | None = None,
         disable_regridder: bool = False,
         output_label_suffix: str = "",
         output_label: str | None = None,
@@ -577,7 +577,7 @@ class TOAD:
         shift_direction: Literal["both", "positive", "negative"] | str = "both",
         shift_selection: Literal["local", "global", "all"] | str = "local",
         time_weight: float = 1,
-        regridder: BaseRegridder | None = None,
+        regridder: HealPixRegridder | None = None,
         disable_regridder: bool = False,
         output_label_suffix: str = "",
         output_label: str | None = None,

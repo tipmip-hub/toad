@@ -220,38 +220,6 @@ def _consensus_input_support_mask(
     return support_3d.any(dim=td.time_dim)
 
 
-def _seam_aware_lon_mean(lon_vals: np.ndarray) -> float | None:
-    """Centre longitude of a set of cells that crosses the grid's seam, else None.
-
-    Longitudes are kept in the grid's own convention (e.g. 0–360 or −180–180). The
-    circle is cut at the largest gap between the occupied longitudes. If that gap is
-    the one across the grid's seam (the cluster does not cross the seam), returns
-    ``None`` so that the caller keeps the plain arithmetic mean unchanged. Otherwise
-    the values west of the gap are shifted by +360°, averaged, and the mean is wrapped
-    back into the grid's range ``[min, min + 360)`` of the input convention.
-
-    TODO: unify with the circular-mean helper in ``toad.postprocessing.stats``.
-    """
-    v = np.asarray(lon_vals, dtype=np.float64)
-    v = v[np.isfinite(v)]
-    if v.size < 2:
-        return None
-    u = np.unique(v)
-    if u.size < 2:
-        return None
-    inner_gaps = np.diff(u)
-    seam_gap = u[0] + 360.0 - u[-1]
-    i = int(np.argmax(inner_gaps))
-    if inner_gaps[i] <= seam_gap:
-        return None
-    cut = u[i]  # values <= cut lie east of the seam: move them past the west end
-    shifted = np.where(v <= cut, v + 360.0, v)
-    mean = float(shifted.mean())
-    # Back into the grid's convention: 0–360 grids if all values are >= 0, else −180–180
-    lo = 0.0 if u[0] >= 0.0 else -180.0
-    return float((mean - lo) % 360.0 + lo)
-
-
 def _footprint_coord_mean(
     coord: xr.DataArray, footprint: xr.DataArray, *, is_lon: bool
 ) -> float:
@@ -260,8 +228,11 @@ def _footprint_coord_mean(
     if not is_lon:
         return plain
     vals = np.asarray(coord.where(footprint).values, dtype=np.float64).ravel()
-    seam_mean = _seam_aware_lon_mean(vals)
-    return plain if seam_mean is None else seam_mean
+    # Imported here to avoid an import cycle with toad.postprocessing.
+    from toad.postprocessing.stats.longitude import mean_longitude, unwrap_longitude
+
+    _, crossed = unwrap_longitude(vals)
+    return float(mean_longitude(vals)) if crossed else plain
 
 
 def _build_consensus_summary_df_spacetime(
