@@ -71,8 +71,11 @@ class ASDETECT(ShiftsMethod):
             (seconds). For numeric time data (not cftime), use the same units as your time axis.
 
             **Note:** The timescale conversion requires regular temporal spacing. If your time
-            series has irregular spacing, a ValueError will be raised. In this case, use lmin/lmax
-            parameters directly instead of timescale, or resample your data to regular spacing.
+            series has irregular spacing (a step more than 25% away from the median step), a
+            ValueError will be raised. In this case, use lmin/lmax parameters directly instead
+            of timescale, or resample your data to regular spacing. Steps that vary only mildly,
+            such as calendar months of 28-31 days, are converted with the mean step and a
+            warning is logged once.
         segmentation: Segmentation method to use. "two_sided" (recommended) applies forward
             and backward segmentation with counter-based normalisation and edge correction,
             reducing positional bias at roughly twice the computational cost of the original
@@ -132,12 +135,15 @@ class ASDETECT(ShiftsMethod):
         lmax_max = len(times_1d) // 3
         lmin, lmax = self.lmin, self.lmax if self.lmax is not None else lmax_max
 
-        dt = np.diff(times_1d)[0]
         if self.timescale is not None:
+            dt, mild = self._time_step(times_1d)
+            # For mildly irregular steps (calendar months) the mean step can put
+            # e.g. 1 yr / 1 month a hair below 12; allow for rounding there.
+            tol = 1e-6 if mild else 0.0
             if self.timescale[0] is not None:
-                lmin = int(self.timescale[0] / dt)
+                lmin = int(self.timescale[0] / dt + tol)
             if self.timescale[1] is not None:
-                lmax = int(self.timescale[1] / dt)
+                lmax = int(self.timescale[1] / dt + tol)
 
             logging.getLogger("TOAD").debug(
                 f"for dt={dt:.2f} -> (lmin={lmin}, lmax={lmax})"
@@ -165,6 +171,52 @@ class ASDETECT(ShiftsMethod):
             lmax = lmax_max
 
         return lmin, lmax
+
+    # Relative spread of time steps below which the axis counts as evenly spaced,
+    # and above which it counts as irregular (ValueError).
+    _DT_EVEN_RTOL = 1e-6
+    _DT_MILD_RTOL = 0.25
+
+    def _time_step(self, times_1d: NDArray[np.float64]) -> tuple[float, bool]:
+        """Time step used to convert ``timescale`` into segment lengths.
+
+        Evenly spaced axes use the first step, exactly as before. Mildly varying
+        steps (within 25 % of the median step, e.g. calendar months of 28-31 days)
+        use the mean step and log a warning once. Clearly irregular axes raise.
+
+        Returns:
+            tuple: (dt, mild) where ``mild`` is True for mildly varying steps.
+
+        Raises:
+            ValueError: If the axis has fewer than two points, is not increasing,
+                or is irregularly spaced.
+        """
+        diffs = np.diff(times_1d)
+        if diffs.size == 0:
+            raise ValueError("timescale needs a time axis with at least two points.")
+        d64 = diffs.astype(np.float64)
+        med = float(np.median(d64))
+        if not np.all(d64 > 0):
+            raise ValueError(
+                "timescale needs a strictly increasing time axis. Use lmin/lmax instead."
+            )
+        rel_dev = float(np.max(np.abs(d64 - med))) / med
+        if rel_dev <= self._DT_EVEN_RTOL:
+            return diffs[0], False
+        if rel_dev > self._DT_MILD_RTOL:
+            raise ValueError(
+                f"timescale requires regular temporal spacing, but the time steps vary "
+                f"between {d64.min():g} and {d64.max():g} (median {med:g}). Use lmin/lmax "
+                f"(in time steps) instead, or resample the data to regular spacing."
+            )
+        dt = float(times_1d[-1] - times_1d[0]) / diffs.size
+        if not getattr(self, "_irregular_dt_warned", False):
+            logging.getLogger("TOAD").warning(
+                f"Time steps vary slightly (between {d64.min():g} and {d64.max():g}). "
+                f"Converting timescale with the mean step {dt:g}."
+            )
+            self._irregular_dt_warned = True
+        return dt, True
 
     def fit_predict(
         self,

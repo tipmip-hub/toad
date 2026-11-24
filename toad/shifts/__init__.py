@@ -102,16 +102,37 @@ def compute_shifts(
             "Chunked data is not yet supported. Please call .compute() on the data first."
         )
 
+    # Work on a private copy so the user's method object is never modified
+    # (e.g. by a method that keeps a warn-once flag on itself).
+    method = _clone_method(method)
+
+    # Record the lmin/lmax actually used. Do not write them back onto ``method``:
+    # an automatic lmax must be recomputed for the next series. Resolved before
+    # the detector runs, so invalid settings fail early and warn-once flags are
+    # already set on the copy that each parallel block clones.
+    times_1d = td.numeric_time_values
+    resolved_params: dict[str, str] = {}
+    if hasattr(method, "_get_segment_lengths"):
+        resolved_lmin, resolved_lmax = method._get_segment_lengths(times_1d)
+        resolved_params["shifts_lmin"] = str(resolved_lmin)
+        resolved_params["shifts_lmax"] = str(resolved_lmax)
+    elif isinstance(method, EDGE):
+        n = len(times_1d)
+        resolved_lmin = method.lmin if method.lmin is not None else int(0.1 * n)
+        resolved_lmax = method.lmax if method.lmax is not None else int(0.2 * n)
+        resolved_lcutoff = (
+            method.lcutoff if method.lcutoff is not None else int(0.02 * n)
+        )
+        resolved_params["shifts_lmin"] = str(resolved_lmin)
+        resolved_params["shifts_lmax"] = str(resolved_lmax)
+        resolved_params["shifts_lcutoff"] = str(resolved_lcutoff)
+
     # Check if the output_label is already in the data
     output_label = f"{var}_dts{output_label_suffix}"
     if not overwrite:
         output_label = get_unique_variable_name(output_label, td.data, logger)
     elif overwrite and output_label in td.data:
         td.data = td.data.drop_vars(output_label)
-
-    # Work on a private copy so the user's method object is never modified
-    # (e.g. by a method that keeps a warn-once flag on itself).
-    method = _clone_method(method)
 
     # Apply the detector
     logger.debug(f"Applying detector {method.__class__.__name__} to {var}")
@@ -200,25 +221,6 @@ def compute_shifts(
 
     # Rename the output variable
     shifts = shifts.rename(output_label)
-
-    # Record the lmin/lmax actually used. Do not write them back onto ``method``:
-    # an automatic lmax must be recomputed for the next series.
-    times_1d = td.numeric_time_values
-    resolved_params: dict[str, str] = {}
-    if hasattr(method, "_get_segment_lengths"):
-        resolved_lmin, resolved_lmax = method._get_segment_lengths(times_1d)
-        resolved_params["shifts_lmin"] = str(resolved_lmin)
-        resolved_params["shifts_lmax"] = str(resolved_lmax)
-    elif isinstance(method, EDGE):
-        n = len(times_1d)
-        resolved_lmin = method.lmin if method.lmin is not None else int(0.1 * n)
-        resolved_lmax = method.lmax if method.lmax is not None else int(0.2 * n)
-        resolved_lcutoff = (
-            method.lcutoff if method.lcutoff is not None else int(0.02 * n)
-        )
-        resolved_params["shifts_lmin"] = str(resolved_lmin)
-        resolved_params["shifts_lmax"] = str(resolved_lmax)
-        resolved_params["shifts_lcutoff"] = str(resolved_lcutoff)
 
     # Save method params
     method_params = {
