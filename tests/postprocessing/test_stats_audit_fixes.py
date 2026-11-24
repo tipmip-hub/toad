@@ -291,3 +291,12 @@ def test_score_overview_without_kwargs_and_nan_component(monkeypatch):
     ov2 = g.score_overview()
     assert ov2["consistency"].isna().all()
     assert ov2["aggregate_score"].isna().all()
+
+
+def test_score_overview_mean_lon_across_seam():
+    lon = np.arange(5, 360, 10.0)
+    s = _lon_cluster_td(lon, [335, 345, 355, 5, 15, 25]).stats("v_dts_cluster")
+    got = s.general.score_overview()["mean_lon"].iloc[0]
+    assert abs((got + 180) % 360 - 180) < 1e-9
+    s2 = _lon_cluster_td(lon, [105, 115, 125]).stats("v_dts_cluster")
+    assert s2.general.score_overview()["mean_lon"].iloc[0] == pytest.approx(115.0)
