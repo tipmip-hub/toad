@@ -20,6 +20,7 @@ The clustering results are returned as xarray objects with appropriate metadata 
 visualized using TOAD's plotting utilities.
 """
 
+import copy
 import logging
 from collections.abc import Callable
 from time import time as time_now
@@ -27,6 +28,7 @@ from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import optuna
+import pandas as pd
 import xarray as xr
 from sklearn.base import ClusterMixin
 
@@ -71,7 +73,7 @@ def compute_clusters(
     shift_direction: Literal["both", "positive", "negative"] | str = "both",
     shift_selection: Literal["local", "global", "all"] | str = "local",
     time_weight: float = 1,
-    regridder: BaseRegridder | None = None,
+    regridder: HealPixRegridder | None = None,
     disable_regridder: bool = False,
     output_label_suffix: str = "",
     output_label: str | None = None,
@@ -111,7 +113,7 @@ def compute_clusters(
             - "all": Cluster all shift values that meet the threshold and direction criteria. Includes all data points above threshold, not just peaks.
             Defaults to "local".
         time_weight: Controls the relative influence of time in clustering. By default, time values are automatically scaled to match the standard deviation of the spatial coordinates. Increasing time_weight gives more emphasis to the temporal dimension, resulting in clusters that are tighter in time (shorter delays between abrupt events). Decreasing it emphasizes the spatial dimensions, allowing clusters to span a wider range of shift times. Defaults to 1.
-        regridder: The regridding method to use from `toad.clustering.regridding`. Defaults to None. If None and coordinates are lat/lon, a HealPixRegridder will be created automatically.
+        regridder: None or a `toad.regridding.HealPixRegridder` instance, e.g. to set `nside` or `fill_empty_pixels=False`. Defaults to None. If None and coordinates are lat/lon, a HealPixRegridder will be created automatically. After the call, `regridder.df_healpix` holds the regridded points with their final cluster labels. Custom regridders are no longer supported.
         disable_regridder: Whether to disable the regridder. Defaults to False.
         output_label_suffix: A suffix to add to the output label. Defaults to "".
         overwrite: If True, overwrite existing variable of same name. If False, same name is used with an added number. Defaults to False.
@@ -198,6 +200,8 @@ def compute_clusters(
     # we add neg sign manually to detect negative shift
     if shift_threshold < 0:
         raise ValueError(f"shift_threshold must be positive, got {shift_threshold}")
+
+    _check_regridder(regridder)
 
     # ==================== LABEL MAKING ====================
     # Set output label (name of shifts_variable + _cluster + output_label_suffix) and check if already in data
@@ -373,6 +377,7 @@ def compute_clusters(
         cluster_labels = np.full(n_pts, -1, dtype=int)
         label_offset = 0
         regridders_used: list[BaseRegridder] = []
+        regridder_offsets: list[int] = []
         clustering_time = 0.0
 
         for mask in sign_masks:
@@ -384,6 +389,7 @@ def compute_clusters(
                 f"with {n_sub} points" + (" (sign split)" if split_by_sign else "")
             )
             cluster_start = time_now()
+            subset_offset = label_offset
             sub_labels, used_regridder = _cluster_coords_subset(
                 coords[mask],
                 weights[mask],
@@ -406,20 +412,31 @@ def compute_clusters(
             cluster_labels[mask] = sub_labels
             if used_regridder is not None:
                 regridders_used.append(used_regridder)
+                regridder_offsets.append(subset_offset)
 
+        user_regridder = regridder
         if regridders_used:
             regridder = regridders_used[-1]
             if len(regridders_used) > 1:
-                import pandas as pd
-
                 regridder.df_healpix = pd.concat(
                     [rg.df_healpix for rg in regridders_used],
                     ignore_index=True,
                 )
 
+        labels_before_sort = cluster_labels
         cluster_labels = (
             sorted_cluster_labels(cluster_labels) if sort_by_size else cluster_labels
         )
+
+        # The regridder the caller passed carries the regridded points, labelled
+        # like the output (sign offsets and size sorting applied).
+        if regridders_used and user_regridder is not None:
+            user_regridder.df_healpix = _final_df_healpix(
+                regridders_used,
+                regridder_offsets,
+                labels_before_sort,
+                cluster_labels,
+            )
 
         # Scatter labels back into xarray without DataFrame
         # Start with NaN (points not included in clustering remain NaN)
@@ -484,14 +501,64 @@ def compute_clusters(
     return xr.merge([td.data, clusters], combine_attrs="override", compat="override")
 
 
-def _clone_regridder(regridder: BaseRegridder | None) -> BaseRegridder | None:
+def _check_regridder(regridder) -> None:
+    """Only None or a HealPixRegridder instance is accepted."""
+    if regridder is None or isinstance(regridder, HealPixRegridder):
+        return
+    raise TypeError(
+        "regridder must be None or a toad.regridding.HealPixRegridder instance, "
+        f"got {type(regridder).__name__}. Custom regridders are no longer supported; "
+        "use disable_regridder=True to cluster on the original grid."
+    )
+
+
+# Regridder attributes that hold the results of a regrid() call, not settings.
+_REGRIDDER_RESULTS = ("df_healpix", "original_coords", "original_weights")
+# Source grid and its fill-map cache: shared with the clone, not copied.
+_REGRIDDER_SHARED = ("_source_grid", "_fill_map")
+
+
+def _clone_regridder(regridder: HealPixRegridder | None) -> HealPixRegridder | None:
+    """Fresh copy of ``regridder`` with every setting but none of its results."""
     if regridder is None:
         return None
-    nside = getattr(regridder, "nside", None)
-    clone = regridder.__class__(nside=nside)
-    if hasattr(regridder, "copy_source_grid_from"):
-        clone.copy_source_grid_from(regridder)
+    clone = copy.copy(regridder)
+    for name, value in vars(regridder).items():
+        if name in _REGRIDDER_RESULTS or name in _REGRIDDER_SHARED:
+            continue
+        setattr(clone, name, copy.deepcopy(value))
+    clone.df_healpix = pd.DataFrame()
+    for name in _REGRIDDER_RESULTS[1:]:
+        if name in vars(clone):
+            setattr(clone, name, None)
+    clone.copy_source_grid_from(regridder)
     return clone
+
+
+def _final_df_healpix(
+    regridders: list[HealPixRegridder],
+    offsets: list[int],
+    labels_before_sort: np.ndarray,
+    labels_after_sort: np.ndarray,
+) -> pd.DataFrame:
+    """Regridded points of all subsets, with the cluster ids of the output."""
+    mapping = dict(
+        zip(
+            np.asarray(labels_before_sort).astype(int).tolist(),
+            np.asarray(labels_after_sort).astype(int).tolist(),
+        )
+    )
+    mapping[-1] = -1
+    frames = []
+    for rg, offset in zip(regridders, offsets):
+        df = rg.df_healpix.copy()
+        if "cluster" in df.columns:
+            raw = df["cluster"].to_numpy(dtype=int)
+            shifted = np.where(raw >= 0, raw + offset, -1)
+            # A cluster made only of filled pixels holds no source point: noise.
+            df["cluster"] = [mapping.get(int(c), -1) for c in shifted]
+        frames.append(df)
+    return pd.concat(frames, ignore_index=True)
 
 
 def _cluster_coords_subset(
