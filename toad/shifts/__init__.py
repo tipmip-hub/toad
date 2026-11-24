@@ -9,6 +9,7 @@ Currently implemented methods:
 - ASDETECT: Implementation of the [Boulton+Lenton2019]_
 """
 
+import copy
 import logging
 from contextlib import nullcontext
 from typing import TYPE_CHECKING
@@ -254,16 +255,14 @@ def compute_shifts(
 
 def _clone_method(m: ShiftsMethod) -> ShiftsMethod:
     """
-    Clone an instance of a ShiftsMethod subclass by copying its non-private, non-None attributes.
+    Return an independent deep copy of a ShiftsMethod instance.
 
-    This helper is needed to create a new instance with the same configuration/parameters as an
-    existing ShiftsMethod object. It's used when running shift detection on multiple blocks of
-    data in parallel, to ensure each block gets an independent, safe-to-modify copy of the method.
+    Used when running shift detection on multiple blocks of data in parallel, so that each
+    block gets a safe-to-modify copy with exactly the same configuration. A deep copy keeps
+    attributes that are None (e.g. ``EDGE(smoothing_scale=None)``), which re-calling the
+    constructor without them would replace with the constructor default.
     """
-    params = {
-        k: v for k, v in vars(m).items() if v is not None and not k.startswith("_")
-    }
-    return m.__class__(**params)
+    return copy.deepcopy(m)
 
 
 def _run_block(
