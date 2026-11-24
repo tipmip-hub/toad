@@ -30,9 +30,12 @@ class _Records(logging.Handler):
 def toad_warnings():
     handler = _Records()
     logger = logging.getLogger("TOAD")
+    level = logger.level  # other tests may leave the TOAD logger at ERROR
+    logger.setLevel(logging.WARNING)
     logger.addHandler(handler)
     yield handler.messages
     logger.removeHandler(handler)
+    logger.setLevel(level)
 
 
 @pytest.mark.parametrize(
