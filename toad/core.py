@@ -484,14 +484,18 @@ class TOAD:
                 "all": Cluster all shift values that meet the threshold and direction criteria. Includes all data points above threshold, not just peaks.
                 Defaults to "local".
             time_weight: Controls the relative influence of time in clustering. By default, time values are automatically scaled to match the standard deviation of the spatial coordinates. Increasing time_weight gives more emphasis to the temporal dimension, resulting in clusters that are tighter in time (shorter delays between abrupt events). Decreasing it emphasizes the spatial dimensions, allowing clusters to span a wider range of shift times. Defaults to 1.
-            regridder: The regridding method to use from toad.clustering.regridding.
-                Defaults to None. If None and coordinates are lat/lon, a HealPixRegridder will
-                be created automatically.
+            regridder: None or a toad.regridding.HealPixRegridder instance, e.g. to set
+                ``nside`` or ``fill_empty_pixels=False``. Defaults to None. If None and
+                coordinates are lat/lon, a HealPixRegridder will be created automatically.
+                After the call, ``regridder.df_healpix`` holds the regridded points with
+                their final cluster labels. Custom regridders are no longer supported.
             disable_regridder: Whether to disable the regridder. Defaults to False.
             output_label_suffix: A suffix to add to the output label. Defaults to "".
             overwrite: Whether to overwrite existing variable. Defaults to False.
             sort_by_size: Whether to reorder clusters by size. Defaults to True.
-            optimize: Whether to optimize the clustering parameters. Defaults to False.
+            optimize: Deprecated: use :meth:`optimize_clusters` instead, which takes the
+                ``optimize_*`` arguments below without the prefix. Whether to optimize the
+                clustering parameters. Defaults to False.
             optimize_params: Parameters for the optimization. Defaults to clustering.default_opt_params.
             optimize_objective: The objective function to optimize. Defaults to combined_spatial_nonlinearity. Can be one of:
                 - callable: Custom objective function taking (td, output_label) as arguments
@@ -516,6 +520,39 @@ class TOAD:
             between data points and prevent biased clustering at high latitudes.
         """
 
+        if optimize:
+            import warnings
+
+            warnings.warn(
+                "compute_clusters(optimize=True, optimize_*=...) is deprecated and will "
+                "be removed in a future release. Use td.optimize_clusters(...) instead, "
+                "with the optimize_* arguments without the prefix (params, objective, "
+                "n_trials, direction, log_level, progress_bar).",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self.optimize_clusters(
+                var=var,
+                method=method,
+                shift_threshold=shift_threshold,
+                shift_direction=shift_direction,
+                shift_selection=shift_selection,
+                time_weight=time_weight,
+                regridder=regridder,
+                disable_regridder=disable_regridder,
+                output_label_suffix=output_label_suffix,
+                output_label=output_label,
+                overwrite=overwrite,
+                sort_by_size=sort_by_size,
+                params=optimize_params,
+                objective=optimize_objective,
+                n_trials=optimize_n_trials,
+                direction=optimize_direction,
+                log_level=optimize_log_level,
+                progress_bar=optimize_progress_bar,
+            )
+            return
+
         self.data = clustering.compute_clusters(
             td=self,
             var=self._get_base_var_if_none(var),
@@ -530,13 +567,98 @@ class TOAD:
             output_label=output_label,
             overwrite=overwrite,
             sort_by_size=sort_by_size,
-            optimize=optimize,
-            optimize_params=optimize_params,
-            optimize_objective=optimize_objective,
-            optimize_n_trials=optimize_n_trials,
-            optimize_direction=optimize_direction,
-            optimize_log_level=optimize_log_level,
-            optimize_progress_bar=optimize_progress_bar,
+        )
+
+    def optimize_clusters(
+        self,
+        var: str | None = None,
+        method: ClusterMixin | type = sklearn.cluster.HDBSCAN,
+        shift_threshold: float = DEFAULT_SHIFT_THRESHOLD,
+        shift_direction: Literal["both", "positive", "negative"] | str = "both",
+        shift_selection: Literal["local", "global", "all"] | str = "local",
+        time_weight: float = 1,
+        regridder: BaseRegridder | None = None,
+        disable_regridder: bool = False,
+        output_label_suffix: str = "",
+        output_label: str | None = None,
+        overwrite: bool = False,
+        sort_by_size: bool = True,
+        params: dict = default_opt_params,
+        objective: Callable
+        | Literal[
+            "median_heaviside",
+            "mean_heaviside",
+            "mean_consistency",
+            "mean_spatial_autocorrelation",
+            "mean_nonlinearity",
+            "combined_spatial_nonlinearity",
+        ]
+        | str = "combined_spatial_nonlinearity",
+        n_trials: int = 50,
+        direction: str = "maximize",
+        log_level: int = optuna.logging.WARNING,
+        progress_bar: bool = True,
+        seed: int | None = None,
+    ):
+        """Search clustering parameters with Optuna, then cluster with the best ones (experimental).
+
+        Each trial is an ordinary :meth:`compute_clusters` call with the arguments given here
+        plus parameters sampled from ``params``. The final clustering uses the best parameters
+        with the same arguments and is stored in one cluster variable. The optimisation details
+        are in its attributes: ``optimization`` (1), ``opt_objective``, ``opt_best_score``,
+        ``opt_direction``, ``opt_n_trials``, and ``opt_params`` and ``opt_best_params`` as JSON
+        strings (decode them with ``toad.clustering.read_opt_params``).
+
+        Args:
+            var: Name of the shifts variable to cluster, or of the base variable whose shifts
+                should be clustered. If None, TOAD will attempt to infer which shifts to use.
+            method: The clustering method class (e.g. ``HDBSCAN``). Parameters of an instance
+                are ignored; pass them through ``params``. Defaults to HDBSCAN.
+            shift_threshold, shift_direction, shift_selection, time_weight, regridder,
+                disable_regridder, output_label_suffix, output_label, overwrite,
+                sort_by_size: As in :meth:`compute_clusters`; used in every trial and in the
+                final clustering.
+            params: Parameters to optimise. A ``(min, max)`` tuple is sampled (float if the
+                first bound is a float, else int); a single value is fixed. Keys are arguments
+                of the clustering method, or ``shift_threshold`` and ``time_weight``.
+                Defaults to clustering.default_opt_params.
+            objective: The objective function to optimize. Defaults to combined_spatial_nonlinearity. Can be one of:
+                - callable: Custom objective function taking (td, output_label) as arguments
+                - "median_heaviside": Median heaviside score across clusters
+                - "mean_heaviside": Mean heaviside score across clusters
+                - "mean_consistency": Mean consistency score across clusters
+                - "mean_spatial_autocorrelation": Mean spatial autocorrelation score
+                - "mean_nonlinearity": Mean nonlinearity score across clusters
+            n_trials: Number of trials to run. Defaults to 50.
+            direction: "maximize" or "minimize". Defaults to "maximize".
+            log_level: The log level for Optuna. Defaults to optuna.logging.WARNING.
+            progress_bar: Whether to show Optuna's progress bar. Defaults to True.
+            seed: Seed for Optuna's sampler, for reproducible trials. Defaults to None.
+
+        Returns:
+            None.
+        """
+        self.data = clustering.optimize_clusters(
+            td=self,
+            var=self._get_base_var_if_none(var),
+            method=method,
+            shift_threshold=shift_threshold,
+            shift_direction=shift_direction,
+            shift_selection=shift_selection,
+            time_weight=time_weight,
+            regridder=regridder,
+            disable_regridder=disable_regridder,
+            output_label_suffix=output_label_suffix,
+            output_label=output_label,
+            overwrite=overwrite,
+            sort_by_size=sort_by_size,
+            params=params,
+            objective=objective,
+            n_trials=n_trials,
+            direction=direction,
+            log_level=log_level,
+            progress_bar=progress_bar,
+            seed=seed,
         )
 
     def compute_consensus(

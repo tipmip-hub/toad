@@ -22,6 +22,7 @@ visualized using TOAD's plotting utilities.
 
 import copy
 import logging
+import warnings
 from collections.abc import Callable
 from time import time as time_now
 from typing import TYPE_CHECKING, Literal
@@ -35,9 +36,10 @@ from sklearn.base import ClusterMixin
 from toad._version import __version__
 from toad.clustering.methods.space_time_dbscan import SpaceTimeDBSCAN
 from toad.clustering.optimizing import (
-    _optimize_clusters,
     combined_spatial_nonlinearity,
     default_opt_params,
+    optimize_clusters,
+    read_opt_params,
 )
 from toad.regridding import HealPixRegridder
 from toad.regridding.base import BaseRegridder
@@ -54,6 +56,8 @@ logger = logging.getLogger("TOAD")
 
 __all__ = [
     "compute_clusters",
+    "optimize_clusters",
+    "read_opt_params",
     "default_opt_params",
     "combined_spatial_nonlinearity",
     "sorted_cluster_labels",
@@ -118,7 +122,7 @@ def compute_clusters(
         output_label_suffix: A suffix to add to the output label. Defaults to "".
         overwrite: If True, overwrite existing variable of same name. If False, same name is used with an added number. Defaults to False.
         sort_by_size: Whether to reorder clusters by size. Defaults to True.
-        optimize: Whether to optimize the clustering parameters. Defaults to False.
+        optimize: Deprecated, use `optimize_clusters` (or `td.optimize_clusters`) instead, which takes the `optimize_*` arguments without the prefix. Whether to optimize the clustering parameters. Defaults to False.
         optimize_params: Parameters for the optimization. Defaults to default_opt_params.
         optimize_objective: The objective function to optimize. Defaults to combined_spatial_nonlinearity. Can be one of:
             - callable: Custom objective function taking (td, output_label) as arguments
@@ -138,6 +142,130 @@ def compute_clusters(
     Notes:
         For global datasets, use `toad.clustering.regridding.HealpyRegridder` to ensure equal spacing between data points and prevent biased clustering at high latitudes.
     """
+
+    if optimize:
+        warnings.warn(
+            "compute_clusters(optimize=True, optimize_*=...) is deprecated and will be "
+            "removed in a future release. Use td.optimize_clusters(...) instead, with "
+            "the optimize_* arguments without the prefix (params, objective, "
+            "n_trials, direction, log_level, progress_bar).",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return optimize_clusters(
+            td,
+            var,
+            method=method,
+            shift_threshold=shift_threshold,
+            shift_direction=shift_direction,
+            shift_selection=shift_selection,
+            time_weight=time_weight,
+            regridder=regridder,
+            disable_regridder=disable_regridder,
+            output_label_suffix=output_label_suffix,
+            output_label=output_label,
+            overwrite=overwrite,
+            sort_by_size=sort_by_size,
+            params=optimize_params,
+            objective=optimize_objective,
+            n_trials=optimize_n_trials,
+            direction=optimize_direction,
+            log_level=optimize_log_level,
+            progress_bar=optimize_progress_bar,
+        )
+
+    return _compute_clusters(
+        td,
+        var,
+        method,
+        shift_threshold=shift_threshold,
+        shift_direction=shift_direction,
+        shift_selection=shift_selection,
+        time_weight=time_weight,
+        regridder=regridder,
+        disable_regridder=disable_regridder,
+        output_label_suffix=output_label_suffix,
+        output_label=output_label,
+        overwrite=overwrite,
+        sort_by_size=sort_by_size,
+    )
+
+
+def _resolve_shifts_variable(td: "TOAD", var: str) -> str:
+    """Name of the shifts variable to cluster for a base or shifts variable."""
+    # if supplied variable is a shift variable, use that
+    if td._is_shift_variable(var):
+        shifts_variable = var
+    else:
+        if td._is_cluster_variable(var):
+            raise ValueError(
+                f"{var} is a cluster variable. Please pass a base or shift variable."
+            )
+
+        # if supplied variable is a base variable, check if multiple shifts variables exist
+        shift_vars = td.shift_vars_for_var(var)
+        if len(shift_vars) > 1:
+            raise ValueError(
+                f"Multiple shifts variables exist for {var}: {shift_vars}. Please specify which one to use"
+            )
+        elif len(shift_vars) == 0:
+            raise ValueError(
+                f"No shifts found for base variable {var}. Please run compute_shifts() for var={var} first."
+            )
+        # use the first/only shift variable
+        shifts_variable = shift_vars[0]
+
+    if td.data[shifts_variable].ndim != 3:
+        raise ValueError(
+            "Shifts variable must be 3-dimensional: time/forcing x space x space"
+        )
+    return shifts_variable
+
+
+def _check_args(shift_threshold: float, regridder) -> None:
+    # we add neg sign manually to detect negative shift
+    if shift_threshold < 0:
+        raise ValueError(f"shift_threshold must be positive, got {shift_threshold}")
+    _check_regridder(regridder)
+
+
+def _resolve_output_label(
+    td: "TOAD",
+    shifts_variable: str,
+    output_label: str | None,
+    output_label_suffix: str,
+    overwrite: bool,
+) -> str:
+    """Output label; with overwrite, an existing variable of that name is dropped."""
+    # Set output label (name of shifts_variable + _cluster + output_label_suffix) and check if already in data
+    new_output_label = (
+        output_label
+        if output_label
+        else f"{shifts_variable}_cluster{output_label_suffix}"
+    )
+    if not overwrite:
+        new_output_label = get_unique_variable_name(new_output_label, td.data, logger)
+    elif overwrite and new_output_label in td.data:
+        td.data = td.data.drop_vars(new_output_label)
+    return new_output_label
+
+
+def _compute_clusters(
+    td: "TOAD",
+    var: str,
+    method: ClusterMixin | type,
+    shift_threshold: float = DEFAULT_SHIFT_THRESHOLD,
+    shift_direction: Literal["both", "positive", "negative"] | str = "both",
+    shift_selection: Literal["local", "global", "all"] | str = "local",
+    time_weight: float = 1,
+    regridder: HealPixRegridder | None = None,
+    disable_regridder: bool = False,
+    output_label_suffix: str = "",
+    output_label: str | None = None,
+    overwrite: bool = False,
+    sort_by_size: bool = True,
+) -> xr.Dataset:
+    """Cluster once with the given arguments (no optimisation); see compute_clusters."""
 
     """
     Overview of the clustering process:
@@ -170,74 +298,13 @@ def compute_clusters(
     start_time = time_now()
 
     # ==================== VARIABLE CHECKING ====================
-    # if supplied variable is a shift variable, use that
-    if td._is_shift_variable(var):
-        shifts_variable = var
-    else:
-        if td._is_cluster_variable(var):
-            raise ValueError(
-                f"{var} is a cluster variable. Please pass a base or shift variable."
-            )
-
-        # if supplied variable is a base variable, check if multiple shifts variables exist
-        shift_vars = td.shift_vars_for_var(var)
-        if len(shift_vars) > 1:
-            raise ValueError(
-                f"Multiple shifts variables exist for {var}: {shift_vars}. Please specify which one to use"
-            )
-        elif len(shift_vars) == 0:
-            raise ValueError(
-                f"No shifts found for base variable {var}. Please run compute_shifts() for var={var} first."
-            )
-        # use the first/only shift variable
-        shifts_variable = shift_vars[0]
-
-    if td.data[shifts_variable].ndim != 3:
-        raise ValueError(
-            "Shifts variable must be 3-dimensional: time/forcing x space x space"
-        )
-
-    # we add neg sign manually to detect negative shift
-    if shift_threshold < 0:
-        raise ValueError(f"shift_threshold must be positive, got {shift_threshold}")
-
-    _check_regridder(regridder)
+    shifts_variable = _resolve_shifts_variable(td, var)
+    _check_args(shift_threshold, regridder)
 
     # ==================== LABEL MAKING ====================
-    # Set output label (name of shifts_variable + _cluster + output_label_suffix) and check if already in data
-    new_output_label = (
-        output_label
-        if output_label
-        else f"{shifts_variable}_cluster{output_label_suffix}"
+    new_output_label = _resolve_output_label(
+        td, shifts_variable, output_label, output_label_suffix, overwrite
     )
-    if not overwrite:
-        new_output_label = get_unique_variable_name(new_output_label, td.data, logger)
-    elif overwrite and new_output_label in td.data:
-        td.data = td.data.drop_vars(new_output_label)
-
-    # ==================== optimization ====================
-    # if optimize is True, optimize the parameters for clustering.
-    if optimize:
-        return _optimize_clusters(
-            td=td,
-            var=var,
-            method=method,
-            shift_threshold=shift_threshold,
-            shift_direction=shift_direction,
-            shift_selection=shift_selection,
-            time_weight=time_weight,
-            regridder=regridder,
-            output_label=new_output_label,
-            overwrite=True,
-            sort_by_size=sort_by_size,
-            optimize=False,
-            optimize_params=optimize_params,
-            optimize_objective=optimize_objective,
-            optimize_n_trials=optimize_n_trials,
-            optimize_direction=optimize_direction,
-            optimize_log_level=optimize_log_level,
-            optimize_progress_bar=optimize_progress_bar,
-        )
 
     # ==================== SHIFT SELECTION ====================
     sh = td.data[shifts_variable]
