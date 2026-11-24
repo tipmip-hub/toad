@@ -152,6 +152,10 @@ class HealPixRegridder(BaseRegridder):
         tree = cKDTree(xyz.reshape(-1, 3)[ok])
         dist, cell = tree.query(unit(pix_lat.to_value(u.deg), pix_lon.to_value(u.deg)))
         keep = dist <= reach[cell]
+        if not keep.any():
+            # Regional grid on pixels no finer than its cells: every empty
+            # pixel lies outside the grid, so there is nothing to fill.
+            return self._fill_map
 
         order = np.argsort(cell[keep], kind="stable")
         cell_k, pix_k = cell[keep][order], empty[keep][order]

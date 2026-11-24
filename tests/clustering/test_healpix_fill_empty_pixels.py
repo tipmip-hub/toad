@@ -2,8 +2,12 @@
 
 import astropy.units as u
 import numpy as np
+import pytest
+import xarray as xr
 from astropy_healpix import healpix_to_lonlat
+from sklearn.cluster import HDBSCAN
 
+from toad import TOAD
 from toad.regridding import HealPixRegridder
 
 
@@ -84,3 +88,57 @@ def test_fill_can_be_switched_off():
     regridder = HealPixRegridder(nside=32, fill_empty_pixels=False)
     regridder.set_source_grid(lat2d, lon2d)
     assert regridder.empty_pixel_fill_map() == {}
+
+
+def _regional_grid(step=1.0, n=20, lat0=40.0, lon0=10.0):
+    lat = lat0 + step * np.arange(n)
+    lon = lon0 + step * np.arange(n)
+    lon2d, lat2d = np.meshgrid(lon, lat)
+    return lat2d, lon2d
+
+
+@pytest.mark.parametrize("nside", [4, 16])
+def test_regional_grid_with_empty_pixels_all_out_of_reach(nside):
+    """Pixels as large as the cells or larger: all empty pixels lie outside."""
+    lat2d, lon2d = _regional_grid()
+    regridder = HealPixRegridder(nside=nside)
+    regridder.set_source_grid(lat2d, lon2d)
+    assert regridder.empty_pixel_fill_map() == {}
+
+
+def test_regional_grid_finer_pixels_fill_only_inside():
+    lat2d, lon2d = _regional_grid(step=2.0, n=10)
+    regridder = HealPixRegridder(nside=64)
+    regridder.set_source_grid(lat2d, lon2d)
+    fill = regridder.empty_pixel_fill_map()
+    assert fill
+    _, plat, plon = _pixel_centres(64)
+    filled = np.concatenate(list(fill.values()))
+    # Within about one cell (2 degrees) of the grid's outer cell centres.
+    assert plat[filled].min() > 37.0 and plat[filled].max() < 61.0
+    assert plon[filled].min() > 6.0 and plon[filled].max() < 32.0
+
+
+@pytest.mark.parametrize("step,n", [(0.25, 40), (1.0, 20), (5.0, 12)])
+def test_compute_clusters_runs_on_a_regional_grid(step, n):
+    """Default regridding on a regional lat/lon grid must not crash."""
+    lat = 40.0 + step * np.arange(n)
+    lon = 10.0 + step * np.arange(n)
+    time = np.arange(60.0)
+    rng = np.random.default_rng(0)
+    data = 0.05 * rng.standard_normal((time.size, n, n))
+    half = n // 2
+    data[30:, :half, :half] += 3.0
+    ds = xr.Dataset(
+        {"v": (("time", "lat", "lon"), data)},
+        coords={"time": time, "lat": lat, "lon": lon},
+    )
+    td = TOAD(ds)
+    td.compute_shifts("v")
+    td.compute_clusters(
+        "v",
+        method=HDBSCAN(min_cluster_size=5),
+        shift_threshold=0.5,
+        shift_direction="positive",
+    )
+    assert "v_dts_cluster" in td.data
