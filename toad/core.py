@@ -126,9 +126,12 @@ class TOAD:
             ]  # store path as title for saving toad file later
             self.path = data  # store path
         elif isinstance(data, (xr.DataArray)):
-            self.data = data.to_dataset()  # convert to dataset if data is a DataArray
+            # convert to dataset; shallow copy so the caller's object is never modified
+            self.data = data.to_dataset().copy(deep=False)
         elif isinstance(data, (xr.Dataset)):
-            self.data = data  # Original data
+            # Shallow copy: shares the arrays (no memory cost) but has its own
+            # variables, attrs and encodings, so the caller's dataset is never modified.
+            self.data = data.copy(deep=False)
 
         # Initialize the logger for the TOAD object
         self.logger = logging.getLogger("TOAD")
