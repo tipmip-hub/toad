@@ -93,5 +93,47 @@ class TestMethodNotModified:
         assert out.attrs["shifts_lcutoff"] == "1"
 
 
+class TestOverwrite:
+    def test_overwrite_drops_dependent_clusters(self):
+        import logging
+
+        from sklearn.cluster import HDBSCAN  # type: ignore
+
+        from toad.shifts import ASDETECT
+
+        ds = _step_dataset()
+        ds["y"] = ds["x"] * 2.0
+        td = TOAD(ds, log_level="WARNING")
+        td.compute_shifts(
+            "x", method=ASDETECT(), show_progress=False, run_parallel=False
+        )
+        td.compute_shifts(
+            "y", method=ASDETECT(), show_progress=False, run_parallel=False
+        )
+        td.compute_clusters("x_dts", method=HDBSCAN(min_cluster_size=5))
+        td.compute_clusters("y_dts", method=HDBSCAN(min_cluster_size=5))
+        assert set(td.cluster_vars) == {"x_dts_cluster", "y_dts_cluster"}
+
+        records = []
+        handler = logging.Handler(level=logging.WARNING)
+        handler.emit = lambda r: records.append(r.getMessage())  # type: ignore
+        logging.getLogger("TOAD").addHandler(handler)
+        try:
+            td.compute_shifts(
+                "x",
+                method=ASDETECT(lmin=10),
+                overwrite=True,
+                show_progress=False,
+                run_parallel=False,
+            )
+        finally:
+            logging.getLogger("TOAD").removeHandler(handler)
+
+        assert "x_dts" in td.data
+        assert "x_dts_cluster" not in td.data
+        assert "y_dts_cluster" in td.data  # other shift variable: untouched
+        assert any("x_dts_cluster" in m for m in records)
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

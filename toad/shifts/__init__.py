@@ -132,7 +132,19 @@ def compute_shifts(
     if not overwrite:
         output_label = get_unique_variable_name(output_label, td.data, logger)
     elif overwrite and output_label in td.data:
-        td.data = td.data.drop_vars(output_label)
+        # Cluster variables computed from the old shifts would be paired with
+        # the new shift values by name, so drop them too.
+        dependent = [
+            str(name)
+            for name, da in td.data.data_vars.items()
+            if da.attrs.get(_attrs.SHIFTS_VARIABLE) == output_label
+        ]
+        if dependent:
+            logger.warning(
+                f"Overwriting {output_label}: dropping cluster variable(s) computed "
+                f"from the old shifts: {', '.join(dependent)}."
+            )
+        td.data = td.data.drop_vars([output_label, *dependent])
 
     # Apply the detector
     logger.debug(f"Applying detector {method.__class__.__name__} to {var}")
