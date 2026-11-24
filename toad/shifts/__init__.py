@@ -109,6 +109,10 @@ def compute_shifts(
     elif overwrite and output_label in td.data:
         td.data = td.data.drop_vars(output_label)
 
+    # Work on a private copy so the user's method object is never modified
+    # (e.g. by a method that keeps a warn-once flag on itself).
+    method = _clone_method(method)
+
     # Apply the detector
     logger.debug(f"Applying detector {method.__class__.__name__} to {var}")
 

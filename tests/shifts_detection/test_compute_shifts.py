@@ -58,5 +58,40 @@ class TestCloneMethod:
         assert not np.array_equal(serial.values, auto.values)
 
 
+class TestMethodNotModified:
+    def test_edge_reused_on_series_of_different_length(self):
+        rng = np.random.default_rng(1)
+        short = rng.normal(size=100)
+        long = rng.normal(size=300)
+        long[150:] += 4.0
+
+        reused = EDGE()
+        reused.fit_predict(short, np.arange(100.0))
+        assert reused.lmin is None and reused.lmax is None
+        assert reused.lcutoff is None
+
+        expected = EDGE().fit_predict(long, np.arange(300.0))
+        np.testing.assert_array_equal(
+            reused.fit_predict(long, np.arange(300.0)), expected
+        )
+
+    @pytest.mark.parametrize("run_parallel", [False, True])
+    def test_compute_shifts_leaves_method_unchanged(self, run_parallel):
+        from toad.shifts import ASDETECT
+
+        ds = _step_dataset()
+        for method in (EDGE(), ASDETECT(lmax=1000)):  # lmax capped -> warn-once
+            before = dict(vars(method))
+            _run(ds, method, run_parallel=run_parallel)
+            assert vars(method) == before
+
+    def test_edge_attrs_record_resolved_lengths(self):
+        ds = _step_dataset()
+        out = _run(ds, EDGE(), run_parallel=False)
+        assert out.attrs["shifts_lmin"] == "9"
+        assert out.attrs["shifts_lmax"] == "18"
+        assert out.attrs["shifts_lcutoff"] == "1"
+
+
 if __name__ == "__main__":
     pytest.main([__file__])
