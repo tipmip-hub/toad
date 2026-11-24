@@ -36,6 +36,12 @@ from toad.utils.repr_html import (
 )
 
 
+# Spatial dimension names recognised when normalising the dimension order:
+# latitude-like (y) dims go before longitude-like (x) dims.
+_Y_LIKE_DIMS = ("lat", "latitude", "nav_lat", "rlat", "y", "j", "nj", "yc")
+_X_LIKE_DIMS = ("lon", "longitude", "nav_lon", "rlon", "x", "i", "ni", "xc")
+
+
 def _cluster_ids_attr(attrs: dict) -> np.ndarray:
     """Return the ``cluster_ids`` attribute of a cluster variable as a 1-d array.
 
@@ -187,6 +193,41 @@ class TOAD:
         self.time_dim = time_dim
         if self.time_dim not in self.data.dims:
             raise ValueError(f"Time dimension {self.time_dim} not found in data.")
+
+        self._normalize_dim_order()
+
+    def _normalize_dim_order(self) -> None:
+        """Transpose data variables to ``(time, s0, s1)``, the order TOAD assumes.
+
+        ``s0``/``s1`` are the two spatial dims: latitude-like before
+        longitude-like (``y`` before ``x``, ``j`` before ``i``). When the names
+        are not recognised, their existing relative order is kept and only time
+        is moved first. Only variables whose dims are exactly time plus the two
+        spatial dims are touched. The transpose is lazy (no data copy) and works
+        on TOAD's own shallow copy, so the caller's dataset is not modified.
+        """
+        if len(self.data.data_vars) == 0:
+            return
+        space_dims = get_space_dims(self.data, self.time_dim)
+        if len(space_dims) != 2:
+            return
+        s0, s1 = space_dims
+        if s0 in _X_LIKE_DIMS and s1 in _Y_LIKE_DIMS:
+            s0, s1 = s1, s0
+        target = (self.time_dim, s0, s1)
+
+        transposed = []
+        for var in list(self.data.data_vars):
+            dims = self.data[var].dims
+            if dims != target and len(dims) == 3 and set(dims) == set(target):
+                self.data[var] = self.data[var].variable.transpose(*target)
+                transposed.append((var, dims))
+        if transposed:
+            old_dims = transposed[0][1]
+            self.logger.info(
+                f"Transposed {len(transposed)} variable(s) from {old_dims} to "
+                f"{target}, the dimension order TOAD uses."
+            )
 
     def _is_time_numeric(self) -> bool:
         """Check if the time dimension contains numeric values (int/float) or datetime objects (cftime).
