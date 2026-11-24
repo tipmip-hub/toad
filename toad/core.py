@@ -36,6 +36,16 @@ from toad.utils.repr_html import (
 )
 
 
+def _cluster_ids_attr(attrs: dict) -> np.ndarray:
+    """Return the ``cluster_ids`` attribute of a cluster variable as a 1-d array.
+
+    netCDF stores a one-element list attribute as a scalar, so after save and
+    load a clustering with a single id (one cluster, or only noise) would come
+    back as a scalar. Always read the attribute through this helper.
+    """
+    return np.atleast_1d(np.asarray(attrs.get(_attrs.CLUSTER_IDS, [])))
+
+
 class _StatsAccessor:
     """Callable accessor for Stats: use td.stats(var) for explicit var, or td.stats.time etc. for inferred var.
 
@@ -148,6 +158,13 @@ class TOAD:
 
         if auto_clean:
             self.data = preprocessing.clean_for_toad(self.data, time_dim=time_dim)
+
+        # netCDF returns a one-element cluster_ids list as a scalar; restore it
+        # (self.data is our own shallow copy, so this does not touch the caller's)
+        for var in self.data.data_vars:
+            attrs = self.data[var].attrs
+            if _attrs.CLUSTER_IDS in attrs:
+                attrs[_attrs.CLUSTER_IDS] = _cluster_ids_attr(attrs)
 
         # Check that all variables have the same dimensions
         dims = [self.data[var].dims for var in self.data.data_vars]
@@ -795,7 +812,7 @@ class TOAD:
         )
 
         # Update cluster ids attribute
-        existing_ids = np.array(original_attrs.get(_attrs.CLUSTER_IDS, []))
+        existing_ids = _cluster_ids_attr(original_attrs)
         new_ids = existing_ids[existing_ids != cluster_id]
         updated_attrs = dict(original_attrs)
         updated_attrs[_attrs.CLUSTER_IDS] = new_ids
@@ -915,7 +932,7 @@ class TOAD:
         self.data[cluster_var] = sorted_clusters
 
         # Update cluster ids metadata.
-        existing_ids = np.array(original_attrs.get(_attrs.CLUSTER_IDS, []))
+        existing_ids = _cluster_ids_attr(original_attrs)
         new_ids = np.array(list(range(len(old_to_new))), dtype=int)
         has_noise_label = bool((cluster_da == -1).any().item())
         if (-1 in existing_ids) or has_noise_label:
@@ -1183,7 +1200,7 @@ class TOAD:
         Returns:
             List of cluster ids.
         """
-        cluster_ids = self.get_clusters(var).cluster_ids
+        cluster_ids = _cluster_ids_attr(self.get_clusters(var).attrs)
         if exclude_noise:
             return np.array([id for id in cluster_ids if id != -1])
         else:
@@ -1210,7 +1227,7 @@ class TOAD:
 
         clusters = self.get_clusters(var)
 
-        all_cluster_ids = clusters.cluster_ids
+        all_cluster_ids = _cluster_ids_attr(clusters.attrs)
         if cluster_id is None:
             cluster_id = all_cluster_ids
         else:
