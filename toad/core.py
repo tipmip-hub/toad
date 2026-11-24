@@ -1572,8 +1572,8 @@ class TOAD:
 
             # Crop to cluster duration
             if not keep_full_timeseries:
-                start_idx = self.stats(var).time.start_timestep(cluster_id)
-                end_idx = self.stats(var).time.end_timestep(cluster_id)
+                start_idx = self.stats(cluster_var).time.start_timestep(cluster_id)
+                end_idx = self.stats(cluster_var).time.end_timestep(cluster_id)
                 # Set values outside the [start_idx, end_idx] range to NaN along the time dimension
                 time_indices = np.arange(data.sizes[self.time_dim])
                 mask_in_range = (time_indices >= start_idx) & (time_indices <= end_idx)
