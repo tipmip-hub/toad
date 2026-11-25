@@ -19,15 +19,17 @@ def _pixels_to_order(n_pixels: float) -> float:
 class HealPixRegridder(BaseRegridder):
     """Regrid data onto a equal-area HEALPix grid to avoid polar bias in clustering"""
 
-    def __init__(self, nside: Optional[int] = None, fill_empty_pixels: bool = True):
+    def __init__(self, nside: Optional[int] = None, fill_empty_pixels: bool = False):
         """
         Args:
             nside: HEALPix parameter nside, which must be a power of 2. The total number of pixels in the regridded grid (npix) is calculated using the formula: npix = 12 * nside ** 2. If nside is not specified, it will be automatically determined based on the data's resolution.
             fill_empty_pixels: Where source cells are wider than the pixels, some
-                pixels contain no cell centre and would stay empty. If True and the
+                pixels contain no cell centre and stay empty. If True and the
                 source grid is known (see ``set_source_grid``), each such pixel takes
-                the data of its nearest source cell. Set to False for the
-                behaviour of versions up to 1.0.10.
+                the data of its nearest source cell. One grid cell then contributes
+                several points to the clusterer (4 to 6 at low latitudes with the
+                automatic ``nside``), so ``min_samples`` and ``min_cluster_size``
+                are reached more easily and clusters change. Defaults to False.
         """
 
         self.df_healpix: pd.DataFrame = pd.DataFrame()

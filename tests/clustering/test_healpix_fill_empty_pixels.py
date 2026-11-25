@@ -45,7 +45,7 @@ def test_fill_gives_every_pixel_in_the_block_a_value():
 
     plain = HealPixRegridder(nside=32)
     plain.regrid(coords, weights, lat2d.shape)
-    filled = HealPixRegridder(nside=32)
+    filled = HealPixRegridder(nside=32, fill_empty_pixels=True)
     filled.set_source_grid(lat2d, lon2d)
     filled.regrid(coords, weights, lat2d.shape)
 
@@ -66,7 +66,7 @@ def test_fill_gives_every_pixel_in_the_block_a_value():
 def test_labels_map_back_to_every_source_cell():
     lat2d, lon2d = _coarse_grid()
     coords, weights = _block_events(lat2d, lon2d)
-    regridder = HealPixRegridder(nside=32)
+    regridder = HealPixRegridder(nside=32, fill_empty_pixels=True)
     regridder.set_source_grid(lat2d, lon2d)
     regridded, _ = regridder.regrid(coords, weights, lat2d.shape)
     back = regridder.regrid_clusters_back(np.zeros(len(regridded), dtype=int))
@@ -78,16 +78,20 @@ def test_fine_grid_has_nothing_to_fill():
     lat = np.arange(-89.75, 90.0, 0.5)
     lon = np.arange(0.25, 360.0, 0.5)
     lon2d, lat2d = np.meshgrid(lon, lat)
-    regridder = HealPixRegridder(nside=32)
+    regridder = HealPixRegridder(nside=32, fill_empty_pixels=True)
     regridder.set_source_grid(lat2d, lon2d)
     assert regridder.empty_pixel_fill_map() == {}
 
 
-def test_fill_can_be_switched_off():
+def test_fill_is_off_by_default():
     lat2d, lon2d = _coarse_grid()
-    regridder = HealPixRegridder(nside=32, fill_empty_pixels=False)
+    coords, weights = _block_events(lat2d, lon2d)
+    regridder = HealPixRegridder(nside=32)
+    assert regridder.fill_empty_pixels is False
     regridder.set_source_grid(lat2d, lon2d)
     assert regridder.empty_pixel_fill_map() == {}
+    regridder.regrid(coords, weights, lat2d.shape)
+    assert len(regridder.df_healpix) <= len(coords)
 
 
 def _regional_grid(step=1.0, n=20, lat0=40.0, lon0=10.0):
@@ -101,14 +105,14 @@ def _regional_grid(step=1.0, n=20, lat0=40.0, lon0=10.0):
 def test_regional_grid_with_empty_pixels_all_out_of_reach(nside):
     """Pixels as large as the cells or larger: all empty pixels lie outside."""
     lat2d, lon2d = _regional_grid()
-    regridder = HealPixRegridder(nside=nside)
+    regridder = HealPixRegridder(nside=nside, fill_empty_pixels=True)
     regridder.set_source_grid(lat2d, lon2d)
     assert regridder.empty_pixel_fill_map() == {}
 
 
 def test_regional_grid_finer_pixels_fill_only_inside():
     lat2d, lon2d = _regional_grid(step=2.0, n=10)
-    regridder = HealPixRegridder(nside=64)
+    regridder = HealPixRegridder(nside=64, fill_empty_pixels=True)
     regridder.set_source_grid(lat2d, lon2d)
     fill = regridder.empty_pixel_fill_map()
     assert fill
