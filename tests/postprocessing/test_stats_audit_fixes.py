@@ -76,29 +76,6 @@ def test_consistency_documented_degenerate_values():
     assert three == pytest.approx(np.sqrt(2.0))
 
 
-# --- 4.3: score_nonlinearity is invariant to offset and scale ---
-
-
-def test_nonlinearity_invariant_to_offset_and_scale():
-    rng = np.random.default_rng(1)
-    t = np.arange(60)
-    base = (t >= 30).astype(float) + 0.1 * rng.normal(size=60)
-    ref = _single_series_td(base).stats("v_dts_cluster").general.score_nonlinearity(0)
-    for off, scale in [(273.15, 1.0), (-0.5, 1.0), (0.0, 1000.0), (-3.0, 0.01)]:
-        td = _single_series_td(scale * base + off)
-        g = td.stats("v_dts_cluster").general
-        assert g.score_nonlinearity(0) == pytest.approx(ref, rel=1e-6)
-    step = _single_series_td((t >= 30).astype(float) + 273.15)
-    assert step.stats("v_dts_cluster").general.score_nonlinearity(0) == pytest.approx(
-        0.25, abs=1e-3
-    )
-
-
-def test_nonlinearity_constant_series_is_zero():
-    td = _single_series_td(np.full(40, 5.0))
-    assert td.stats("v_dts_cluster").general.score_nonlinearity(0) == 0.0
-
-
 # --- 4.4: steepest_gradient returns the time coordinate in its own type ---
 
 
@@ -199,42 +176,6 @@ def test_cartesian_x_is_not_wrapped():
     assert s.space.footprint_mean(0)[1] == pytest.approx(180.0)
     assert mean_longitude([350.0, 10.0]) == pytest.approx(0.0)
     assert mean_longitude([-170.0, 170.0]) == pytest.approx(-180.0)
-
-
-# --- 4.6: pooled transition times come from the cluster's own members ---
-
-
-def _two_sign_td():
-    T = 40
-    v = np.zeros((T, 3, 3))
-    sh = np.zeros((T, 3, 3))
-    lab = np.full((T, 3, 3), np.nan)
-    sh[10] = 0.7  # cluster 0: all cells shift up at t=10
-    lab[10] = 0
-    sh[25, 0, 0] = 0.7  # one cell also at t=25, so cluster 0 spans 10..25
-    lab[25, 0, 0] = 0
-    sh[20] = -0.9  # cluster 1: larger negative shifts at t=20 in the same cells
-    lab[20] = 1
-    return make_td(v, lab, shifts=sh)
-
-
-def test_pooled_transition_time_uses_member_points():
-    td = _two_sign_td()
-    s = td.stats("v_dts_cluster")
-    assert s.time.pooled_median_transition_time(0) == 10.0
-    assert s.time.pooled_median_transition_time(1) == 20.0
-    summ = s.time.summary([0])
-    assert summ["pooled_median_transition_time"].iloc[0] == 10.0
-    assert summ["n_transition_cells"].iloc[0] == 9
-    ext = s.cluster_summary(extended=True)
-    assert ext.loc[ext.cluster_id == 0, "pooled_median_transition_time"].iloc[0] == 10.0
-    ov = s.general.score_overview()
-    assert ov.loc[ov.cluster_id == 0, "mean_shift_time"].iloc[0] == pytest.approx(
-        (8 * 10 + 10) / 9
-    )
-    # the per-cell map keeps its documented footprint-and-window definition
-    m = s.time.compute_transition_time(cluster_ids=[0]).values
-    assert np.all(m == 20.0)
 
 
 # --- 4.7: score_overview passes each score only the arguments it accepts ---

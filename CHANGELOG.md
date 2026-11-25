@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Several fixes below change results for some users. Each entry says for whom.
+Mostly fixes for crashes and wrong output in special cases. Entries that can change results say for whom.
 
 ### Added
 - ``HealPixRegridder(fill_empty_pixels=True)`` fills HEALPix pixels that hold no grid cell centre with the data of their nearest grid cell, if the pixel lies within about that cell's extent; pixels outside the grid stay empty. Off by default, so results are unchanged. Without it, each grid cell goes to the one pixel that contains its centre, which leaves gaps wherever cells are wider than pixels. With it, one grid cell contributes several points to the clusterer (4 to 6 at low latitudes with the automatic ``nside``), so ``min_samples`` and ``min_cluster_size`` are reached more easily and clusters change, in tests mainly towards more and larger clusters.
@@ -22,7 +22,6 @@ Several fixes below change results for some users. Each entry says for whom.
 ### Changed
 - ASDETECT is about 3.5x faster per series, with unchanged results: it no longer allocates temporary arrays per segment or sorts to take medians, and joblib workers receive only their block of cells.
 - Data variables are put in the order (time, latitude or y, longitude or x) when a ``TOAD`` object is created. Data already in that order is untouched. Data stored in another order (e.g. ``(time, lon, lat)``) now comes back, and is saved, in the standard order; several functions gave wrong results for such data before (consensus seam stitching, map contours and labels).
-- ``score_nonlinearity`` scales the cluster series by its range instead of its maximum, so it no longer depends on the data's offset or units (the same series scored 0.22 as anomalies and 0.0009 in Kelvin). The score changes for nearly all data, and with it the results of the optimiser's default objective ``combined_spatial_nonlinearity``.
 - The docstrings of ``score_heaviside`` and ``score_consistency`` now say what is computed. ``score_heaviside`` is the residual of a straight-line fit relative to the spread (linear trend 0, mid-series step 0.25, noise about 1), not a step measure. ``score_consistency`` is not bounded by 1 and depends on cluster size. The returned numbers are unchanged.
 
 ### Fixed
@@ -32,7 +31,6 @@ Several fixes below change results for some users. Each entry says for whom.
 - ``get_timeseries(keep_full_timeseries=False)`` and ``steepest_gradient`` no longer fail when a variable has two clusterings.
 - ``steepest_gradient`` crashed on cftime time (and ``all_stats`` with it) and returned a wrong date on datetime64 time. Numeric time is unchanged.
 - Plotting functions accept numpy integer cluster ids, so ``for i in td.get_cluster_ids(): td.plot.timeseries(cluster_ids=i)`` works.
-- ``shift_selection="global"`` and the transition-time statistics no longer join two separate runs of the equal maximum and pick a lower point between them. Changes results for series with two such runs.
 - ``EDGE(smoothing_scale=None)`` no longer turns into ``"auto"`` when ``compute_shifts()`` runs in parallel (the default). Changes results for that setting.
 - A reused ``EDGE()`` object recomputes its automatic segment lengths for each series, and ``compute_shifts()`` no longer modifies the method object passed in.
 - ASDETECT ``timescale`` handles calendar-month spacing (``(1 yr, 5 yr)`` gave 11 and 58 steps instead of 12 and 60) and raises the documented ``ValueError`` for irregular time axes. Evenly spaced axes are unchanged.
@@ -42,7 +40,6 @@ Several fixes below change results for some users. Each entry says for whom.
 - ``auto_clean=True`` keeps NEMO ``nav_lat``/``nav_lon`` coordinates.
 - ``TOAD(ds)`` no longer modifies the caller's dataset (``preprocess_variable``, ``save()`` encodings).
 - Cluster centre longitude (``td.stats``, ``cluster_summary``, ``score_overview`` and the consensus summary) is correct for clusters crossing 0°/360° or the dateline. Other clusters are unchanged.
-- Pooled cluster transition times use only the cluster's own member points. Before, a larger shift of another cluster or the other sign inside the cluster's footprint and time window could be picked. ``compute_transition_time`` keeps its definition.
 - ``score_overview(**kwargs)`` passes each score only the arguments it accepts and no longer silently drops scores from ``aggregate_score``.
 - Consensus connectivity links points exactly one tolerance apart for every integer tolerance. Before, for tolerances other than 1, 2, 4 and 8 without seam stitching, this depended on absolute position. Changes consensus clusters for those tolerances.
 - Consensus seam stitching finds the longitude dimension itself, so data stored ``(time, lon, lat)`` is stitched across 0°/360° and latitude is never wrapped.
