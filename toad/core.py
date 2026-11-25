@@ -680,6 +680,12 @@ class TOAD:
         This delegates to :meth:`toad.postprocessing.Aggregation.compute_consensus`; see that
         docstring for parameters and algorithm details.
 
+        The direction of a shift is not used: a positive shift in one input counts as
+        support for a negative shift in another, and neighbouring positive and negative
+        clusters can end up in the same consensus cluster. To keep the directions apart,
+        run the consensus separately on clusterings computed with
+        ``shift_direction="positive"`` and with ``shift_direction="negative"``.
+
         Args:
             cluster_vars: Input clustering variables to merge. Defaults to all ``td.cluster_vars``.
             min_consensus: Minimum fraction of input clusterings that must support each retained

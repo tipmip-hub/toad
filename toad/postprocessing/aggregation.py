@@ -307,6 +307,12 @@ class Aggregation:
         tolerance settings, and ``stitch_meridian`` / ``stitch_meridian_applied``. For a
         per-cluster table after the fact, call :meth:`consensus_summary`.
 
+        The direction of a shift is not used: a positive shift in one input counts as
+        support for a negative shift in another, and neighbouring positive and negative
+        clusters can end up in the same consensus cluster. To keep the directions apart,
+        run the consensus separately on clusterings computed with
+        ``shift_direction="positive"`` and with ``shift_direction="negative"``.
+
         Args:
             cluster_vars: Input clustering variables to include. If None, uses all
                 ``self.td.cluster_vars``.
