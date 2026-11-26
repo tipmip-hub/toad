@@ -1,4 +1,4 @@
-"""Regression tests for the cluster statistics and scores fixed after the 2026-11 audit."""
+"""Regression tests for the cluster statistics and scores."""
 
 import numpy as np
 import pytest
@@ -53,7 +53,7 @@ def _single_series_td(series, n_cells=4):
     return make_td(v.copy(), lab)
 
 
-# --- 4.1 / 4.2: documented values of score_heaviside and score_consistency ---
+# --- documented values of score_heaviside and score_consistency ---
 
 
 def test_heaviside_documented_values():
@@ -76,7 +76,7 @@ def test_consistency_documented_degenerate_values():
     assert three == pytest.approx(np.sqrt(2.0))
 
 
-# --- 4.4: steepest_gradient returns the time coordinate in its own type ---
+# --- steepest_gradient returns the time coordinate in its own type ---
 
 
 def _jump_td(time):
@@ -116,7 +116,7 @@ def test_steepest_gradient_cftime_time_and_all_stats():
     assert stats["steepest_gradient"] == cftime.DatetimeNoLeap(2020, 1, 1)
 
 
-# --- 4.5: seam-aware cluster centre longitude ---
+# --- seam-aware cluster centre longitude ---
 
 
 def _lon_cluster_td(lon, sel_lons, cartesian=False):
@@ -178,7 +178,7 @@ def test_cartesian_x_is_not_wrapped():
     assert mean_longitude([-170.0, 170.0]) == pytest.approx(-180.0)
 
 
-# --- 4.7: score_overview passes each score only the arguments it accepts ---
+# --- score_overview passes each score only the arguments it accepts ---
 
 
 def _two_cluster_td():

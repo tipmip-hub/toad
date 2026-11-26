@@ -1,4 +1,4 @@
-"""Connectivity of kept voxels in the member-support consensus (audit item 5.3)."""
+"""Connectivity of kept voxels in the member-support consensus."""
 
 import numpy as np
 import pytest

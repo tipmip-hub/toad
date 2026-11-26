@@ -1,6 +1,5 @@
 """Guard: a plain compute_clusters() call with the default regridder gives the
-same labels as toad 1.0.10 + the HEALPix fill (commit 397be3e) on a small
-global grid. Update the expected numbers only for a deliberate change."""
+same labels as toad 1.0.10 on a small global grid. Update the expected numbers only for a deliberate change."""
 
 import numpy as np
 import xarray as xr

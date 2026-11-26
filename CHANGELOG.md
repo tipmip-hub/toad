@@ -26,7 +26,7 @@ Mostly fixes for crashes and wrong output in special cases. Entries that can cha
 
 ### Fixed
 - ASDETECT now computes in float64 for float32 input. The least-squares slope summed float32 values in float32, and the resulting rounding flipped segments at the 3 MAD threshold, most for values or times far from zero (e.g. ``tas`` in K, integer calendar years). Shift scores for float32 data change (on CMIP piControl ``tas``, 25–75% of points by more than 1e-4 and up to 4% by more than 0.05; less for variables near zero). Results for float64 input are unchanged, and scores are still returned in the input dtype.
-- ``compute_clusters()`` no longer crashes when one shift sign has a single point above the threshold (since 1.0.10); such points are labelled noise.
+- ``compute_clusters()`` no longer crashes when one shift sign has a single point above the threshold (since 1.0.10); if the clusterer cannot handle a single point (HDBSCAN), the point is labelled noise.
 - A saved clustering with a single cluster id (one cluster, or noise only) can be loaded and used again.
 - ``get_timeseries(keep_full_timeseries=False)`` and ``steepest_gradient`` no longer fail when a variable has two clusterings.
 - ``steepest_gradient`` crashed on cftime time (and ``all_stats`` with it) and returned a wrong date on datetime64 time. Numeric time is unchanged.

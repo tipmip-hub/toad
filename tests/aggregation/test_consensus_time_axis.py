@@ -1,4 +1,4 @@
-"""Shift-time samples must not assume that time is the first axis (audit item 5.4)."""
+"""Shift-time samples must not assume that time is the first axis."""
 
 import numpy as np
 import pytest

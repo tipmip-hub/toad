@@ -467,6 +467,9 @@ def _compute_clusters(
                 regridder_offsets.append(subset_offset)
 
         user_regridder = regridder
+        # Per-subset tables, taken before the last regridder's table is replaced
+        # by the concatenation below.
+        subset_frames = [rg.df_healpix for rg in regridders_used]
         if regridders_used:
             regridder = regridders_used[-1]
             if len(regridders_used) > 1:
@@ -482,9 +485,12 @@ def _compute_clusters(
 
         # The regridder the caller passed carries the regridded points, labelled
         # like the output (sign offsets and size sorting applied).
+        if user_regridder is not None:
+            # Never leave the table of an earlier call on a reused regridder.
+            user_regridder.df_healpix = pd.DataFrame()
         if regridders_used and user_regridder is not None:
             user_regridder.df_healpix = _final_df_healpix(
-                regridders_used,
+                subset_frames,
                 regridder_offsets,
                 labels_before_sort,
                 cluster_labels,
@@ -585,7 +591,7 @@ def _clone_regridder(regridder: HealPixRegridder | None) -> HealPixRegridder | N
 
 
 def _final_df_healpix(
-    regridders: list[HealPixRegridder],
+    subset_frames: list[pd.DataFrame],
     offsets: list[int],
     labels_before_sort: np.ndarray,
     labels_after_sort: np.ndarray,
@@ -599,8 +605,8 @@ def _final_df_healpix(
     )
     mapping[-1] = -1
     frames = []
-    for rg, offset in zip(regridders, offsets):
-        df = rg.df_healpix.copy()
+    for frame, offset in zip(subset_frames, offsets):
+        df = frame.copy()
         if "cluster" in df.columns:
             raw = df["cluster"].to_numpy(dtype=int)
             shifted = np.where(raw >= 0, raw + offset, -1)
@@ -625,15 +631,10 @@ def _cluster_coords_subset(
     if used_regridder and not disable_regridder:
         coords, weights = used_regridder.regrid(coords, weights, space_dims_size)
 
-    # Fewer than two points cannot form a cluster, and most clusterers raise on
-    # them (HDBSCAN: "n_samples=1 ..."). Return them as noise.
-    if len(coords) < 2:
-        labels = np.full(len(coords), -1, dtype=int)
-        if used_regridder and not disable_regridder:
-            labels = used_regridder.regrid_clusters_back(labels)
-        return labels, used_regridder if (
-            used_regridder and not disable_regridder
-        ) else None
+    # A single point: some clusterers accept it (DBSCAN with min_samples=1),
+    # others raise (HDBSCAN: "n_samples=1 ..."). If the clusterer raises, the
+    # point is returned as noise below.
+    single_point = len(coords) < 2
 
     if has_latlon:
         coords = geodetic_to_cartesian(
@@ -657,7 +658,9 @@ def _cluster_coords_subset(
     try:
         labels = np.asarray(method.fit_predict(X=coords, y=weights), dtype=int)
     except ValueError as e:
-        if "min_samples" in str(e) and "must be at most" in str(e):
+        if single_point:
+            labels = np.full(len(coords), -1, dtype=int)
+        elif "min_samples" in str(e) and "must be at most" in str(e):
             logger.warning(
                 "Clustering failed due to insufficient data points. "
                 f"Returning no clusters. Error: {e}"

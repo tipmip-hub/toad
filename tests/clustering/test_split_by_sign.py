@@ -102,11 +102,10 @@ def _one_positive_many_negative(n_pos=1):
     [
         {},
         {"disable_regridder": True},
-        {"method": DBSCAN(eps=2000.0, min_samples=1), "disable_regridder": True},
     ],
 )
 def test_sign_with_single_point_is_noise(kwargs):
-    """A sign with one point must come back as noise, not crash (audit 2.3)."""
+    """A sign with one point must come back as noise, not crash."""
     kwargs = {
         "method": HDBSCAN(min_cluster_size=3, allow_single_cluster=True),
         **kwargs,
@@ -131,3 +130,15 @@ def test_subset_collapsing_to_one_pixel_is_noise():
     )
     c = td.data["test_dts_cluster"].values
     assert np.all(c[6, 12, 20:22] == -1)
+
+
+def test_single_point_stays_a_cluster_when_the_clusterer_accepts_it():
+    """DBSCAN(min_samples=1) labels a lone point; that must not turn into noise."""
+    td = TOAD(_one_positive_many_negative(), log_level="ERROR")
+    td.compute_clusters(
+        "test_dts",
+        shift_threshold=0.5,
+        method=DBSCAN(eps=2000.0, min_samples=1),
+        disable_regridder=True,
+    )
+    assert td.data["test_dts_cluster"].values[6, 12, 20] >= 0

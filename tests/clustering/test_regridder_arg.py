@@ -1,4 +1,4 @@
-"""The ``regridder=`` argument accepts only None or a HealPixRegridder (audit 2.6)."""
+"""The ``regridder=`` argument accepts only None or a HealPixRegridder."""
 
 import numpy as np
 import pytest
@@ -110,3 +110,24 @@ def test_reusing_a_regridder_gives_the_same_result():
         out.append(td.data["x_dts_cluster"].values)
     assert rg.nside is None
     np.testing.assert_array_equal(out[0], out[1])
+
+
+def test_passed_regridder_table_has_each_point_once_for_both_signs():
+    tables = {}
+    for direction in ("positive", "negative", "both"):
+        td = TOAD(_ds(), log_level="ERROR")
+        rg = HealPixRegridder(nside=16)
+        _cluster(td, regridder=rg, shift_direction=direction)
+        tables[direction] = rg.df_healpix
+    both = tables["both"]
+    assert len(both) == len(tables["positive"]) + len(tables["negative"])
+    assert not both.duplicated(subset=["time", "hp_pix"]).any()
+
+
+def test_reused_regridder_does_not_keep_an_old_table():
+    td = TOAD(_ds(), log_level="ERROR")
+    rg = HealPixRegridder(nside=16)
+    _cluster(td, regridder=rg)
+    assert len(rg.df_healpix) > 0
+    _cluster(td, regridder=rg, disable_regridder=True, overwrite=True)
+    assert rg.df_healpix.empty

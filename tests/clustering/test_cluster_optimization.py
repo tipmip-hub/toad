@@ -70,7 +70,7 @@ def test_fixed_optimize_params_preserved_in_final_clustering():
 
 
 # ---------------------------------------------------------------------------
-# td.optimize_clusters (audit 2.4, 2.5 and the optimiser refactor)
+# td.optimize_clusters
 
 
 def _small_global_ds():
@@ -200,3 +200,18 @@ def test_optimize_then_save_and_reopen(tmp_path):
 def test_read_opt_params_accepts_old_dict_form():
     old = {"min_cluster_size": (3, 8)}
     assert read_opt_params(old) is old
+
+
+def test_numpy_numbers_in_params_are_stored_as_numbers():
+    td = TOAD(_small_global_ds(), log_level="ERROR")
+    opt = dict(OPT)
+    opt["params"] = {
+        "min_cluster_size": (np.int64(3), np.int64(8)),
+        "time_weight": (np.float64(0.5), np.float64(1.5)),
+    }
+    td.optimize_clusters("x_dts", **opt)
+    attrs = td.data["x_dts_cluster"].attrs
+    assert read_opt_params(attrs[_attrs.OPT_PARAMS]) == {
+        "min_cluster_size": [3, 8],
+        "time_weight": [0.5, 1.5],
+    }

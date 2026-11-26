@@ -20,6 +20,15 @@ if TYPE_CHECKING:
 logger = logging.getLogger("TOAD")
 
 
+def _json_default(value):
+    """JSON form of values the json module does not know: numpy numbers stay numbers."""
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    return str(value)
+
+
 def combined_spatial_nonlinearity(td, cluster_variable, weights=[1, 1]) -> float:
     """Compute a weighted combination of spatial autocorrelation and nonlinearity scores for the largest 10 clusters.
 
@@ -323,8 +332,10 @@ def optimize_clusters(
             else objective,
             _attrs.OPT_BEST_SCORE: study.best_value,
             _attrs.OPT_DIRECTION: direction,
-            _attrs.OPT_PARAMS: json.dumps(opt_params, default=str),
-            _attrs.OPT_BEST_PARAMS: json.dumps(best_params_for_attrs, default=str),
+            _attrs.OPT_PARAMS: json.dumps(opt_params, default=_json_default),
+            _attrs.OPT_BEST_PARAMS: json.dumps(
+                best_params_for_attrs, default=_json_default
+            ),
             _attrs.OPT_N_TRIALS: n_trials,
         }
     )
