@@ -48,3 +48,38 @@ jobs:
         run: |
           pytest --cov=toad
         shell: bash
+
+  tutorials:
+    # Run every tutorial notebook from top to bottom, so that a change which
+    # breaks one is caught before it is merged.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install nbconvert ipykernel
+          pip install -e .
+        shell: bash
+
+      - name: Run Tutorials
+        env:
+          MPLBACKEND: Agg
+        run: |
+          cd tutorials
+          for nb in *.ipynb; do
+            echo "::group::$nb"
+            jupyter nbconvert --to notebook --execute \
+              --ExecutePreprocessor.kernel_name=python3 \
+              --ExecutePreprocessor.timeout=1200 \
+              --output-dir "$RUNNER_TEMP/tutorials" "$nb"
+            echo "::endgroup::"
+          done
+        shell: bash
