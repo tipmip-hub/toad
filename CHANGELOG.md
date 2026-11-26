@@ -32,9 +32,9 @@ Mostly fixes for crashes and wrong output in special cases. Entries that can cha
 - ``steepest_gradient`` crashed on cftime time (and ``all_stats`` with it) and returned a wrong date on datetime64 time. Numeric time is unchanged.
 - Plotting functions accept numpy integer cluster ids, so ``for i in td.get_cluster_ids(): td.plot.timeseries(cluster_ids=i)`` works.
 - ``EDGE(smoothing_scale=None)`` no longer turns into ``"auto"`` when ``compute_shifts()`` runs in parallel (the default). Changes results for that setting.
-- A reused ``EDGE()`` object recomputes its automatic segment lengths for each series, and ``compute_shifts()`` no longer modifies the method object passed in.
-- ASDETECT ``timescale`` handles calendar-month spacing (``(1 yr, 5 yr)`` gave 11 and 58 steps instead of 12 and 60) and raises the documented ``ValueError`` for irregular time axes. Evenly spaced axes are unchanged.
-- ``compute_shifts(overwrite=True)`` drops cluster variables computed from the old shifts, with a warning, instead of leaving them paired with the new values.
+- A reused ``EDGE()`` object recomputes its automatic segment lengths for each series, and ``compute_shifts()`` no longer modifies an ``ASDETECT`` or ``EDGE`` object passed in. Custom methods are used as given, as before.
+- ASDETECT ``timescale`` raises the documented ``ValueError`` for irregular time axes (steps more than 25 % off the median step). Evenly spaced axes and calendar months or years convert exactly as before.
+- ``compute_shifts(overwrite=True)`` drops cluster variables computed from the old shifts, and consensus variables built from those, with a warning, instead of leaving them paired with the new values. Nothing is dropped if the detector fails.
 - Optimisation now applies ``disable_regridder`` to the trials and the final fit, and its attributes can be saved (``optimization`` is an int; ``opt_params`` and ``opt_best_params`` are JSON strings, readable with ``toad.clustering.read_opt_params``).
 - The ``HealPixRegridder`` passed to ``compute_clusters()`` carries ``df_healpix`` again after the call (empty since 1.0.10), labelled with the output's cluster ids.
 - ``auto_clean=True`` keeps NEMO ``nav_lat``/``nav_lon`` coordinates.

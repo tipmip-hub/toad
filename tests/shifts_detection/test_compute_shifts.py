@@ -137,3 +137,71 @@ class TestOverwrite:
 
 if __name__ == "__main__":
     pytest.main([__file__])
+
+
+def _clustered_td():
+    from sklearn.cluster import HDBSCAN  # type: ignore
+
+    from toad.shifts import ASDETECT
+
+    td = TOAD(_step_dataset(), log_level="ERROR")
+    td.compute_shifts("x", method=ASDETECT(), show_progress=False, run_parallel=False)
+    td.compute_clusters("x_dts", method=HDBSCAN(min_cluster_size=5))
+    return td
+
+
+def test_overwrite_also_drops_consensus_built_from_the_old_clusters():
+    from toad.shifts import ASDETECT
+
+    td = _clustered_td()
+    td.compute_consensus(min_consensus=0.5, temporal_tolerance=1, spatial_tolerance=1)
+    consensus = [str(v) for v in td.data.data_vars if "consensus" in str(v)]
+    assert consensus
+    td.compute_shifts(
+        "x",
+        method=ASDETECT(),
+        overwrite=True,
+        show_progress=False,
+        run_parallel=False,
+    )
+    assert "x_dts" in td.data
+    assert not [v for v in consensus if v in td.data]
+    assert td.cluster_vars == []
+
+
+def test_failing_detector_with_overwrite_keeps_shifts_and_clusters():
+    from toad.shifts.methods.base import ShiftsMethod
+
+    class Failing(ShiftsMethod):
+        def fit_predict(self, values_1d, times_1d):
+            raise RuntimeError("detector failed")
+
+    td = _clustered_td()
+    before = td.data["x_dts"].copy()
+    with pytest.raises(RuntimeError, match="detector failed"):
+        td.compute_shifts(
+            "x",
+            method=Failing(),
+            overwrite=True,
+            show_progress=False,
+            run_parallel=False,
+        )
+    assert "x_dts_cluster" in td.data
+    xr.testing.assert_identical(td.data["x_dts"], before)
+
+
+def test_custom_method_object_is_used_as_given_in_the_serial_path():
+    from toad.shifts.methods.base import ShiftsMethod
+
+    class Counting(ShiftsMethod):
+        def __init__(self):
+            self.calls = 0
+
+        def fit_predict(self, values_1d, times_1d):
+            self.calls += 1
+            return np.zeros_like(values_1d, dtype=float)
+
+    method = Counting()
+    td = TOAD(_step_dataset(), log_level="ERROR")
+    td.compute_shifts("x", method=method, show_progress=False, run_parallel=False)
+    assert method.calls > 0

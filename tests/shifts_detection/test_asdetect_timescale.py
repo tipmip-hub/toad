@@ -73,44 +73,28 @@ def _monthly_seconds(calendar, years=30):
 
 
 @pytest.mark.parametrize("calendar", ["noleap", "proleptic_gregorian"])
-def test_calendar_months_use_mean_step_and_warn_once(calendar, toad_warnings):
+def test_calendar_months_convert_as_before(calendar, toad_warnings):
+    """Month lengths vary by a few days: accepted, converted with the first step."""
     times = _monthly_seconds(calendar)
     year = 365.25 * 24 * 3600
-    method = ASDETECT(timescale=(year, 5 * year))
-    assert method._get_segment_lengths(times) == (12, 60)
-    method._get_segment_lengths(times)
+    timescale = (year, 5 * year)
+    method = ASDETECT(timescale=timescale)
+    assert method._get_segment_lengths(times) == _old_lengths(times, timescale)
     rng = np.random.default_rng(0)
     method.fit_predict(rng.normal(size=times.size), times)
-    assert len(toad_warnings) == 1
-    assert "vary slightly" in toad_warnings[0]
+    assert not toad_warnings
 
 
-@pytest.mark.parametrize("run_parallel", [False, True])
-def test_compute_shifts_monthly_cftime(run_parallel, toad_warnings):
-    import xarray as xr
-
-    from toad import TOAD
-
-    time = xr.date_range(
-        "2000-01-15", periods=360, freq="MS", calendar="noleap", use_cftime=True
+def test_calendar_years_convert_as_before(toad_warnings):
+    """Years of 365 and 366 days must not change the segment lengths."""
+    dates = [cftime.datetime(1850 + y, 7, 1, calendar="standard") for y in range(200)]
+    times = np.array([(d - dates[0]).total_seconds() for d in dates], dtype=np.float64)
+    year = 365 * 24 * 3600
+    assert ASDETECT(timescale=(10 * year, 50 * year))._get_segment_lengths(times) == (
+        10,
+        50,
     )
-    rng = np.random.default_rng(0)
-    ds = xr.Dataset(
-        {"x": (("time", "lat", "lon"), rng.normal(size=(360, 3, 3)))},
-        coords=dict(time=time, lat=[0.0, 1.0, 2.0], lon=[0.0, 1.0, 2.0]),
-    )
-    td = TOAD(ds, log_level="WARNING")
-    year = 365.25 * 24 * 3600
-    td.compute_shifts(
-        "x",
-        method=ASDETECT(timescale=(year, 5 * year)),
-        run_parallel=run_parallel,
-        n_jobs=2,
-        show_progress=False,
-    )
-    attrs = td.data["x_dts"].attrs
-    assert (attrs["shifts_lmin"], attrs["shifts_lmax"]) == ("12", "60")
-    assert sum("vary slightly" in m for m in toad_warnings) == 1
+    assert not toad_warnings
 
 
 def test_irregular_spacing_raises():

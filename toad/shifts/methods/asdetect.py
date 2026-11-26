@@ -136,14 +136,11 @@ class ASDETECT(ShiftsMethod):
         lmin, lmax = self.lmin, self.lmax if self.lmax is not None else lmax_max
 
         if self.timescale is not None:
-            dt, mild = self._time_step(times_1d)
-            # For mildly irregular steps (calendar months) the mean step can put
-            # e.g. 1 yr / 1 month a hair below 12; allow for rounding there.
-            tol = 1e-6 if mild else 0.0
+            dt = self._time_step(times_1d)
             if self.timescale[0] is not None:
-                lmin = int(self.timescale[0] / dt + tol)
+                lmin = int(self.timescale[0] / dt)
             if self.timescale[1] is not None:
-                lmax = int(self.timescale[1] / dt + tol)
+                lmax = int(self.timescale[1] / dt)
 
             logging.getLogger("TOAD").debug(
                 f"for dt={dt:.2f} -> (lmin={lmin}, lmax={lmax})"
@@ -174,18 +171,14 @@ class ASDETECT(ShiftsMethod):
 
     # Relative spread of time steps below which the axis counts as evenly spaced,
     # and above which it counts as irregular (ValueError).
-    _DT_EVEN_RTOL = 1e-6
     _DT_MILD_RTOL = 0.25
 
-    def _time_step(self, times_1d: NDArray[np.float64]) -> tuple[float, bool]:
+    def _time_step(self, times_1d: NDArray[np.float64]) -> float:
         """Time step used to convert ``timescale`` into segment lengths.
 
-        Evenly spaced axes use the first step, exactly as before. Mildly varying
-        steps (within 25 % of the median step, e.g. calendar months of 28-31 days)
-        use the mean step and log a warning once. Clearly irregular axes raise.
-
-        Returns:
-            tuple: (dt, mild) where ``mild`` is True for mildly varying steps.
+        The first time step, as in earlier versions. Steps that vary by up to
+        25 % of the median step (calendar months and years) are accepted;
+        clearly irregular axes raise.
 
         Raises:
             ValueError: If the axis has fewer than two points, is not increasing,
@@ -201,22 +194,13 @@ class ASDETECT(ShiftsMethod):
                 "timescale needs a strictly increasing time axis. Use lmin/lmax instead."
             )
         rel_dev = float(np.max(np.abs(d64 - med))) / med
-        if rel_dev <= self._DT_EVEN_RTOL:
-            return diffs[0], False
         if rel_dev > self._DT_MILD_RTOL:
             raise ValueError(
                 f"timescale requires regular temporal spacing, but the time steps vary "
                 f"between {d64.min():g} and {d64.max():g} (median {med:g}). Use lmin/lmax "
                 f"(in time steps) instead, or resample the data to regular spacing."
             )
-        dt = float(times_1d[-1] - times_1d[0]) / diffs.size
-        if not getattr(self, "_irregular_dt_warned", False):
-            logging.getLogger("TOAD").warning(
-                f"Time steps vary slightly (between {d64.min():g} and {d64.max():g}). "
-                f"Converting timescale with the mean step {dt:g}."
-            )
-            self._irregular_dt_warned = True
-        return dt, True
+        return diffs[0]
 
     def fit_predict(
         self,

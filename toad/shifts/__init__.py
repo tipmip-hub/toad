@@ -103,8 +103,11 @@ def compute_shifts(
         )
 
     # Work on a private copy so the user's method object is never modified
-    # (e.g. by a method that keeps a warn-once flag on itself).
-    method = _clone_method(method)
+    # (e.g. by a method that keeps a warn-once flag on itself). A custom method
+    # is used as given, as before: it may hold state that cannot be copied, or
+    # that its author reads back after the call.
+    if isinstance(method, (ASDETECT, EDGE)):
+        method = _clone_method(method)
 
     # Record the lmin/lmax actually used. Do not write them back onto ``method``:
     # an automatic lmax must be recomputed for the next series. Resolved before
@@ -131,20 +134,29 @@ def compute_shifts(
     output_label = f"{var}_dts{output_label_suffix}"
     if not overwrite:
         output_label = get_unique_variable_name(output_label, td.data, logger)
-    elif overwrite and output_label in td.data:
+    stale_vars: list[str] = []
+    if overwrite and output_label in td.data:
         # Cluster variables computed from the old shifts would be paired with
-        # the new shift values by name, so drop them too.
+        # the new shift values by name, so they are dropped too, together with
+        # consensus variables built from them. Dropped only once the detector
+        # has run, so a failing detector loses nothing.
         dependent = [
             str(name)
             for name, da in td.data.data_vars.items()
             if da.attrs.get(_attrs.SHIFTS_VARIABLE) == output_label
+        ]
+        dependent += [
+            str(name)
+            for name, da in td.data.data_vars.items()
+            if set(np.atleast_1d(da.attrs.get(_attrs.CLUSTER_VARS, [])).tolist())
+            & set(dependent)
         ]
         if dependent:
             logger.warning(
                 f"Overwriting {output_label}: dropping cluster variable(s) computed "
                 f"from the old shifts: {', '.join(dependent)}."
             )
-        td.data = td.data.drop_vars([output_label, *dependent])
+        stale_vars = [output_label, *dependent]
 
     # Apply the detector
     logger.debug(f"Applying detector {method.__class__.__name__} to {var}")
@@ -268,7 +280,11 @@ def compute_shifts(
     )
 
     # 6. Merge the detected shifts with the original data
-    return xr.merge([td.data, shifts], combine_attrs="override", compat="override")
+    return xr.merge(
+        [td.data.drop_vars(stale_vars), shifts],
+        combine_attrs="override",
+        compat="override",
+    )
 
 
 def _clone_method(m: ShiftsMethod) -> ShiftsMethod:
