@@ -117,7 +117,7 @@ def compute_clusters(
             - "all": Cluster all shift values that meet the threshold and direction criteria. Includes all data points above threshold, not just peaks.
             Defaults to "local".
         time_weight: Controls the relative influence of time in clustering. By default, time values are automatically scaled to match the standard deviation of the spatial coordinates. Increasing time_weight gives more emphasis to the temporal dimension, resulting in clusters that are tighter in time (shorter delays between abrupt events). Decreasing it emphasizes the spatial dimensions, allowing clusters to span a wider range of shift times. Defaults to 1.
-        regridder: None or a `toad.regridding.HealPixRegridder` instance, e.g. to set `nside` or `fill_empty_pixels=True`. Defaults to None. If None and coordinates are lat/lon, a HealPixRegridder will be created automatically. After the call, `regridder.df_healpix` holds the regridded points with their final cluster labels. Custom regridders are no longer supported.
+        regridder: None or a `toad.regridding.HealPixRegridder` instance, e.g. to set `nside`. Defaults to None. If None and coordinates are lat/lon, a HealPixRegridder will be created automatically. After the call, `regridder.df_healpix` holds the regridded points with their final cluster labels. Custom regridders are no longer supported.
         disable_regridder: Whether to disable the regridder. Defaults to False.
         output_label_suffix: A suffix to add to the output label. Defaults to "".
         overwrite: If True, overwrite existing variable of same name. If False, same name is used with an added number. Defaults to False.
@@ -413,21 +413,6 @@ def _compute_clusters(
         if regridder is None and is_latlon_dims and not disable_regridder:
             regridder = HealPixRegridder()
 
-        # Let the regridder know every cell of the source grid, so that pixels
-        # without a cell centre can be told apart from pixels without an event.
-        if (
-            has_latlon
-            and not disable_regridder
-            and isinstance(regridder, HealPixRegridder)
-        ):
-            if is_latlon_dims:
-                grid_lon, grid_lat = np.meshgrid(
-                    td.data[lon_name].values, td.data[lat_name].values
-                )
-            else:
-                grid_lat, grid_lon = lat_grid, lon_grid
-            regridder.set_source_grid(grid_lat, grid_lon)
-
         method = method() if isinstance(method, type) else method
         preprocessing_time = time_now() - start_time
         space_dims_size = (
@@ -581,8 +566,6 @@ def _check_regridder(regridder) -> None:
 
 # Regridder attributes that hold the results of a regrid() call, not settings.
 _REGRIDDER_RESULTS = ("df_healpix", "original_coords", "original_weights")
-# Source grid and its fill-map cache: shared with the clone, not copied.
-_REGRIDDER_SHARED = ("_source_grid", "_fill_map")
 
 
 def _clone_regridder(regridder: HealPixRegridder | None) -> HealPixRegridder | None:
@@ -591,14 +574,13 @@ def _clone_regridder(regridder: HealPixRegridder | None) -> HealPixRegridder | N
         return None
     clone = copy.copy(regridder)
     for name, value in vars(regridder).items():
-        if name in _REGRIDDER_RESULTS or name in _REGRIDDER_SHARED:
+        if name in _REGRIDDER_RESULTS:
             continue
         setattr(clone, name, copy.deepcopy(value))
     clone.df_healpix = pd.DataFrame()
     for name in _REGRIDDER_RESULTS[1:]:
         if name in vars(clone):
             setattr(clone, name, None)
-    clone.copy_source_grid_from(regridder)
     return clone
 
 
@@ -622,7 +604,6 @@ def _final_df_healpix(
         if "cluster" in df.columns:
             raw = df["cluster"].to_numpy(dtype=int)
             shifted = np.where(raw >= 0, raw + offset, -1)
-            # A cluster made only of filled pixels holds no source point: noise.
             df["cluster"] = [mapping.get(int(c), -1) for c in shifted]
         frames.append(df)
     return pd.concat(frames, ignore_index=True)

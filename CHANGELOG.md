@@ -10,14 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Mostly fixes for crashes and wrong output in special cases. Entries that can change results say for whom.
 
 ### Added
-- ``HealPixRegridder(fill_empty_pixels=True)`` fills HEALPix pixels that hold no grid cell centre with the data of their nearest grid cell, if the pixel lies within about that cell's extent; pixels outside the grid stay empty. Off by default, so results are unchanged. Without it, each grid cell goes to the one pixel that contains its centre, which leaves gaps wherever cells are wider than pixels. With it, one grid cell contributes several points to the clusterer (4 to 6 at low latitudes with the automatic ``nside``), so ``min_samples`` and ``min_cluster_size`` are reached more easily and clusters change, in tests mainly towards more and larger clusters.
 - ``td.optimize_clusters()`` (experimental): the cluster optimisation as its own function, taking the normal clustering arguments plus ``params``, ``objective``, ``n_trials``, ``direction`` and a new ``seed`` for reproducible runs.
 
 ### Deprecated
 - ``compute_clusters(optimize=True, optimize_*=...)``. It still works and gives the same result, but warns; use ``td.optimize_clusters()``.
 
 ### Removed
-- Custom regridders. ``regridder=`` accepts only ``None`` or a ``HealPixRegridder`` (to set ``nside`` or ``fill_empty_pixels``); anything else raises ``TypeError``. Subclasses of ``BaseRegridder`` without an ``nside`` argument had already failed since 1.0.10. ``disable_regridder`` is unchanged.
+- Custom regridders. ``regridder=`` accepts only ``None`` or a ``HealPixRegridder`` (to set ``nside``); anything else raises ``TypeError``. Subclasses of ``BaseRegridder`` without an ``nside`` argument had already failed since 1.0.10. ``disable_regridder`` is unchanged.
 
 ### Changed
 - ASDETECT is about 3.5x faster per series, with unchanged results: it no longer allocates temporary arrays per segment or sorts to take medians, and joblib workers receive only their block of cells.

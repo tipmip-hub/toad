@@ -62,11 +62,11 @@ def test_clone_keeps_every_setting():
             super().__init__(**kwargs)
             self.extra = extra
 
-    rg = MyHealPix(extra=7, nside=16, fill_empty_pixels=False)
+    rg = MyHealPix(extra=7, nside=16)
     rg.df_healpix = "stale"
     clone = _clone_regridder(rg)
     assert type(clone) is MyHealPix
-    assert (clone.extra, clone.nside, clone.fill_empty_pixels) == (7, 16, False)
+    assert (clone.extra, clone.nside) == (7, 16)
     assert clone.df_healpix.empty
 
 

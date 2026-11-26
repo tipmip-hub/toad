@@ -485,7 +485,7 @@ class TOAD:
                 Defaults to "local".
             time_weight: Controls the relative influence of time in clustering. By default, time values are automatically scaled to match the standard deviation of the spatial coordinates. Increasing time_weight gives more emphasis to the temporal dimension, resulting in clusters that are tighter in time (shorter delays between abrupt events). Decreasing it emphasizes the spatial dimensions, allowing clusters to span a wider range of shift times. Defaults to 1.
             regridder: None or a toad.regridding.HealPixRegridder instance, e.g. to set
-                ``nside`` or ``fill_empty_pixels=True``. Defaults to None. If None and
+                ``nside``. Defaults to None. If None and
                 coordinates are lat/lon, a HealPixRegridder will be created automatically.
                 After the call, ``regridder.df_healpix`` holds the regridded points with
                 their final cluster labels. Custom regridders are no longer supported.
