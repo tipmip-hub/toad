@@ -9,6 +9,7 @@ Currently implemented methods:
 - ASDETECT: Implementation of the [Boulton+Lenton2019]_
 """
 
+import copy
 import logging
 from contextlib import nullcontext
 from typing import TYPE_CHECKING
@@ -101,12 +102,61 @@ def compute_shifts(
             "Chunked data is not yet supported. Please call .compute() on the data first."
         )
 
+    # Work on a private copy so the user's method object is never modified
+    # (e.g. by a method that keeps a warn-once flag on itself). A custom method
+    # is used as given, as before: it may hold state that cannot be copied, or
+    # that its author reads back after the call.
+    if isinstance(method, (ASDETECT, EDGE)):
+        method = _clone_method(method)
+
+    # Record the lmin/lmax actually used. Do not write them back onto ``method``:
+    # an automatic lmax must be recomputed for the next series. Resolved before
+    # the detector runs, so invalid settings fail early and warn-once flags are
+    # already set on the copy that each parallel block clones.
+    times_1d = td.numeric_time_values
+    resolved_params: dict[str, str] = {}
+    if hasattr(method, "_get_segment_lengths"):
+        resolved_lmin, resolved_lmax = method._get_segment_lengths(times_1d)
+        resolved_params["shifts_lmin"] = str(resolved_lmin)
+        resolved_params["shifts_lmax"] = str(resolved_lmax)
+    elif isinstance(method, EDGE):
+        n = len(times_1d)
+        resolved_lmin = method.lmin if method.lmin is not None else int(0.1 * n)
+        resolved_lmax = method.lmax if method.lmax is not None else int(0.2 * n)
+        resolved_lcutoff = (
+            method.lcutoff if method.lcutoff is not None else int(0.02 * n)
+        )
+        resolved_params["shifts_lmin"] = str(resolved_lmin)
+        resolved_params["shifts_lmax"] = str(resolved_lmax)
+        resolved_params["shifts_lcutoff"] = str(resolved_lcutoff)
+
     # Check if the output_label is already in the data
     output_label = f"{var}_dts{output_label_suffix}"
     if not overwrite:
         output_label = get_unique_variable_name(output_label, td.data, logger)
-    elif overwrite and output_label in td.data:
-        td.data = td.data.drop_vars(output_label)
+    stale_vars: list[str] = []
+    if overwrite and output_label in td.data:
+        # Cluster variables computed from the old shifts would be paired with
+        # the new shift values by name, so they are dropped too, together with
+        # consensus variables built from them. Dropped only once the detector
+        # has run, so a failing detector loses nothing.
+        dependent = [
+            str(name)
+            for name, da in td.data.data_vars.items()
+            if da.attrs.get(_attrs.SHIFTS_VARIABLE) == output_label
+        ]
+        dependent += [
+            str(name)
+            for name, da in td.data.data_vars.items()
+            if set(np.atleast_1d(da.attrs.get(_attrs.CLUSTER_VARS, [])).tolist())
+            & set(dependent)
+        ]
+        if dependent:
+            logger.warning(
+                f"Overwriting {output_label}: dropping cluster variable(s) computed "
+                f"from the old shifts: {', '.join(dependent)}."
+            )
+        stale_vars = [output_label, *dependent]
 
     # Apply the detector
     logger.debug(f"Applying detector {method.__class__.__name__} to {var}")
@@ -196,25 +246,6 @@ def compute_shifts(
     # Rename the output variable
     shifts = shifts.rename(output_label)
 
-    # Record the lmin/lmax actually used. Do not write them back onto ``method``:
-    # an automatic lmax must be recomputed for the next series.
-    times_1d = td.numeric_time_values
-    resolved_params: dict[str, str] = {}
-    if hasattr(method, "_get_segment_lengths"):
-        resolved_lmin, resolved_lmax = method._get_segment_lengths(times_1d)
-        resolved_params["shifts_lmin"] = str(resolved_lmin)
-        resolved_params["shifts_lmax"] = str(resolved_lmax)
-    elif isinstance(method, EDGE):
-        n = len(times_1d)
-        resolved_lmin = method.lmin if method.lmin is not None else int(0.1 * n)
-        resolved_lmax = method.lmax if method.lmax is not None else int(0.2 * n)
-        resolved_lcutoff = (
-            method.lcutoff if method.lcutoff is not None else int(0.02 * n)
-        )
-        resolved_params["shifts_lmin"] = str(resolved_lmin)
-        resolved_params["shifts_lmax"] = str(resolved_lmax)
-        resolved_params["shifts_lcutoff"] = str(resolved_lcutoff)
-
     # Save method params
     method_params = {
         f"shifts_{param}": str(value)
@@ -249,21 +280,23 @@ def compute_shifts(
     )
 
     # 6. Merge the detected shifts with the original data
-    return xr.merge([td.data, shifts], combine_attrs="override", compat="override")
+    return xr.merge(
+        [td.data.drop_vars(stale_vars), shifts],
+        combine_attrs="override",
+        compat="override",
+    )
 
 
 def _clone_method(m: ShiftsMethod) -> ShiftsMethod:
     """
-    Clone an instance of a ShiftsMethod subclass by copying its non-private, non-None attributes.
+    Return an independent deep copy of a ShiftsMethod instance.
 
-    This helper is needed to create a new instance with the same configuration/parameters as an
-    existing ShiftsMethod object. It's used when running shift detection on multiple blocks of
-    data in parallel, to ensure each block gets an independent, safe-to-modify copy of the method.
+    Used when running shift detection on multiple blocks of data in parallel, so that each
+    block gets a safe-to-modify copy with exactly the same configuration. A deep copy keeps
+    attributes that are None (e.g. ``EDGE(smoothing_scale=None)``), which re-calling the
+    constructor without them would replace with the constructor default.
     """
-    params = {
-        k: v for k, v in vars(m).items() if v is not None and not k.startswith("_")
-    }
-    return m.__class__(**params)
+    return copy.deepcopy(m)
 
 
 def _run_block(

@@ -53,6 +53,8 @@ flowchart TD
 
 **1. One mask per input.** Each clustering becomes a yes/no map: “was a cluster assigned here?” Noise (`-1`) and no-shift cells (`NaN`) are ignored.
 
+**The direction of a shift is not used.** A positive shift in one input counts as support for a negative shift in another, and neighbouring positive and negative clusters can end up in the same consensus cluster. To keep the directions apart, run the consensus separately on clusterings computed with `shift_direction="positive"` and with `shift_direction="negative"`.
+
 **2. Spread for support counting.** Each yes/no map is dilated in `(time, y, x)`. If input A found something at year 1998, it can support a detection at 2000 when `temporal_tolerance=2`. Same idea in space with `spatial_tolerance`. On global longitude grids, `stitch_meridian` can connect the first and last column during this step (and during labelling).
 
 **3. Count supporters.** At every cell that **is** a detection in at least one input, count how many inputs have dilated support covering that cell.

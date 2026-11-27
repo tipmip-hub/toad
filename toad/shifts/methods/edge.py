@@ -135,16 +135,19 @@ class EDGE(ShiftsMethod):
         """
         n = len(values_1d)
 
-        # Set default values based on the length of the time series
-        if self.lmin is None or self.lmax is None:
-            self.lmin = int(0.1 * n)
-            self.lmax = int(0.2 * n)
+        # Set default values based on the length of the time series. Resolve
+        # locally: writing them back onto self would make the first series'
+        # values stick for a later series of a different length.
+        lmin, lmax, lcutoff = self.lmin, self.lmax, self.lcutoff
+        if lmin is None or lmax is None:
+            lmin = int(0.1 * n)
+            lmax = int(0.2 * n)
 
-            logging.getLogger("TOAD").debug(f"(lmin={self.lmin}, lmax={self.lmax})")
-        if self.lcutoff is None:
-            self.lcutoff = int(0.02 * len(values_1d))
+            logging.getLogger("TOAD").debug(f"(lmin={lmin}, lmax={lmax})")
+        if lcutoff is None:
+            lcutoff = int(0.02 * len(values_1d))
 
-            logging.getLogger("TOAD").debug(f"lcutoff={self.lcutoff}")
+            logging.getLogger("TOAD").debug(f"lcutoff={lcutoff}")
 
         # If None, no smoothing, if auto calculate default smoothing, if int, use that value.
         smoothing_scale = self.smoothing_scale
@@ -163,19 +166,19 @@ class EDGE(ShiftsMethod):
 
         # Sanity check on parameter values
         # lmax cannot be larger than (n / 2) - 2*lcutoff - 1
-        if self.lmax > (n / 2) - 2 * self.lcutoff - 1:
+        if lmax > (n / 2) - 2 * lcutoff - 1:
             raise ValueError(
-                f"The timeseries is not long enough to use lmax={self.lmax}. `lmax` cannot be larger than (n/2) - 2*lcutoff - 1"
+                f"The timeseries is not long enough to use lmax={lmax}. `lmax` cannot be larger than (n/2) - 2*lcutoff - 1"
             )
 
-        if self.lmin <= 0 or self.lmax <= 0 or self.lcutoff <= 0:
+        if lmin <= 0 or lmax <= 0 or lcutoff <= 0:
             raise ValueError("lmin, lmax, and lcutoff cannot be zero or negative")
 
         return construct_detection_ts(
             values_1d=values_1d,
-            lmin=self.lmin,
-            lmax=self.lmax,
-            lcutoff=self.lcutoff,
+            lmin=lmin,
+            lmax=lmax,
+            lcutoff=lcutoff,
             alpha=self.alpha,
             smoothing_scale=smoothing_scale,
             gradient_threshold=self.gradient_threshold,

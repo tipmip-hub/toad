@@ -7,12 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.11] - 2026-11-27
+
+Mostly fixes for crashes and wrong output in special cases. Entries that can change results say for whom.
+
+### Added
+- ``td.optimize_clusters()`` (experimental): the cluster optimisation as its own function, taking the normal clustering arguments plus ``params``, ``objective``, ``n_trials``, ``direction`` and a new ``seed`` for reproducible runs.
+
+### Deprecated
+- ``compute_clusters(optimize=True, optimize_*=...)``. It still works and gives the same result, but warns; use ``td.optimize_clusters()``.
+
+### Removed
+- Custom regridders. ``regridder=`` accepts only ``None`` or a ``HealPixRegridder`` (to set ``nside``); anything else raises ``TypeError``. Subclasses of ``BaseRegridder`` without an ``nside`` argument had already failed since 1.0.10. ``disable_regridder`` is unchanged.
+
 ### Changed
 - ASDETECT is about 3.5x faster per series, with unchanged results: it no longer allocates temporary arrays per segment or sorts to take medians, and joblib workers receive only their block of cells.
+- Data variables are put in the order (time, latitude or y, longitude or x) when a ``TOAD`` object is created. Data already in that order is untouched. Data stored in another order (e.g. ``(time, lon, lat)``) now comes back, and is saved, in the standard order; several functions gave wrong results for such data before (consensus seam stitching, map contours and labels).
+- The docstrings of ``score_heaviside`` and ``score_consistency`` now say what is computed. ``score_heaviside`` is the residual of a straight-line fit relative to the spread (linear trend 0, mid-series step 0.25, noise about 1), not a step measure. ``score_consistency`` is not bounded by 1 and depends on cluster size. The returned numbers are unchanged.
+- The consensus documentation now says that the direction of a shift is not used, and how to keep positive and negative shifts apart.
 
 ### Fixed
-- ``HealPixRegridder`` no longer leaves gaps where source grid cells are wider than the HEALPix pixels. Each cell was assigned to the one pixel that contains its centre, so pixels between cell centres stayed empty and a connected area of shifts reached the clusterer as scattered points. This made clusters harder to form away from the poles on regular latitude–longitude grids (also with the automatic ``nside``) and everywhere on grids coarser than the chosen ``nside``. Now a pixel that holds no cell centre takes the data of its nearest source cell, if it lies within about that cell's extent; pixels outside the grid stay empty. ``compute_clusters()`` passes the source grid to the regridder automatically. Clusters can differ from 1.0.10, mainly more and larger clusters for coarse grids. Where cells are wider than pixels, one cell now contributes several points to the clusterer, so ``min_cluster_size`` and ``min_samples`` count equal-area pixels everywhere instead of source cells at low latitudes and pixels near the poles; small clusters form more easily there and clustering takes longer. Pass a coarser ``nside`` to keep the point count down. ``HealPixRegridder(fill_empty_pixels=False)`` restores the old behaviour.
-- ASDETECT now computes in float64 for float32 input. The least-squares slope summed float32 values in float32, and the resulting rounding flipped segments at the 3 MAD threshold, most for values or times far from zero (e.g. ``tas`` in K, integer calendar years). Shift scores for float32 data change (on CMIP piControl ``tas``, 25–75% of points by more than 1e-4 and up to 4% by more than 0.05; less for variables near zero). Results for float64 input are unchanged, and scores are still returned in the input dtype.
+- ``compute_clusters()`` no longer crashes when one shift sign has a single point above the threshold (since 1.0.10); if the clusterer cannot handle a single point (HDBSCAN), the point is labelled noise.
+- A saved clustering with a single cluster id (one cluster, or noise only) can be loaded and used again.
+- ``get_timeseries(keep_full_timeseries=False)`` and ``steepest_gradient`` no longer fail when a variable has two clusterings.
+- ``steepest_gradient`` crashed on cftime time (and ``all_stats`` with it) and returned a wrong date on datetime64 time. Numeric time is unchanged.
+- Plotting functions accept numpy integer cluster ids, so ``for i in td.get_cluster_ids(): td.plot.timeseries(cluster_ids=i)`` works.
+- ``EDGE(smoothing_scale=None)`` no longer turns into ``"auto"`` when ``compute_shifts()`` runs in parallel (the default). Changes results for that setting.
+- A reused ``EDGE()`` object recomputes its automatic segment lengths for each series, and ``compute_shifts()`` no longer modifies an ``ASDETECT`` or ``EDGE`` object passed in. Custom methods are used as given, as before.
+- ASDETECT ``timescale`` raises the documented ``ValueError`` for irregular time axes (steps more than 25 % off the median step). Evenly spaced axes and calendar months or years convert exactly as before.
+- ``compute_shifts(overwrite=True)`` drops cluster variables computed from the old shifts, and consensus variables built from those, with a warning, instead of leaving them paired with the new values. Nothing is dropped if the detector fails.
+- Optimisation now applies ``disable_regridder`` to the trials and the final fit, and its attributes can be saved (``optimization`` is an int; ``opt_params`` and ``opt_best_params`` are JSON strings, readable with ``toad.clustering.read_opt_params``).
+- The ``HealPixRegridder`` passed to ``compute_clusters()`` carries ``df_healpix`` again after the call (empty since 1.0.10), labelled with the output's cluster ids.
+- ``auto_clean=True`` keeps NEMO ``nav_lat``/``nav_lon`` coordinates.
+- ``TOAD(ds)`` no longer modifies the caller's dataset (``preprocess_variable``, ``save()`` encodings).
+- ``score_overview(**kwargs)`` passes each score only the arguments it accepts, so ``consistency`` and ``spatial_autocorrelation`` are no longer NaN when keywords are given. A keyword that no score accepts now raises ``TypeError``, and ``aggregate_score`` is NaN when any component is NaN (before, failed scores were silently left out of the product).
+- Consensus seam stitching finds the longitude dimension itself, so data stored ``(time, lon, lat)`` is stitched across 0°/360° and latitude is never wrapped.
+- ``label_shift_time_samples`` and ``label_shift_time_distributions`` no longer fail for data not stored time-first.
+- The ``consensus_map`` colour bar labels each colour with the right cluster id when ``cluster_ids`` is not sorted.
+- ``timeseries(highlight_color=..., normalize=...)`` draws the highlighted segment on its own trajectory.
+- The consensus tutorial runs on any machine and uses the names introduced in 1.0.8.
 
 ## [1.0.10] - 2026-11-05
 
@@ -159,7 +192,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - First public release of the TOAD package
 
-[Unreleased]: https://github.com/tipmip-methods/toad/compare/v1.0.10...HEAD
+[Unreleased]: https://github.com/tipmip-methods/toad/compare/v1.0.11...HEAD
+[1.0.11]: https://github.com/tipmip-methods/toad/compare/v1.0.10...v1.0.11
 [1.0.10]: https://github.com/tipmip-methods/toad/compare/v1.0.9...v1.0.10
 [1.0.9]: https://github.com/tipmip-methods/toad/compare/v1.0.8...v1.0.9
 [1.0.8]: https://github.com/tipmip-methods/toad/compare/v1.0.7...v1.0.8

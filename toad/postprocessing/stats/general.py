@@ -1,3 +1,4 @@
+import inspect
 import logging
 from typing import Callable, Literal, Optional, Tuple, Union, overload
 
@@ -62,9 +63,29 @@ class GeneralStats:
         percentile=None,
         normalize: Optional[Literal["max", "max_each"]] | str = None,
     ):
-        """Evaluates how closely the spatially aggregated cluster time series resembles a perfect Heaviside function.
+        """Residual of a straight-line fit to the aggregated cluster time series, relative to its spread.
 
-        A score of 1 indicates a perfect step function, while 0 indicates a linear trend.
+        Despite its name, this is not a measure of how step-like the series is.
+        The cluster cells are aggregated in space (``aggregation``), a straight
+        line is fitted to the series against time by least squares, and the
+        score is
+
+            score = sum((y - linear_fit)**2) / sum((y - median(y))**2)
+
+        This is close to ``1 - R²`` of the linear fit (the denominator uses the
+        median instead of the mean). It is 0 when the series is exactly linear
+        and grows the less a straight line explains the series. Typical values:
+
+        - linear trend: 0
+        - perfect step in the middle of the series: 0.25 (a step a quarter of
+          the way in scores about 0.33, a step 5% from either end about 0.8)
+        - white noise without trend: close to 1
+
+        A high value therefore does not by itself indicate a step; noise scores
+        higher than a clean step. The score lies between 0 and 1. Without
+        ``normalize`` it does not change when a constant is added to the data
+        or the data are rescaled. If fewer than two finite values remain, or
+        the series is constant, the score is 0.
 
         Args:
             cluster_id: ID of the cluster to score.
@@ -84,8 +105,10 @@ class GeneralStats:
                 - None: Do not normalize
 
         Returns:
-            float: Cluster score between 0-1 if return_score_fit is False.
-            tuple: (score, linear_fit) if return_score_fit is True, where score is a float between 0-1 and linear_fit is the fitted values.
+            float: The relative residual described above, between 0 (linear
+                series) and 1, if return_score_fit is False.
+            tuple: (score, linear_fit) if return_score_fit is True, where
+                linear_fit is the fitted straight line over the full time axis.
 
         References:
             Kobe De Maeyer Master Thesis (2025)
@@ -136,26 +159,43 @@ class GeneralStats:
         self,
         cluster_id: int,
     ) -> float:
-        """Measures how internally consistent a cluster is by analyzing the similarity between its time series.
-
-        Uses hierarchical clustering to group similar time series and computes an inconsistency score.
-        The final score is inverted so higher values indicate more consistency.
+        """Inverse of the inconsistency coefficient of the top merge in a hierarchical clustering of the cluster's cell time series.
 
         The method works by:
-        1. Computing pairwise R² correlations between all time series in the cluster
+        1. Computing pairwise R² correlations between all cell time series in the cluster
         2. Converting correlations to distances (1 - R²)
         3. Performing hierarchical clustering using Ward linkage
-        4. Calculating inconsistency coefficients at the highest level
-        5. Converting to a consistency score by taking the inverse
+        4. Taking the inconsistency coefficient of the last (top) merge
+           (``scipy.cluster.hierarchy.inconsistent`` with depth ``n_cells - 1``),
+           i.e. how far the top merge height lies above the mean of the merge
+           heights below it, in units of their standard deviation
+        5. Returning 1 / inconsistency coefficient
+
+        This is not a bounded similarity measure. Things to be aware of:
+
+        - It is not bounded by 1: values above 1 are common.
+        - It depends on the number of cells in the cluster, so scores of
+          clusters of different sizes are not directly comparable. For
+          independent white-noise series it falls from about 1 for five cells
+          to about 0.5 for twenty cells.
+        - Any two-cell cluster scores exactly 1.0 and any three-cell cluster
+          exactly sqrt(2) (about 1.41), whatever the series look like, because
+          with so few merges the coefficient does not depend on the data.
+        - It returns 1.0 when the inconsistency coefficient is below 1e-10
+          (e.g. all merge heights equal), and 0.0 for clusters with fewer than
+          two cells.
+
+        Higher values mean the top merge stands out less from the merges below
+        it; this is related to, but not the same as, the cell series being
+        similar to each other. For an average pairwise similarity in 0-1, use
+        :meth:`score_spatial_autocorrelation`.
 
         Args:
             cluster_id: ID of the cluster to evaluate.
 
         Returns:
-            float: Consistency score between 0-1, where:
-                1.0: Perfect consistency (all time series are identical)
-                ~0.5: Moderate consistency
-                0.0: No consistency (single point or completely inconsistent)
+            float: 1 / inconsistency coefficient (>= 0, not bounded above by 1);
+                0.0 for fewer than two cells.
 
         References:
             Kobe De Maeyer Master Thesis (2025)
@@ -355,8 +395,9 @@ class GeneralStats:
         Args:
             exclude_noise: Whether to exclude noise points (cluster ID -1). Defaults to True.
             shift_threshold: Minimum shift threshold for computing transition times. Defaults to 0.0.
-            **kwargs: Additional keyword arguments passed to scoring methods. These will be
-                applied to all scoring methods that accept them. Common parameters include:
+            **kwargs: Additional keyword arguments for the scoring methods. Each
+                score receives only the arguments its signature accepts; an
+                argument that no score accepts raises TypeError. Common parameters include:
                 - aggregation: Aggregation method for methods that support it (default: "mean")
                 - percentile: Percentile value for percentile aggregation
                 - normalize: Normalization method for score_heaviside
@@ -371,7 +412,8 @@ class GeneralStats:
                 - mean_{spatial_dim1}: Average spatial coordinate for second dimension
                 - mean_shift_time: Mean transition time for the cluster
                 - std_shift_time: Standard deviation of transition times within the cluster
-                - aggregate_score: Product of all score values
+                - aggregate_score: Product of all score values; NaN if any score
+                  is NaN (e.g. because it failed for that cluster)
 
         Example:
             >>> td.stats(var="temperature").score_overview()
@@ -397,6 +439,18 @@ class GeneralStats:
         # Initialize results dictionary
         results = {"cluster_id": cluster_ids.tolist()}
 
+        # Pass each score only the keyword arguments its signature accepts
+        method_kwargs = {}
+        for score_name, method_name in score_dictionary.items():
+            params = inspect.signature(getattr(self, method_name)).parameters
+            method_kwargs[score_name] = {k: v for k, v in kwargs.items() if k in params}
+        unused = set(kwargs) - {k for kw in method_kwargs.values() for k in kw}
+        if unused:
+            raise TypeError(
+                f"score_overview got keyword arguments that no score accepts: "
+                f"{sorted(unused)}"
+            )
+
         # Compute each score for all clusters
         score_columns = []
         for score_name, method_name in score_dictionary.items():
@@ -405,8 +459,7 @@ class GeneralStats:
 
             for cluster_id in cluster_ids:
                 try:
-                    # Call method with cluster_id and any additional kwargs
-                    score = method(cluster_id, **kwargs)
+                    score = method(cluster_id, **method_kwargs[score_name])
                     # Handle tuple returns (e.g., score_heaviside with return_score_fit=True)
                     if isinstance(score, tuple):
                         score = score[0]  # Take the first element (the score)
@@ -514,12 +567,12 @@ class GeneralStats:
         aggregate_scores = []
         for idx in range(len(df)):
             score_values = [df.loc[idx, col] for col in score_columns]
-            # Filter out NaN values before computing product
-            valid_scores = [s for s in score_values if not np.isnan(s)]
-            if len(valid_scores) > 0:
-                aggregate_scores.append(float(np.prod(valid_scores)))
-            else:
+            # NaN if any score is NaN (failed or undefined); never drop a
+            # component silently, which would change what the product means.
+            if any(np.isnan(s) for s in score_values):
                 aggregate_scores.append(np.nan)
+            else:
+                aggregate_scores.append(float(np.prod(score_values)))
 
         df["aggregate_score"] = aggregate_scores
 

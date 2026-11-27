@@ -20,22 +20,26 @@ The clustering results are returned as xarray objects with appropriate metadata 
 visualized using TOAD's plotting utilities.
 """
 
+import copy
 import logging
+import warnings
 from collections.abc import Callable
 from time import time as time_now
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import optuna
+import pandas as pd
 import xarray as xr
 from sklearn.base import ClusterMixin
 
 from toad._version import __version__
 from toad.clustering.methods.space_time_dbscan import SpaceTimeDBSCAN
 from toad.clustering.optimizing import (
-    _optimize_clusters,
     combined_spatial_nonlinearity,
     default_opt_params,
+    optimize_clusters,
+    read_opt_params,
 )
 from toad.regridding import HealPixRegridder
 from toad.regridding.base import BaseRegridder
@@ -52,6 +56,8 @@ logger = logging.getLogger("TOAD")
 
 __all__ = [
     "compute_clusters",
+    "optimize_clusters",
+    "read_opt_params",
     "default_opt_params",
     "combined_spatial_nonlinearity",
     "sorted_cluster_labels",
@@ -71,7 +77,7 @@ def compute_clusters(
     shift_direction: Literal["both", "positive", "negative"] | str = "both",
     shift_selection: Literal["local", "global", "all"] | str = "local",
     time_weight: float = 1,
-    regridder: BaseRegridder | None = None,
+    regridder: HealPixRegridder | None = None,
     disable_regridder: bool = False,
     output_label_suffix: str = "",
     output_label: str | None = None,
@@ -111,12 +117,12 @@ def compute_clusters(
             - "all": Cluster all shift values that meet the threshold and direction criteria. Includes all data points above threshold, not just peaks.
             Defaults to "local".
         time_weight: Controls the relative influence of time in clustering. By default, time values are automatically scaled to match the standard deviation of the spatial coordinates. Increasing time_weight gives more emphasis to the temporal dimension, resulting in clusters that are tighter in time (shorter delays between abrupt events). Decreasing it emphasizes the spatial dimensions, allowing clusters to span a wider range of shift times. Defaults to 1.
-        regridder: The regridding method to use from `toad.clustering.regridding`. Defaults to None. If None and coordinates are lat/lon, a HealPixRegridder will be created automatically.
+        regridder: None or a `toad.regridding.HealPixRegridder` instance, e.g. to set `nside`. Defaults to None. If None and coordinates are lat/lon, a HealPixRegridder will be created automatically. After the call, `regridder.df_healpix` holds the regridded points with their final cluster labels. Custom regridders are no longer supported.
         disable_regridder: Whether to disable the regridder. Defaults to False.
         output_label_suffix: A suffix to add to the output label. Defaults to "".
         overwrite: If True, overwrite existing variable of same name. If False, same name is used with an added number. Defaults to False.
         sort_by_size: Whether to reorder clusters by size. Defaults to True.
-        optimize: Whether to optimize the clustering parameters. Defaults to False.
+        optimize: Deprecated, use `optimize_clusters` (or `td.optimize_clusters`) instead, which takes the `optimize_*` arguments without the prefix. Whether to optimize the clustering parameters. Defaults to False.
         optimize_params: Parameters for the optimization. Defaults to default_opt_params.
         optimize_objective: The objective function to optimize. Defaults to combined_spatial_nonlinearity. Can be one of:
             - callable: Custom objective function taking (td, output_label) as arguments
@@ -136,6 +142,130 @@ def compute_clusters(
     Notes:
         For global datasets, use `toad.clustering.regridding.HealpyRegridder` to ensure equal spacing between data points and prevent biased clustering at high latitudes.
     """
+
+    if optimize:
+        warnings.warn(
+            "compute_clusters(optimize=True, optimize_*=...) is deprecated and will be "
+            "removed in a future release. Use td.optimize_clusters(...) instead, with "
+            "the optimize_* arguments without the prefix (params, objective, "
+            "n_trials, direction, log_level, progress_bar).",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return optimize_clusters(
+            td,
+            var,
+            method=method,
+            shift_threshold=shift_threshold,
+            shift_direction=shift_direction,
+            shift_selection=shift_selection,
+            time_weight=time_weight,
+            regridder=regridder,
+            disable_regridder=disable_regridder,
+            output_label_suffix=output_label_suffix,
+            output_label=output_label,
+            overwrite=overwrite,
+            sort_by_size=sort_by_size,
+            params=optimize_params,
+            objective=optimize_objective,
+            n_trials=optimize_n_trials,
+            direction=optimize_direction,
+            log_level=optimize_log_level,
+            progress_bar=optimize_progress_bar,
+        )
+
+    return _compute_clusters(
+        td,
+        var,
+        method,
+        shift_threshold=shift_threshold,
+        shift_direction=shift_direction,
+        shift_selection=shift_selection,
+        time_weight=time_weight,
+        regridder=regridder,
+        disable_regridder=disable_regridder,
+        output_label_suffix=output_label_suffix,
+        output_label=output_label,
+        overwrite=overwrite,
+        sort_by_size=sort_by_size,
+    )
+
+
+def _resolve_shifts_variable(td: "TOAD", var: str) -> str:
+    """Name of the shifts variable to cluster for a base or shifts variable."""
+    # if supplied variable is a shift variable, use that
+    if td._is_shift_variable(var):
+        shifts_variable = var
+    else:
+        if td._is_cluster_variable(var):
+            raise ValueError(
+                f"{var} is a cluster variable. Please pass a base or shift variable."
+            )
+
+        # if supplied variable is a base variable, check if multiple shifts variables exist
+        shift_vars = td.shift_vars_for_var(var)
+        if len(shift_vars) > 1:
+            raise ValueError(
+                f"Multiple shifts variables exist for {var}: {shift_vars}. Please specify which one to use"
+            )
+        elif len(shift_vars) == 0:
+            raise ValueError(
+                f"No shifts found for base variable {var}. Please run compute_shifts() for var={var} first."
+            )
+        # use the first/only shift variable
+        shifts_variable = shift_vars[0]
+
+    if td.data[shifts_variable].ndim != 3:
+        raise ValueError(
+            "Shifts variable must be 3-dimensional: time/forcing x space x space"
+        )
+    return shifts_variable
+
+
+def _check_args(shift_threshold: float, regridder) -> None:
+    # we add neg sign manually to detect negative shift
+    if shift_threshold < 0:
+        raise ValueError(f"shift_threshold must be positive, got {shift_threshold}")
+    _check_regridder(regridder)
+
+
+def _resolve_output_label(
+    td: "TOAD",
+    shifts_variable: str,
+    output_label: str | None,
+    output_label_suffix: str,
+    overwrite: bool,
+) -> str:
+    """Output label; with overwrite, an existing variable of that name is dropped."""
+    # Set output label (name of shifts_variable + _cluster + output_label_suffix) and check if already in data
+    new_output_label = (
+        output_label
+        if output_label
+        else f"{shifts_variable}_cluster{output_label_suffix}"
+    )
+    if not overwrite:
+        new_output_label = get_unique_variable_name(new_output_label, td.data, logger)
+    elif overwrite and new_output_label in td.data:
+        td.data = td.data.drop_vars(new_output_label)
+    return new_output_label
+
+
+def _compute_clusters(
+    td: "TOAD",
+    var: str,
+    method: ClusterMixin | type,
+    shift_threshold: float = DEFAULT_SHIFT_THRESHOLD,
+    shift_direction: Literal["both", "positive", "negative"] | str = "both",
+    shift_selection: Literal["local", "global", "all"] | str = "local",
+    time_weight: float = 1,
+    regridder: HealPixRegridder | None = None,
+    disable_regridder: bool = False,
+    output_label_suffix: str = "",
+    output_label: str | None = None,
+    overwrite: bool = False,
+    sort_by_size: bool = True,
+) -> xr.Dataset:
+    """Cluster once with the given arguments (no optimisation); see compute_clusters."""
 
     """
     Overview of the clustering process:
@@ -168,72 +298,13 @@ def compute_clusters(
     start_time = time_now()
 
     # ==================== VARIABLE CHECKING ====================
-    # if supplied variable is a shift variable, use that
-    if td._is_shift_variable(var):
-        shifts_variable = var
-    else:
-        if td._is_cluster_variable(var):
-            raise ValueError(
-                f"{var} is a cluster variable. Please pass a base or shift variable."
-            )
-
-        # if supplied variable is a base variable, check if multiple shifts variables exist
-        shift_vars = td.shift_vars_for_var(var)
-        if len(shift_vars) > 1:
-            raise ValueError(
-                f"Multiple shifts variables exist for {var}: {shift_vars}. Please specify which one to use"
-            )
-        elif len(shift_vars) == 0:
-            raise ValueError(
-                f"No shifts found for base variable {var}. Please run compute_shifts() for var={var} first."
-            )
-        # use the first/only shift variable
-        shifts_variable = shift_vars[0]
-
-    if td.data[shifts_variable].ndim != 3:
-        raise ValueError(
-            "Shifts variable must be 3-dimensional: time/forcing x space x space"
-        )
-
-    # we add neg sign manually to detect negative shift
-    if shift_threshold < 0:
-        raise ValueError(f"shift_threshold must be positive, got {shift_threshold}")
+    shifts_variable = _resolve_shifts_variable(td, var)
+    _check_args(shift_threshold, regridder)
 
     # ==================== LABEL MAKING ====================
-    # Set output label (name of shifts_variable + _cluster + output_label_suffix) and check if already in data
-    new_output_label = (
-        output_label
-        if output_label
-        else f"{shifts_variable}_cluster{output_label_suffix}"
+    new_output_label = _resolve_output_label(
+        td, shifts_variable, output_label, output_label_suffix, overwrite
     )
-    if not overwrite:
-        new_output_label = get_unique_variable_name(new_output_label, td.data, logger)
-    elif overwrite and new_output_label in td.data:
-        td.data = td.data.drop_vars(new_output_label)
-
-    # ==================== optimization ====================
-    # if optimize is True, optimize the parameters for clustering.
-    if optimize:
-        return _optimize_clusters(
-            td=td,
-            var=var,
-            method=method,
-            shift_threshold=shift_threshold,
-            shift_direction=shift_direction,
-            shift_selection=shift_selection,
-            time_weight=time_weight,
-            regridder=regridder,
-            output_label=new_output_label,
-            overwrite=True,
-            sort_by_size=sort_by_size,
-            optimize=False,
-            optimize_params=optimize_params,
-            optimize_objective=optimize_objective,
-            optimize_n_trials=optimize_n_trials,
-            optimize_direction=optimize_direction,
-            optimize_log_level=optimize_log_level,
-            optimize_progress_bar=optimize_progress_bar,
-        )
 
     # ==================== SHIFT SELECTION ====================
     sh = td.data[shifts_variable]
@@ -342,21 +413,6 @@ def compute_clusters(
         if regridder is None and is_latlon_dims and not disable_regridder:
             regridder = HealPixRegridder()
 
-        # Let the regridder know every cell of the source grid, so that pixels
-        # without a cell centre can be told apart from pixels without an event.
-        if (
-            has_latlon
-            and not disable_regridder
-            and isinstance(regridder, HealPixRegridder)
-        ):
-            if is_latlon_dims:
-                grid_lon, grid_lat = np.meshgrid(
-                    td.data[lon_name].values, td.data[lat_name].values
-                )
-            else:
-                grid_lat, grid_lon = lat_grid, lon_grid
-            regridder.set_source_grid(grid_lat, grid_lon)
-
         method = method() if isinstance(method, type) else method
         preprocessing_time = time_now() - start_time
         space_dims_size = (
@@ -373,6 +429,7 @@ def compute_clusters(
         cluster_labels = np.full(n_pts, -1, dtype=int)
         label_offset = 0
         regridders_used: list[BaseRegridder] = []
+        regridder_offsets: list[int] = []
         clustering_time = 0.0
 
         for mask in sign_masks:
@@ -384,6 +441,7 @@ def compute_clusters(
                 f"with {n_sub} points" + (" (sign split)" if split_by_sign else "")
             )
             cluster_start = time_now()
+            subset_offset = label_offset
             sub_labels, used_regridder = _cluster_coords_subset(
                 coords[mask],
                 weights[mask],
@@ -406,20 +464,37 @@ def compute_clusters(
             cluster_labels[mask] = sub_labels
             if used_regridder is not None:
                 regridders_used.append(used_regridder)
+                regridder_offsets.append(subset_offset)
 
+        user_regridder = regridder
+        # Per-subset tables, taken before the last regridder's table is replaced
+        # by the concatenation below.
+        subset_frames = [rg.df_healpix for rg in regridders_used]
         if regridders_used:
             regridder = regridders_used[-1]
             if len(regridders_used) > 1:
-                import pandas as pd
-
                 regridder.df_healpix = pd.concat(
                     [rg.df_healpix for rg in regridders_used],
                     ignore_index=True,
                 )
 
+        labels_before_sort = cluster_labels
         cluster_labels = (
             sorted_cluster_labels(cluster_labels) if sort_by_size else cluster_labels
         )
+
+        # The regridder the caller passed carries the regridded points, labelled
+        # like the output (sign offsets and size sorting applied).
+        if user_regridder is not None:
+            # Never leave the table of an earlier call on a reused regridder.
+            user_regridder.df_healpix = pd.DataFrame()
+        if regridders_used and user_regridder is not None:
+            user_regridder.df_healpix = _final_df_healpix(
+                subset_frames,
+                regridder_offsets,
+                labels_before_sort,
+                cluster_labels,
+            )
 
         # Scatter labels back into xarray without DataFrame
         # Start with NaN (points not included in clustering remain NaN)
@@ -484,14 +559,60 @@ def compute_clusters(
     return xr.merge([td.data, clusters], combine_attrs="override", compat="override")
 
 
-def _clone_regridder(regridder: BaseRegridder | None) -> BaseRegridder | None:
+def _check_regridder(regridder) -> None:
+    """Only None or a HealPixRegridder instance is accepted."""
+    if regridder is None or isinstance(regridder, HealPixRegridder):
+        return
+    raise TypeError(
+        "regridder must be None or a toad.regridding.HealPixRegridder instance, "
+        f"got {type(regridder).__name__}. Custom regridders are no longer supported; "
+        "use disable_regridder=True to cluster on the original grid."
+    )
+
+
+# Regridder attributes that hold the results of a regrid() call, not settings.
+_REGRIDDER_RESULTS = ("df_healpix", "original_coords", "original_weights")
+
+
+def _clone_regridder(regridder: HealPixRegridder | None) -> HealPixRegridder | None:
+    """Fresh copy of ``regridder`` with every setting but none of its results."""
     if regridder is None:
         return None
-    nside = getattr(regridder, "nside", None)
-    clone = regridder.__class__(nside=nside)
-    if hasattr(regridder, "copy_source_grid_from"):
-        clone.copy_source_grid_from(regridder)
+    clone = copy.copy(regridder)
+    for name, value in vars(regridder).items():
+        if name in _REGRIDDER_RESULTS:
+            continue
+        setattr(clone, name, copy.deepcopy(value))
+    clone.df_healpix = pd.DataFrame()
+    for name in _REGRIDDER_RESULTS[1:]:
+        if name in vars(clone):
+            setattr(clone, name, None)
     return clone
+
+
+def _final_df_healpix(
+    subset_frames: list[pd.DataFrame],
+    offsets: list[int],
+    labels_before_sort: np.ndarray,
+    labels_after_sort: np.ndarray,
+) -> pd.DataFrame:
+    """Regridded points of all subsets, with the cluster ids of the output."""
+    mapping = dict(
+        zip(
+            np.asarray(labels_before_sort).astype(int).tolist(),
+            np.asarray(labels_after_sort).astype(int).tolist(),
+        )
+    )
+    mapping[-1] = -1
+    frames = []
+    for frame, offset in zip(subset_frames, offsets):
+        df = frame.copy()
+        if "cluster" in df.columns:
+            raw = df["cluster"].to_numpy(dtype=int)
+            shifted = np.where(raw >= 0, raw + offset, -1)
+            df["cluster"] = [mapping.get(int(c), -1) for c in shifted]
+        frames.append(df)
+    return pd.concat(frames, ignore_index=True)
 
 
 def _cluster_coords_subset(
@@ -509,6 +630,11 @@ def _cluster_coords_subset(
     used_regridder = regridder
     if used_regridder and not disable_regridder:
         coords, weights = used_regridder.regrid(coords, weights, space_dims_size)
+
+    # A single point: some clusterers accept it (DBSCAN with min_samples=1),
+    # others raise (HDBSCAN: "n_samples=1 ..."). If the clusterer raises, the
+    # point is returned as noise below.
+    single_point = len(coords) < 2
 
     if has_latlon:
         coords = geodetic_to_cartesian(
@@ -532,7 +658,9 @@ def _cluster_coords_subset(
     try:
         labels = np.asarray(method.fit_predict(X=coords, y=weights), dtype=int)
     except ValueError as e:
-        if "min_samples" in str(e) and "must be at most" in str(e):
+        if single_point:
+            labels = np.full(len(coords), -1, dtype=int)
+        elif "min_samples" in str(e) and "must be at most" in str(e):
             logger.warning(
                 "Clustering failed due to insufficient data points. "
                 f"Returning no clusters. Error: {e}"

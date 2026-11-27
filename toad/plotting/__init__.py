@@ -9,6 +9,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import matplotlib.pyplot as plt
 import numpy as np
+import xarray as xr
 from cartopy.mpl.geoaxes import GeoAxes
 from matplotlib.axes import Axes
 from matplotlib.cm import ScalarMappable
@@ -666,7 +667,7 @@ class Plotter:
             )
 
         # Plot all clusters (except -1) if no clusters passed
-        all_cluster_ids = clusters_obj.cluster_ids
+        all_cluster_ids = np.atleast_1d(clusters_obj.cluster_ids)
         cluster_ids = (
             cluster_ids
             if cluster_ids is not None
@@ -674,11 +675,11 @@ class Plotter:
         )
 
         # Check that we have a valid clusters value
-        if not isinstance(cluster_ids, (int, list, np.ndarray, range)):
+        if not isinstance(cluster_ids, (int, np.integer, list, np.ndarray, range)):
             raise TypeError("clusters must be int, list, np.ndarray, range, or None")
 
         # Convert single cluster_id to list for consistent handling
-        if isinstance(cluster_ids, int):
+        if isinstance(cluster_ids, (int, np.integer)):
             single_plot = True
             cluster_ids = [cluster_ids]
         else:
@@ -1029,10 +1030,10 @@ class Plotter:
         cluster_ids = (
             cluster_ids if cluster_ids is not None else np.atleast_1d(all_cluster_ids)
         )
-        if not isinstance(cluster_ids, (int, list, np.ndarray, range)):
+        if not isinstance(cluster_ids, (int, np.integer, list, np.ndarray, range)):
             raise TypeError("cluster_ids must be int, list, np.ndarray, range, or None")
 
-        if isinstance(cluster_ids, int):
+        if isinstance(cluster_ids, (int, np.integer)):
             single_plot = True
             cluster_ids = [cluster_ids]
         else:
@@ -1142,7 +1143,12 @@ class Plotter:
                 ax.get_figure(),
                 ax,
                 sorted_ids=np.sort(np.asarray(valid_cluster_ids, dtype=np.int64)),
-                color_list=list(color_list),
+                color_list=[
+                    color_list[j]
+                    for j in np.argsort(
+                        np.asarray(valid_cluster_ids, dtype=np.int64), kind="stable"
+                    )
+                ],
                 label=colorbar_label
                 if colorbar_label is not None
                 else "Consensus cluster id",
@@ -1335,7 +1341,7 @@ class Plotter:
         dists_full = dict(dists)
         times_total_all = self._concat_finite_from_shift_dists(dists_full)
         if cluster_ids is not None:
-            if isinstance(cluster_ids, int):
+            if isinstance(cluster_ids, (int, np.integer)):
                 wanted = {cluster_ids}
             else:
                 wanted = {int(x) for x in cluster_ids}
@@ -1861,7 +1867,7 @@ class Plotter:
         sm = dist_ds["spatial_median_transition_time"]
         ids_all = np.asarray(sm.coords["consensus_cluster_id"].values, dtype=np.int64)
         if cluster_ids is not None:
-            if isinstance(cluster_ids, int):
+            if isinstance(cluster_ids, (int, np.integer)):
                 wanted = {int(cluster_ids)}
             else:
                 wanted = {int(x) for x in cluster_ids}
@@ -2202,7 +2208,7 @@ class Plotter:
             ids_all = np.array(sorted(dists.keys()), dtype=np.int64)
 
         if cluster_ids is not None:
-            if isinstance(cluster_ids, int):
+            if isinstance(cluster_ids, (int, np.integer)):
                 wanted = {int(cluster_ids)}
             else:
                 wanted = {int(x) for x in cluster_ids}
@@ -3531,7 +3537,7 @@ class Plotter:
                 return [], False, plot_all_data
 
             # Convert single cluster_id to list for consistent handling
-            if isinstance(cluster_ids, int):
+            if isinstance(cluster_ids, (int, np.integer)):
                 single_plot = True
                 cluster_ids_list = [cluster_ids]
             else:
@@ -4202,9 +4208,19 @@ class Plotter:
                 "cluster_var": var,
                 "normalize": normalize,
                 "aggregation": "raw",
-                "keep_full_timeseries": False,
+                "keep_full_timeseries": True,
             }
             cells_highlight = self.td.get_timeseries(**highlight_ts_kwargs)
+            # Normalise over the full series (like the trajectories underneath),
+            # then restrict to the cluster window.
+            tdim = self.td.time_dim
+            t_idx = np.arange(cells_highlight.sizes[tdim])
+            start_idx = self.td.stats(var).time.start_timestep(cluster_id)
+            end_idx = self.td.stats(var).time.end_timestep(cluster_id)
+            in_win = xr.DataArray(
+                (t_idx >= start_idx) & (t_idx <= end_idx), dims=tdim, name="time_mask"
+            )
+            cells_highlight = cells_highlight.where(in_win)
 
         for ts in cells_highlight:
             ts.plot(
@@ -4517,7 +4533,7 @@ def _filter_by_existing_clusters(
         List of cluster IDs that exist in the dataset (excluding noise cluster -1).
     """
 
-    if isinstance(cluster_ids, int):
+    if isinstance(cluster_ids, (int, np.integer)):
         cluster_ids = [cluster_ids]
 
     return [

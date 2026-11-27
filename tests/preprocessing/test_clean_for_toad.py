@@ -45,3 +45,22 @@ def test_clean_for_toad_drops_cesm_pop_tlat_on_yx():
     assert list(cleaned.data_vars) == ["mlotst"]
     assert cleaned["mlotst"].dims == ("time", "nlat", "nlon")
     assert "y" not in cleaned.dims and "x" not in cleaned.dims
+
+
+def test_clean_for_toad_keeps_nemo_nav_lat_nav_lon():
+    """auto_clean must keep the 2-D lat/lon coords that lat/lon detection supports."""
+    ny, nx = 4, 5
+    nav_lat, nav_lon = np.meshgrid(np.linspace(-10, 10, ny), np.linspace(0, 40, nx))
+    ds = xr.Dataset(
+        {"tos": (("time", "y", "x"), np.ones((3, ny, nx), dtype=np.float32))},
+        coords={
+            "time": np.arange(3),
+            "nav_lat": (("y", "x"), nav_lat.T),
+            "nav_lon": (("y", "x"), nav_lon.T),
+        },
+    )
+    cleaned = clean_for_toad(ds)
+    assert "nav_lat" in cleaned.coords and "nav_lon" in cleaned.coords
+
+    td = TOAD(ds, auto_clean=True, log_level="WARNING")
+    assert "nav_lat" in td.data.coords and "nav_lon" in td.data.coords

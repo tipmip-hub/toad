@@ -42,9 +42,6 @@ class ASDETECT(ShiftsMethod):
         - Normalizes by dividing by the total number of window sizes used (lmax - lmin + 1).
         - Simpler approach that matches the original algorithm implementation.
 
-    Note: The detection is computed in float64 for any input dtype (e.g. float32
-    netCDF data); the scores are returned in the input dtype.
-
     Note: NaN values are supported when they occur only as leading and/or trailing
     padding (e.g. GWL bins the model never reached). The finite core is analysed and
     scores are written back with zero outside that span. Internal gaps (NaN between
@@ -71,8 +68,11 @@ class ASDETECT(ShiftsMethod):
             (seconds). For numeric time data (not cftime), use the same units as your time axis.
 
             **Note:** The timescale conversion requires regular temporal spacing. If your time
-            series has irregular spacing, a ValueError will be raised. In this case, use lmin/lmax
-            parameters directly instead of timescale, or resample your data to regular spacing.
+            series has irregular spacing (a step more than 25% away from the median step), a
+            ValueError will be raised. In this case, use lmin/lmax parameters directly instead
+            of timescale, or resample your data to regular spacing. Steps that vary only mildly,
+            such as calendar months of 28-31 days, are converted with the mean step and a
+            warning is logged once.
         segmentation: Segmentation method to use. "two_sided" (recommended) applies forward
             and backward segmentation with counter-based normalisation and edge correction,
             reducing positional bias at roughly twice the computational cost of the original
@@ -132,8 +132,8 @@ class ASDETECT(ShiftsMethod):
         lmax_max = len(times_1d) // 3
         lmin, lmax = self.lmin, self.lmax if self.lmax is not None else lmax_max
 
-        dt = np.diff(times_1d)[0]
         if self.timescale is not None:
+            dt = self._time_step(times_1d)
             if self.timescale[0] is not None:
                 lmin = int(self.timescale[0] / dt)
             if self.timescale[1] is not None:
@@ -165,6 +165,39 @@ class ASDETECT(ShiftsMethod):
             lmax = lmax_max
 
         return lmin, lmax
+
+    # Relative spread of time steps below which the axis counts as evenly spaced,
+    # and above which it counts as irregular (ValueError).
+    _DT_MILD_RTOL = 0.25
+
+    def _time_step(self, times_1d: NDArray[np.float64]) -> float:
+        """Time step used to convert ``timescale`` into segment lengths.
+
+        The first time step, as in earlier versions. Steps that vary by up to
+        25 % of the median step (calendar months and years) are accepted;
+        clearly irregular axes raise.
+
+        Raises:
+            ValueError: If the axis has fewer than two points, is not increasing,
+                or is irregularly spaced.
+        """
+        diffs = np.diff(times_1d)
+        if diffs.size == 0:
+            raise ValueError("timescale needs a time axis with at least two points.")
+        d64 = diffs.astype(np.float64)
+        med = float(np.median(d64))
+        if not np.all(d64 > 0):
+            raise ValueError(
+                "timescale needs a strictly increasing time axis. Use lmin/lmax instead."
+            )
+        rel_dev = float(np.max(np.abs(d64 - med))) / med
+        if rel_dev > self._DT_MILD_RTOL:
+            raise ValueError(
+                f"timescale requires regular temporal spacing, but the time steps vary "
+                f"between {d64.min():g} and {d64.max():g} (median {med:g}). Use lmin/lmax "
+                f"(in time steps) instead, or resample the data to regular spacing."
+            )
+        return diffs[0]
 
     def fit_predict(
         self,
@@ -348,13 +381,7 @@ def construct_detection_ts(
             trimmed automatically. Internal NaN gaps still return all zeros.
 
     >> Returns:
-        - Abrupt shift score time series, shape (n,), in the dtype of values_1d
-
-    The detection runs in float64 whatever the input dtype. In float32, the
-    segment sums lose enough precision in the least-squares slope (which
-    subtracts nearly equal products) to flip segments at the 3 MAD threshold,
-    most for values or times far from zero (e.g. temperatures in K, calendar
-    years).
+        - Abrupt shift score time series, shape (n,)
     """
 
     detection_ts = np.zeros_like(values_1d)
@@ -362,7 +389,7 @@ def construct_detection_ts(
     if first < 0:
         return detection_ts
 
-    core_values = values_1d[first : last + 1].astype(np.float64)
+    core_values = values_1d[first : last + 1]
     core_times = times_1d[first : last + 1]
     n_core = len(core_values)
 

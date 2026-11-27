@@ -4,6 +4,8 @@ from typing import Callable, Optional, Union, cast
 import numpy as np
 import xarray as xr
 
+from toad.utils import detect_latlon_names
+
 logger = logging.getLogger("TOAD")
 
 # Common CMIP / ensemble dimension names (kept when present on the dataset)
@@ -121,7 +123,11 @@ def clean_for_toad(ds: xr.Dataset, time_dim: str = "time") -> xr.Dataset:
             logger.info("Dropping auxiliary dim: %s (size %s)", dim, ds.sizes[dim])
             ds = ds.drop_dims(cast(str, dim))
 
-    spatial_coord_names = {"lat", "lon", "latitude", "longitude"}
+    # Keep whatever lat/lon coordinates TOAD's own detection finds (e.g. NEMO
+    # nav_lat/nav_lon), so cleaning and detection cannot drift apart.
+    spatial_coord_names = {"lat", "lon", "latitude", "longitude"} | {
+        name for name in detect_latlon_names(ds) if name is not None
+    }
     orphan_coords = [
         c
         for c in ds.coords

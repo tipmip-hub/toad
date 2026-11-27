@@ -23,6 +23,7 @@ from toad.utils.cluster_consensus_utils import (
     consensus_shift_time_distributions,
     label_field_shift_time_distributions,
     label_field_shift_time_samples,
+    longitude_last_spatial_dims,
     resolve_stitch_meridian,
 )
 
@@ -284,6 +285,9 @@ class Aggregation:
         at least one input can appear in the consensus mask. Spatial tolerance is in native
         grid indices, not kilometres. With ``stitch_meridian``, the first and last longitude
         column can be treated as neighbours during dilation and labelling on global grids.
+        The longitude dimension is found from the ``lon`` coordinate, so the data may be
+        stored ``(time, lat, lon)`` or ``(time, lon, lat)``; outputs keep the dimension
+        order ``(time, *space_dims)``.
 
         **Writes**
 
@@ -302,6 +306,12 @@ class Aggregation:
         Both arrays store ``cluster_vars``, ``min_consensus``, ``min_consensus_members``,
         tolerance settings, and ``stitch_meridian`` / ``stitch_meridian_applied``. For a
         per-cluster table after the fact, call :meth:`consensus_summary`.
+
+        The direction of a shift is not used: a positive shift in one input counts as
+        support for a negative shift in another, and neighbouring positive and negative
+        clusters can end up in the same consensus cluster. To keep the directions apart,
+        run the consensus separately on clusterings computed with
+        ``shift_direction="positive"`` and with ``shift_direction="negative"``.
 
         Args:
             cluster_vars: Input clustering variables to include. If None, uses all
@@ -366,11 +376,17 @@ class Aggregation:
             )
 
         # --- grid layout (meridian stitching for labelling / dilation on global lon grids) ---
-        spatial_dims = tuple(self.td.space_dims)
+        output_spatial_dims = tuple(self.td.space_dims)
+        # Seam stitching wraps the last spatial axis, so when stitching compute on
+        # (time, other, lon) and transpose the result back to (time, *space_dims).
+        lon_last_dims = longitude_last_spatial_dims(self.td.data, output_spatial_dims)
         stitch_meridian_resolved = resolve_stitch_meridian(
             stitch_meridian,
             dataset=self.td.data,
-            spatial_dims=spatial_dims,
+            spatial_dims=lon_last_dims,
+        )
+        spatial_dims = (
+            lon_last_dims if stitch_meridian_resolved else output_spatial_dims
         )
         if stitch_meridian == "auto" and stitch_meridian_resolved:
             self.td.logger.info(
@@ -421,6 +437,8 @@ class Aggregation:
                 native_union=native_union,
                 member_vote_count=member_vote_count,
             )
+        if spatial_dims != output_spatial_dims:
+            ds_out = ds_out.transpose(self.td.time_dim, *output_spatial_dims)
 
         # --- optional size filter, TOAD attrs, merge into td.data ---
         lab = _finalize_consensus_variables(

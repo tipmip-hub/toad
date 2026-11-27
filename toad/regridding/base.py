@@ -5,9 +5,12 @@ import numpy as np
 
 class BaseRegridder(ABC):
     """
-    Abstract base class for spatial regridders in TOAD.
+    Internal base class of TOAD's regridders.
 
-    Every regridder must provide:
+    Not an extension point: ``compute_clusters`` accepts only None or a
+    ``HealPixRegridder`` instance; custom regridders are no longer supported.
+
+    A regridder provides:
       - regrid(): forward mapping from original grid to regridded coordinates
       - regrid_clusters_back(): inverse mapping from regridded labels to original grid
       - map_orig_to_regrid(): direct spatial index mapping without resampling

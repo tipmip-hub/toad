@@ -78,7 +78,6 @@ Regridding utilities for ensuring equal spacing in global datasets. These are ty
 	:recursive:
 
 	toad.regridding.HealPixRegridder
-	toad.regridding.base.BaseRegridder
 
 Supporting Modules
 ==================

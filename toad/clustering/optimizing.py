@@ -1,15 +1,32 @@
+import json
 import logging
 import time
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import optuna
 import xarray as xr
 from sklearn.base import ClusterMixin
+from sklearn.cluster import HDBSCAN
 
 import toad.clustering as clustering
-from toad.utils import _attrs
+from toad.utils import DEFAULT_SHIFT_THRESHOLD, _attrs
+
+if TYPE_CHECKING:
+    from toad.core import TOAD
+    from toad.regridding import HealPixRegridder
 
 logger = logging.getLogger("TOAD")
+
+
+def _json_default(value):
+    """JSON form of values the json module does not know: numpy numbers stay numbers."""
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    return str(value)
 
 
 def combined_spatial_nonlinearity(td, cluster_variable, weights=[1, 1]) -> float:
@@ -50,9 +67,9 @@ default_opt_params = dict(
 """
 Cluster Scoring Methods
     Heaviside Score (score_heaviside):
-    - Evaluates how closely a cluster's aggregated time series resembles a perfect step function
-    - Uses linear regression residuals compared to theoretical Heaviside function
-    - Score of 1 = perfect step function, 0 = linear trend
+    - Residual of a straight-line fit to the cluster's aggregated time series, relative to its spread
+    - 0 = linear trend, 0.25 = step in the middle of the series, about 1 = noise
+    - A high value does not by itself indicate a step
 
     Consistency Score (score_consistency):
     - Measures internal coherence using hierarchical clustering of time series correlations
@@ -81,38 +98,92 @@ Little note about parameters:
 """
 
 
-def _optimize_clusters(**kwargs) -> xr.Dataset:
-    """Internal function to optimize clustering parameters using Optuna.
+def optimize_clusters(
+    td: "TOAD",
+    var: str,
+    method: ClusterMixin | type = HDBSCAN,
+    shift_threshold: float = DEFAULT_SHIFT_THRESHOLD,
+    shift_direction: Literal["both", "positive", "negative"] | str = "both",
+    shift_selection: Literal["local", "global", "all"] | str = "local",
+    time_weight: float = 1,
+    regridder: "HealPixRegridder | None" = None,
+    disable_regridder: bool = False,
+    output_label_suffix: str = "",
+    output_label: str | None = None,
+    overwrite: bool = False,
+    sort_by_size: bool = True,
+    params: dict = default_opt_params,
+    objective: Callable
+    | Literal[
+        "median_heaviside",
+        "mean_heaviside",
+        "mean_consistency",
+        "mean_spatial_autocorrelation",
+        "mean_nonlinearity",
+        "combined_spatial_nonlinearity",
+    ]
+    | str = "combined_spatial_nonlinearity",
+    n_trials: int = 50,
+    direction: str = "maximize",
+    log_level: int = optuna.logging.WARNING,
+    progress_bar: bool = True,
+    seed: int | None = None,
+) -> xr.Dataset:
+    """Search clustering parameters with Optuna, then cluster with the best ones (experimental).
 
-    This function is called by compute_clusters() when optimize=True. It runs multiple trials
-    with different parameter combinations to find the optimal clustering configuration based
-    on the specified objective function.
+    Every trial is an ordinary ``compute_clusters`` call with the arguments given
+    here, plus the parameters sampled from ``params``. The final clustering uses
+    the best parameters and the same arguments, and is written to one cluster
+    variable with the optimisation details in its attributes.
 
-    All parameters are passed through kwargs from compute_clusters(). See compute_clusters()
-    documentation for details on available parameters.
+    Args:
+        td: TOAD object containing the data to cluster.
+        var, method, shift_threshold, shift_direction, shift_selection, time_weight,
+            regridder, disable_regridder, output_label_suffix, output_label,
+            overwrite, sort_by_size: As in ``compute_clusters``. Parameters of a
+            method instance (e.g. ``HDBSCAN(min_cluster_size=10)``) are ignored;
+            pass them through ``params`` instead.
+        params: Parameters to optimise. A ``(min, max)`` tuple is sampled (float
+            if the first bound is a float, else int); a single value is fixed.
+            Keys are arguments of the clustering method, or ``shift_threshold``
+            and ``time_weight``. Defaults to ``default_opt_params``.
+        objective: The score to optimise. Defaults to "combined_spatial_nonlinearity". Can be one of:
+            - callable: Custom objective function taking (td, output_label) as arguments
+            - "median_heaviside": Median heaviside score across clusters
+            - "mean_heaviside": Mean heaviside score across clusters
+            - "mean_consistency": Mean consistency score across clusters
+            - "mean_spatial_autocorrelation": Mean spatial autocorrelation score
+            - "mean_nonlinearity": Mean nonlinearity score across clusters
+            - "combined_spatial_nonlinearity": See ``combined_spatial_nonlinearity``
+        n_trials: Number of trials. Defaults to 50.
+        direction: "maximize" or "minimize". Defaults to "maximize".
+        log_level: Optuna log level. Defaults to optuna.logging.WARNING.
+        progress_bar: Whether to show Optuna's progress bar. Defaults to True.
+        seed: Seed for Optuna's sampler, for reproducible trials. Defaults to None.
 
     Returns:
-        xr.Dataset: Dataset containing the clustering results using the best parameters found.
+        xr.Dataset: The data with the cluster variable of the best parameters.
     """
-    # Extract and remove (pop) optimization related params, because kwargs is passed back into compute_clusters()
-    td = kwargs.pop("td")
-    var = kwargs.pop("var")
-    method = kwargs.pop("method")
-    objective = kwargs.pop("optimize_objective")
-    direction = kwargs.pop("optimize_direction")
-    log_level = kwargs.pop("optimize_log_level")
-    show_progress_bar = kwargs.pop("optimize_progress_bar")
-    n_trials = kwargs.pop("optimize_n_trials")
+    # Resolve the shifts variable and the output label once, as compute_clusters
+    # would; every trial and the final fit then write to that label.
+    shifts_variable = clustering._resolve_shifts_variable(td, var)
+    clustering._check_args(shift_threshold, regridder)
+    output_label = clustering._resolve_output_label(
+        td, shifts_variable, output_label, output_label_suffix, overwrite
+    )
 
-    # TOAD specific clustering params
-    shift_threshold = kwargs.pop("shift_threshold")
-    time_weight = kwargs.pop("time_weight")
-
-    # User defined optimization params, can also include shift_threshold and time_weight
-    opt_params = kwargs.pop("optimize_params")
-
-    # don't pop this one
-    output_label = kwargs["output_label"]
+    # Arguments shared by every trial and the final fit.
+    kwargs = dict(
+        shift_direction=shift_direction,
+        shift_selection=shift_selection,
+        regridder=regridder,
+        disable_regridder=disable_regridder,
+        output_label=output_label,
+        overwrite=True,
+        sort_by_size=sort_by_size,
+    )
+    opt_params = params
+    show_progress_bar = progress_bar
 
     # ==================== VALIDATE INPUT ====================
 
@@ -133,8 +204,8 @@ def _optimize_clusters(**kwargs) -> xr.Dataset:
             if warn_user_about_params:
                 logger.warning(
                     "When optimizing, params passed through the clustering method (e.g. HDBSCAN(min_cluster_size=10)) will be ignored."
-                    "\nPlease pass params through `optimize_params` instead."
-                    "\nExample: optimize_params={'min_cluster_size': 10} for a fixed min_cluster_size of 10."
+                    "\nPlease pass params through `params` instead."
+                    "\nExample: params={'min_cluster_size': 10} for a fixed min_cluster_size of 10."
                 )
     else:
         method_class = method
@@ -145,10 +216,10 @@ def _optimize_clusters(**kwargs) -> xr.Dataset:
         )
 
     if not isinstance(opt_params, dict):
-        raise TypeError("optimize_params must be a dict")
+        raise TypeError("params must be a dict")
     if len(opt_params) == 0:
         raise ValueError(
-            "optimize_params cannot be empty. Example: optimize_params={'min_cluster_size': (5, 15)}"
+            "params cannot be empty. Example: params={'min_cluster_size': (5, 15)}"
         )
 
     # Print optimization params
@@ -169,9 +240,9 @@ def _optimize_clusters(**kwargs) -> xr.Dataset:
         sample_shift_threshold = cluster_params.pop("shift_threshold", shift_threshold)
 
         # Compute clusters
-        td.data = clustering.compute_clusters(
+        td.data = clustering._compute_clusters(
             td,
-            var,
+            shifts_variable,
             method=method_class(**cluster_params),
             shift_threshold=sample_shift_threshold,
             time_weight=sample_time_weight,
@@ -214,7 +285,8 @@ def _optimize_clusters(**kwargs) -> xr.Dataset:
     td.set_log_level("WARNING")  # this fetches int of flag warning sets that
     try:
         t0 = time.time()
-        study = optuna.create_study(direction=direction)
+        sampler = optuna.samplers.TPESampler(seed=seed) if seed is not None else None
+        study = optuna.create_study(direction=direction, sampler=sampler)
         study.optimize(
             objective_fn,
             n_trials=n_trials,
@@ -241,31 +313,45 @@ def _optimize_clusters(**kwargs) -> xr.Dataset:
     best_params_for_attrs = best_params.copy()
     best_shift_threshold = best_params.pop("shift_threshold", shift_threshold)
     best_time_weight = best_params.pop("time_weight", time_weight)
-    new_data = clustering.compute_clusters(
+    new_data = clustering._compute_clusters(
         td,
-        var,
+        shifts_variable,
         method=method_class(**best_params),
         shift_threshold=best_shift_threshold,
         time_weight=best_time_weight,
         **kwargs,
     )
 
-    # Add optimization details to attributes
+    # Add optimization details to attributes, in types netCDF can store: the
+    # flag as int, the parameter dicts as JSON strings (see read_opt_params).
     new_data[output_label].attrs.update(
         {
-            _attrs.OPTIMIZATION: True,
-            _attrs.OPT_OBJECTIVE: objective.__name__
+            _attrs.OPTIMIZATION: 1,
+            _attrs.OPT_OBJECTIVE: getattr(objective, "__name__", repr(objective))
             if callable(objective)
             else objective,
             _attrs.OPT_BEST_SCORE: study.best_value,
             _attrs.OPT_DIRECTION: direction,
-            _attrs.OPT_PARAMS: opt_params,
-            _attrs.OPT_BEST_PARAMS: best_params_for_attrs,
+            _attrs.OPT_PARAMS: json.dumps(opt_params, default=_json_default),
+            _attrs.OPT_BEST_PARAMS: json.dumps(
+                best_params_for_attrs, default=_json_default
+            ),
             _attrs.OPT_N_TRIALS: n_trials,
         }
     )
 
     return new_data
+
+
+def read_opt_params(value) -> dict:
+    """Decode an ``opt_params`` or ``opt_best_params`` attribute to a dict.
+
+    Accepts the JSON string written now and the dict written by older versions.
+    Ranges come back as lists.
+    """
+    if isinstance(value, dict):
+        return value
+    return json.loads(value)
 
 
 def _fixed_opt_params(param_ranges: dict) -> dict:
