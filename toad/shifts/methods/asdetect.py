@@ -42,9 +42,6 @@ class ASDETECT(ShiftsMethod):
         - Normalizes by dividing by the total number of window sizes used (lmax - lmin + 1).
         - Simpler approach that matches the original algorithm implementation.
 
-    Note: The detection is computed in float64 for any input dtype (e.g. float32
-    netCDF data); the scores are returned in the input dtype.
-
     Note: NaN values are supported when they occur only as leading and/or trailing
     padding (e.g. GWL bins the model never reached). The finite core is analysed and
     scores are written back with zero outside that span. Internal gaps (NaN between
@@ -384,13 +381,7 @@ def construct_detection_ts(
             trimmed automatically. Internal NaN gaps still return all zeros.
 
     >> Returns:
-        - Abrupt shift score time series, shape (n,), in the dtype of values_1d
-
-    The detection runs in float64 whatever the input dtype. In float32, the
-    segment sums lose enough precision in the least-squares slope (which
-    subtracts nearly equal products) to flip segments at the 3 MAD threshold,
-    most for values or times far from zero (e.g. temperatures in K, calendar
-    years).
+        - Abrupt shift score time series, shape (n,)
     """
 
     detection_ts = np.zeros_like(values_1d)
@@ -398,7 +389,7 @@ def construct_detection_ts(
     if first < 0:
         return detection_ts
 
-    core_values = values_1d[first : last + 1].astype(np.float64)
+    core_values = values_1d[first : last + 1]
     core_times = times_1d[first : last + 1]
     n_core = len(core_values)
 
