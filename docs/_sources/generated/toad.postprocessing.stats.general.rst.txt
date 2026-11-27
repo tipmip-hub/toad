@@ -1,0 +1,12 @@
+toad.postprocessing.stats.general
+=================================
+
+.. automodule:: toad.postprocessing.stats.general
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      GeneralStats
+   

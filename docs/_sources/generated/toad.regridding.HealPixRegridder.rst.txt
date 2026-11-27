@@ -1,0 +1,27 @@
+﻿toad.regridding.HealPixRegridder
+================================
+
+.. currentmodule:: toad.regridding
+
+.. autoclass:: HealPixRegridder
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~HealPixRegridder.__init__
+      ~HealPixRegridder.healpix_to_latlon
+      ~HealPixRegridder.latlon_to_healpix
+      ~HealPixRegridder.map_orig_to_regrid
+      ~HealPixRegridder.regrid
+      ~HealPixRegridder.regrid_clusters_back
+   
+   
+
+   
+   
+   

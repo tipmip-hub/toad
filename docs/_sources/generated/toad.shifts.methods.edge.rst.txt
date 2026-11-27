@@ -1,0 +1,21 @@
+toad.shifts.methods.edge
+========================
+
+.. automodule:: toad.shifts.methods.edge
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compute_abruptness_1D
+      construct_detection_ts
+      sobel_edge_detection
+      thin_and_threshold_edges
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      EDGE
+   

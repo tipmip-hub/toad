@@ -1,0 +1,29 @@
+﻿toad.shifts.ASDETECT
+====================
+
+.. currentmodule:: toad.shifts
+
+.. autoclass:: ASDETECT
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~ASDETECT.__init__
+      ~ASDETECT.fit_predict
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ASDETECT.LMIN_MIN
+   
+   

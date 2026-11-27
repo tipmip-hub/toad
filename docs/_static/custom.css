@@ -1,0 +1,46 @@
+div.cell > div.cell_input{
+    border: 1px solid var(--color-border);
+    background-color: var(--color-border);
+    border-radius: 10px;
+    margin-top: 16px;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+div.cell > div.cell_output {
+    background-color: var(--color-muted);
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    margin-top: 0;
+    padding-top: 0.1px; /* some weird css bug, need to keep this */
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 1rem;
+}
+
+/* I think when logs are made, we automatically get a stderr class, and with it a red background, but it's not an error, so we make it transparent */
+.cell_output .output.stderr {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+.cell_output .output pre, .cell_input pre{
+    padding: 0px;
+}
+
+label {
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    background-color: rgba(110, 110, 110, 0.1);
+}
+
+/* Hide auto-generated Sphinx citation list */
+table.citation,
+div.citation,
+ol.citation,
+dl.citation,
+.citations {
+    display: none !important;
+}

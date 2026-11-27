@@ -1,0 +1,12 @@
+toad.postprocessing.stats.space
+===============================
+
+.. automodule:: toad.postprocessing.stats.space
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SpaceStats
+   

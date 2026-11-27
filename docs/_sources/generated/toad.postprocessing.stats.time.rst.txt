@@ -1,0 +1,12 @@
+toad.postprocessing.stats.time
+==============================
+
+.. automodule:: toad.postprocessing.stats.time
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      TimeStats
+   

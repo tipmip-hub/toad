@@ -1,0 +1,21 @@
+﻿toad.clustering
+===============
+
+.. automodule:: toad.clustering
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compute_clusters
+      geodetic_to_cartesian
+      sorted_cluster_labels
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   optimizing

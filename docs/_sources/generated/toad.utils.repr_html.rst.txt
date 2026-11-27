@@ -1,0 +1,15 @@
+toad.utils.repr\_html
+=====================
+
+.. automodule:: toad.utils.repr_html
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      build_variable_hierarchy
+      load_toad_logo_html
+      render_consensus_variables_html
+      render_hierarchy_html
+   
