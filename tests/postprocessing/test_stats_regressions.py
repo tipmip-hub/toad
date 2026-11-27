@@ -116,68 +116,6 @@ def test_steepest_gradient_cftime_time_and_all_stats():
     assert stats["steepest_gradient"] == cftime.DatetimeNoLeap(2020, 1, 1)
 
 
-# --- seam-aware cluster centre longitude ---
-
-
-def _lon_cluster_td(lon, sel_lons, cartesian=False):
-    T = 4
-    lat = np.arange(-85, 90, 10.0)
-    NY, NX = len(lat), len(lon)
-    v = np.random.default_rng(0).normal(size=(T, NY, NX))
-    lab = np.full((T, NY, NX), np.nan)
-    sel = np.isin(np.round(lon), sel_lons)
-    latsel = (lat >= 55) & (lat <= 75)
-    lab[2][np.ix_(latsel, sel)] = 0
-    lab[3][np.ix_(latsel, sel)] = 0
-    td = make_td(v, lab, lat=lat, lon=lon)
-    if cartesian:
-        td = TOAD(td.data.rename({"lat": "y", "lon": "x"}), log_level="WARNING")
-    return td
-
-
-@pytest.mark.parametrize(
-    "lon,sel,expected",
-    [
-        (np.arange(5, 360, 10.0), [335, 345, 355, 5, 15, 25], 0.0),  # 0-360, Greenwich
-        (np.arange(-175, 180, 10.0), [155, 165, 175, -175, -165], 175.0),  # dateline
-    ],
-)
-def test_centre_longitude_across_seam(lon, sel, expected):
-    s = _lon_cluster_td(lon, sel).stats("v_dts_cluster")
-    for got in [
-        s.space.mean(0)[1],
-        s.space.footprint_mean(0)[1],
-        s.space.median(0)[1],
-        s.cluster_summary()["center_lon"].iloc[0],
-    ]:
-        d = (got - expected + 180) % 360 - 180
-        assert abs(d) < 1e-9
-        assert (lon.min() <= got <= lon.max()) or np.isclose(got, 0.0)
-    assert s.space.std(0)[1] < 40  # spread on the short arc, not across the globe
-
-
-def test_centre_longitude_unchanged_without_seam_crossing():
-    lon = np.arange(5, 360, 10.0)
-    sel = [105, 115, 125, 135, 165]
-    s = _lon_cluster_td(lon, sel).stats("v_dts_cluster")
-    cells = lon[np.isin(lon, sel)]
-    assert s.space.footprint_mean(0)[1] == pytest.approx(np.mean(cells), abs=1e-12)
-    assert s.space.mean(0)[1] == pytest.approx(np.mean(cells), abs=1e-12)
-    assert s.cluster_summary()["center_lon"].iloc[0] == pytest.approx(
-        np.mean(cells), abs=1e-12
-    )
-
-
-def test_cartesian_x_is_not_wrapped():
-    from toad.postprocessing.stats.longitude import mean_longitude
-
-    lon = np.arange(5, 360, 10.0)
-    s = _lon_cluster_td(lon, [345, 355, 5, 15], cartesian=True).stats("v_dts_cluster")
-    assert s.space.footprint_mean(0)[1] == pytest.approx(180.0)
-    assert mean_longitude([350.0, 10.0]) == pytest.approx(0.0)
-    assert mean_longitude([-170.0, 170.0]) == pytest.approx(-180.0)
-
-
 # --- score_overview passes each score only the arguments it accepts ---
 
 
@@ -232,12 +170,3 @@ def test_score_overview_without_kwargs_and_nan_component(monkeypatch):
     ov2 = g.score_overview()
     assert ov2["consistency"].isna().all()
     assert ov2["aggregate_score"].isna().all()
-
-
-def test_score_overview_mean_lon_across_seam():
-    lon = np.arange(5, 360, 10.0)
-    s = _lon_cluster_td(lon, [335, 345, 355, 5, 15, 25]).stats("v_dts_cluster")
-    got = s.general.score_overview()["mean_lon"].iloc[0]
-    assert abs((got + 180) % 360 - 180) < 1e-9
-    s2 = _lon_cluster_td(lon, [105, 115, 125]).stats("v_dts_cluster")
-    assert s2.general.score_overview()["mean_lon"].iloc[0] == pytest.approx(115.0)

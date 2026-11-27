@@ -4,28 +4,11 @@ import numpy as np
 import pandas as pd
 from scipy.ndimage import distance_transform_edt
 
-from toad.postprocessing.stats.longitude import (
-    mean_longitude,
-    median_longitude,
-    std_longitude,
-    unwrap_longitude,
-)
 from toad.utils import _all_functions, detect_latlon_names
-
-_LON_STATS = {"mean": mean_longitude, "median": median_longitude, "std": std_longitude}
 
 
 class SpaceStats:
-    """Class containing functions for calculating space-related statistics for clusters, such as mean, median, std, etc.
-
-    When the data have geographic lat/lon coordinates, the longitude mean,
-    median and std (and the ``center_lon`` of :meth:`footprint_table`) are
-    computed on the shortest arc containing the cluster's longitudes, so a
-    cluster that crosses the grid's seam (0/360 or the dateline) gets a correct
-    centre, returned in the grid's own convention. For clusters that do not
-    cross the seam this equals the arithmetic statistic. Cartesian x/y
-    coordinates are never wrapped.
-    """
+    """Class containing functions for calculating space-related statistics for clusters, such as mean, median, std, etc."""
 
     def __init__(self, toad, var):
         """Initialize SpaceStats.
@@ -76,48 +59,35 @@ class SpaceStats:
             x_coords = self.td.data[self.td.space_dims[1]].where(spatial_mask)
             return y_coords, x_coords
 
-    def _x_is_longitude(self) -> bool:
-        """True if the x coordinate used by these stats is geographic longitude."""
-        lat_name, lon_name = detect_latlon_names(self.td.data)
-        return lat_name is not None and lon_name is not None
-
-    def _x_stat(self, x_coords, stat: str) -> float:
-        """Mean/median/std of x; seam-aware when x is longitude and the cluster crosses the seam."""
-        if self._x_is_longitude():
-            values = np.asarray(x_coords.values, dtype=float)
-            if unwrap_longitude(values)[1]:
-                return _LON_STATS[stat](values)
-        return float(getattr(x_coords, stat)())
-
     def mean(self, cluster_id):
         """Returns the mean of the spatial coordinates across space and time."""
         y_coords, x_coords = self._get_cluster_coordinate_values_spacetime(cluster_id)
-        return (float(y_coords.mean()), self._x_stat(x_coords, "mean"))
+        return (float(y_coords.mean()), float(x_coords.mean()))
 
     def median(self, cluster_id):
         """Returns the median of the spatial coordinates across space and time."""
         y_coords, x_coords = self._get_cluster_coordinate_values_spacetime(cluster_id)
-        return (float(y_coords.median()), self._x_stat(x_coords, "median"))
+        return (float(y_coords.median()), float(x_coords.median()))
 
     def std(self, cluster_id):
         """Returns the standard deviation of the spatial coordinates across space and time."""
         y_coords, x_coords = self._get_cluster_coordinate_values_spacetime(cluster_id)
-        return (float(y_coords.std()), self._x_stat(x_coords, "std"))
+        return (float(y_coords.std()), float(x_coords.std()))
 
     def footprint_mean(self, cluster_id):
         """Returns the mean of the spatial coordinates of the cluster footprint."""
         y_coords, x_coords = self._get_cluster_coordinate_values(cluster_id)
-        return (float(y_coords.mean()), self._x_stat(x_coords, "mean"))
+        return (float(y_coords.mean()), float(x_coords.mean()))
 
     def footprint_median(self, cluster_id):
         """Returns the median of the spatial coordinates of the cluster footprint."""
         y_coords, x_coords = self._get_cluster_coordinate_values(cluster_id)
-        return (float(y_coords.median()), self._x_stat(x_coords, "median"))
+        return (float(y_coords.median()), float(x_coords.median()))
 
     def footprint_std(self, cluster_id):
         """Returns the standard deviation of the spatial coordinates of the cluster footprint."""
         y_coords, x_coords = self._get_cluster_coordinate_values(cluster_id)
-        return (float(y_coords.std()), self._x_stat(x_coords, "std"))
+        return (float(y_coords.std()), float(x_coords.std()))
 
     def central_point_for_labeling(self, cluster_id) -> tuple[float, float]:
         """Calculates a central point within the cluster's spatial footprint suitable for labeling.
@@ -259,15 +229,10 @@ class SpaceStats:
                     "cluster_id": int(cid),
                     "footprint_area": int(ps.size),
                     center_y: float(np.mean(events.y_flat[ps])),
-                    center_x: self._footprint_center_x(events.x_flat[ps]),
+                    center_x: float(np.mean(events.x_flat[ps])),
                 }
             )
         return pd.DataFrame(rows)
-
-    def _footprint_center_x(self, x_values: np.ndarray) -> float:
-        if self._x_is_longitude() and unwrap_longitude(x_values)[1]:
-            return mean_longitude(x_values)
-        return float(np.mean(x_values))
 
     def all_stats(self, cluster_id) -> dict:
         """Return all cluster stats"""

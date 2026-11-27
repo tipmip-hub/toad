@@ -479,14 +479,6 @@ class GeneralStats:
             score_columns.append(score_name)
 
         # Compute cluster size and spatial means
-        from toad.postprocessing.stats.longitude import (
-            mean_longitude,
-            unwrap_longitude,
-        )
-        from toad.utils import detect_latlon_names
-
-        _lat_name, _lon_name = detect_latlon_names(self.td.data)
-        sd1_is_lon = _lat_name is not None and _lon_name == sd1
         sizes = []
         mean_sd0 = []
         mean_sd1 = []
@@ -505,12 +497,7 @@ class GeneralStats:
                 coords_sd0 = self.td.data[sd0].where(spatial_mask)
                 coords_sd1 = self.td.data[sd1].where(spatial_mask)
                 mean_sd0.append(float(coords_sd0.mean(skipna=True).values))
-                lon1 = np.asarray(coords_sd1.values, dtype=float)
-                if sd1_is_lon and unwrap_longitude(lon1)[1]:
-                    # cluster crosses the longitude seam: mean on the short arc
-                    mean_sd1.append(mean_longitude(lon1))
-                else:
-                    mean_sd1.append(float(coords_sd1.mean(skipna=True).values))
+                mean_sd1.append(float(coords_sd1.mean(skipna=True).values))
             else:
                 mean_sd0.append(np.nan)
                 mean_sd1.append(np.nan)

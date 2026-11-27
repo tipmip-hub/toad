@@ -223,16 +223,8 @@ def _consensus_input_support_mask(
 def _footprint_coord_mean(
     coord: xr.DataArray, footprint: xr.DataArray, *, is_lon: bool
 ) -> float:
-    """Mean of a 1D grid coordinate over a cluster footprint (seam-aware for longitude)."""
-    plain = float(coord.where(footprint).mean(skipna=True).item())
-    if not is_lon:
-        return plain
-    vals = np.asarray(coord.where(footprint).values, dtype=np.float64).ravel()
-    # Imported here to avoid an import cycle with toad.postprocessing.
-    from toad.postprocessing.stats.longitude import mean_longitude, unwrap_longitude
-
-    _, crossed = unwrap_longitude(vals)
-    return float(mean_longitude(vals)) if crossed else plain
+    """Mean of a 1D grid coordinate over a cluster footprint."""
+    return float(coord.where(footprint).mean(skipna=True).item())
 
 
 def _build_consensus_summary_df_spacetime(

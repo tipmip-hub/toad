@@ -38,7 +38,6 @@ Mostly fixes for crashes and wrong output in special cases. Entries that can cha
 - The ``HealPixRegridder`` passed to ``compute_clusters()`` carries ``df_healpix`` again after the call (empty since 1.0.10), labelled with the output's cluster ids.
 - ``auto_clean=True`` keeps NEMO ``nav_lat``/``nav_lon`` coordinates.
 - ``TOAD(ds)`` no longer modifies the caller's dataset (``preprocess_variable``, ``save()`` encodings).
-- Cluster centre longitude (``td.stats``, ``cluster_summary``, ``score_overview`` and the consensus summary) is correct for clusters crossing 0°/360° or the dateline; the longitude median and spread in ``td.stats(...).space`` change with it. Clusters that do not cross the seam are unchanged, unless they span more than 180° of longitude with a gap elsewhere. On curvilinear grids ``score_overview`` and the consensus summary still average the index dimension.
 - ``score_overview(**kwargs)`` passes each score only the arguments it accepts, so ``consistency`` and ``spatial_autocorrelation`` are no longer NaN when keywords are given. A keyword that no score accepts now raises ``TypeError``, and ``aggregate_score`` is NaN when any component is NaN (before, failed scores were silently left out of the product).
 - Consensus seam stitching finds the longitude dimension itself, so data stored ``(time, lon, lat)`` is stitched across 0°/360° and latitude is never wrapped.
 - ``label_shift_time_samples`` and ``label_shift_time_distributions`` no longer fail for data not stored time-first.
