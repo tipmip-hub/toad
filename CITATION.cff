@@ -3,7 +3,7 @@ message: "If you use this software, please cite it as below."
 title: "TOAD: Tipping and Other Abrupt events Detector"
 version: "1.0.11"
 doi: "10.5281/zenodo.18316437"
-date-released: "2026-11-26"
+date-released: "2026-11-27"
 authors:
   - given-names: Jakob
     family-names: Harteg
