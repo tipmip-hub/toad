@@ -296,26 +296,21 @@ def _component_graph_edges_for_kept_voxels(
     connect_t = max(1, int(temporal_tolerance))
     connect_s = max(1, int(spatial_tolerance))
 
-    # --- non-stitch: Chebyshev graph in scaled (t, y, x) tolerance space ---
+    # --- non-stitch: Chebyshev graph in normalised (t, y, x) tolerance space ---
     if not context.stitch_meridian:
         kept_t = kept_nodes // context.n_space
         kept_s = kept_nodes % context.n_space
         kept_y = kept_s // context.x_len
         kept_x = kept_s % context.x_len
-        # Scale each axis so that the L∞ box |dt| <= connect_t, |dy|, |dx| <= connect_s
-        # becomes a ball of radius connect_t * connect_s. Multiplying integer indices
-        # (instead of dividing by the tolerance) keeps every coordinate and distance an
-        # exact integer in float64, so points exactly one tolerance apart are always
-        # linked, whatever the tolerance and absolute position.
+        # Scale each axis by its tolerance so KDTree L∞ radius 1 == within the box
         coords = np.column_stack(
             (
-                kept_t.astype(np.float64) * float(connect_s),
-                kept_y.astype(np.float64) * float(connect_t),
-                kept_x.astype(np.float64) * float(connect_t),
+                kept_t.astype(np.float32) / float(connect_t),
+                kept_y.astype(np.float32) / float(connect_s),
+                kept_x.astype(np.float32) / float(connect_s),
             )
         )
-        radius = float(connect_t * connect_s)
-        pairs = KDTree(coords).query_pairs(r=radius, p=np.inf, output_type="ndarray")
+        pairs = KDTree(coords).query_pairs(r=1.0, p=np.inf, output_type="ndarray")
         if pairs.size == 0:
             empty = np.array([], dtype=np.int64)
             return kept_nodes, empty, empty
